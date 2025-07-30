@@ -147,7 +147,7 @@ export default function Home() {
                       </span>
                     </div>
                     {item.isUrgent && (
-                      <TriangleAlert className="h-4 w-4 text-orange-500 flex-shrink-0" title="דחוף" />
+                      <TriangleAlert className="h-4 w-4 text-orange-500 flex-shrink-0" />
                     )}
                   </div>
                 </div>
@@ -176,19 +176,19 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="text-center p-2 bg-yellow-50 rounded">
                 <p className="text-gray-600">זריחה</p>
-                <p className="font-bold text-gray-800">{jewishTimes.sunrise}</p>
+                <p className="font-bold text-gray-800">{(jewishTimes as any).sunrise}</p>
               </div>
               <div className="text-center p-2 bg-orange-50 rounded">
                 <p className="text-gray-600">שקיעה</p>
-                <p className="font-bold text-gray-800">{jewishTimes.sunset}</p>
+                <p className="font-bold text-gray-800">{(jewishTimes as any).sunset}</p>
               </div>
               <div className="text-center p-2 bg-blue-50 rounded">
                 <p className="text-gray-600">כניסת שבת</p>
-                <p className="font-bold text-gray-800">{jewishTimes.shabbatIn}</p>
+                <p className="font-bold text-gray-800">{(jewishTimes as any).shabbatIn}</p>
               </div>
               <div className="text-center p-2 bg-purple-50 rounded">
                 <p className="text-gray-600">צאת שבת</p>
-                <p className="font-bold text-gray-800">{jewishTimes.shabbatOut}</p>
+                <p className="font-bold text-gray-800">{(jewishTimes as any).shabbatOut}</p>
               </div>
             </div>
           ) : (

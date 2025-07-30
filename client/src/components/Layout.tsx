@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { RegistrationForm } from "./RegistrationForm";
-import { BottomNavigation } from "./BottomNavigation";
+import { RegistrationForm } from "@/components/RegistrationForm";
+import { BottomNavigation } from "@/components/BottomNavigation";
 import { Bell, Shield } from "lucide-react";
 
 interface LayoutProps {

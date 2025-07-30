@@ -1,10 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Phone, IdCard, Calendar, LogOut } from "lucide-react";
+import { useLocation } from "wouter";
+import { User, Phone, IdCard, Calendar, LogOut, Settings } from "lucide-react";
 
 export default function Profile() {
   const { user, logout } = useAuth();
+  const [, setLocation] = useLocation();
 
   if (!user) {
     return (
@@ -109,6 +111,14 @@ export default function Profile() {
           <h3 className="font-bold text-gray-800 mb-4">ניהול חשבון</h3>
           
           <div className="space-y-3">
+            <Button
+              variant="outline"
+              className="w-full justify-start text-police-blue border-police-blue hover:bg-blue-50"
+              onClick={() => setLocation("/admin")}
+            >
+              <Settings className="h-4 w-4 ml-2" />
+              אזור ניהול
+            </Button>
             <Button
               variant="outline"
               className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50"
