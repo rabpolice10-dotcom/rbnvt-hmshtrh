@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isAdmin: boolean;
   login: () => Promise<void>;
   register: (userData: { fullName: string; personalId: string; phone: string }) => Promise<void>;
   logout: () => void;
@@ -64,8 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
+  const isAdmin = user?.isAdmin || false;
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, isAdmin, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

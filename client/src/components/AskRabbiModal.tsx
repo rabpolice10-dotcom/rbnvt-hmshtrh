@@ -24,7 +24,8 @@ export function AskRabbiModal({ open, onOpenChange }: AskRabbiModalProps) {
   const [formData, setFormData] = useState({
     category: "",
     content: "",
-    isUrgent: false
+    isUrgent: false,
+    isPrivate: false
   });
 
   const submitQuestion = useMutation({
@@ -42,7 +43,7 @@ export function AskRabbiModal({ open, onOpenChange }: AskRabbiModalProps) {
         description: "תקבל הודעה כאשר התשובה תהיה מוכנה",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
-      setFormData({ category: "", content: "", isUrgent: false });
+      setFormData({ category: "", content: "", isUrgent: false, isPrivate: false });
       onOpenChange(false);
     },
     onError: () => {
@@ -100,13 +101,25 @@ export function AskRabbiModal({ open, onOpenChange }: AskRabbiModalProps) {
             />
           </div>
           
-          <div className="flex items-center space-x-reverse space-x-2">
-            <Checkbox
-              id="urgent"
-              checked={formData.isUrgent}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isUrgent: !!checked }))}
-            />
-            <Label htmlFor="urgent" className="text-sm text-gray-700">שאלה דחופה</Label>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-reverse space-x-2">
+              <Checkbox
+                id="urgent"
+                checked={formData.isUrgent}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isUrgent: !!checked }))}
+              />
+              <Label htmlFor="urgent" className="text-sm text-gray-700">שאלה דחופה</Label>
+            </div>
+            
+            <div className="flex items-center space-x-reverse space-x-2">
+              <Checkbox
+                id="private"
+                checked={formData.isPrivate}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPrivate: !!checked }))}
+              />
+              <Label htmlFor="private" className="text-sm text-gray-700">שאלה פרטית</Label>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">שאלה פרטית לא תוצג לציבור, רק למנהלים ולמשלח</p>
           </div>
           
           <Button 

@@ -11,6 +11,8 @@ import Synagogues from "@/pages/Synagogues";
 import Videos from "@/pages/Videos";
 import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
+import Contact from "@/pages/Contact";
+import JewishTimes from "@/pages/JewishTimes";
 import NotFound from "@/pages/not-found";
 
 function AppContent() {
@@ -30,6 +32,8 @@ function AppContent() {
         <Route path="/synagogues" component={Synagogues} />
         <Route path="/videos" component={Videos} />
         <Route path="/profile" component={Profile} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/jewish-times" component={JewishTimes} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

@@ -1,4 +1,4 @@
-import { Home, MessageCircleQuestion, MapPin, Play, User } from "lucide-react";
+import { Home, MessageCircleQuestion, MapPin, Play, MessageSquare } from "lucide-react";
 import { useLocation } from "wouter";
 
 export function BottomNavigation() {
@@ -9,7 +9,7 @@ export function BottomNavigation() {
     { path: "/questions", icon: MessageCircleQuestion, label: "שאלות" },
     { path: "/synagogues", icon: MapPin, label: "בתי כנסת" },
     { path: "/videos", icon: Play, label: "סרטונים" },
-    { path: "/profile", icon: User, label: "פרופיל" },
+    { path: "/contact", icon: MessageSquare, label: "צור קשר" },
   ];
 
   return (

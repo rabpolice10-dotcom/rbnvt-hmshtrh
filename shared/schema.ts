@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   phone: text("phone").notNull(),
   deviceId: text("device_id").notNull().unique(),
   status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
+  isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   approvedAt: timestamp("approved_at"),
   approvedBy: varchar("approved_by"),
@@ -23,6 +24,7 @@ export const questions = pgTable("questions", {
   category: text("category").notNull(),
   content: text("content").notNull(),
   isUrgent: boolean("is_urgent").default(false).notNull(),
+  isPrivate: boolean("is_private").default(false).notNull(),
   status: text("status", { enum: ["pending", "answered", "closed"] }).default("pending").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

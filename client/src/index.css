@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -62,7 +62,7 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    font-family: 'Alef', Arial, sans-serif;
+    font-family: 'Heebo', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     direction: rtl;
     text-align: right;
   }

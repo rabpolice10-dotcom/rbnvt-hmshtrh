@@ -245,6 +245,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Contact route
+  app.post("/api/contact", async (req, res) => {
+    try {
+      const { name, phone, message } = req.body;
+      // This could be extended to store in database or send email
+      console.log(`Contact message from ${name} (${phone}): ${message}`);
+      res.json({ success: true, message: "ההודעה נשלחה בהצלחה" });
+    } catch (error) {
+      res.status(400).json({ message: "שגיאה בשליחת ההודעה" });
+    }
+  });
+
+  // Enhanced Jewish Times API
+  app.get("/api/jewish-times/detailed", async (req, res) => {
+    try {
+      // This is a placeholder for real Jewish times API integration
+      const now = new Date();
+      const location = "ירושלים, ישראל";
+      
+      res.json({
+        location,
+        date: now.toISOString().split('T')[0],
+        dayOfWeek: now.toLocaleDateString('he-IL', { weekday: 'long' }),
+        sunrise: "06:42",
+        sunset: "17:30", 
+        shacharit: "07:00",
+        mincha: "13:15",
+        maariv: "18:15",
+        shabbatStart: now.getDay() === 5 ? "17:15" : undefined,
+        shabbatEnd: now.getDay() === 6 ? "18:30" : undefined,
+        candleLighting: now.getDay() === 5 ? "17:15" : undefined
+      });
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בטעינת זמנים יהודיים" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

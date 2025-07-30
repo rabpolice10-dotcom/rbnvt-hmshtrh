@@ -3,7 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { RegistrationForm } from "@/components/RegistrationForm";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { useLocation } from "wouter";
-import { Bell, Shield } from "lucide-react";
+import { Bell } from "lucide-react";
+import logo from "@assets/bf4d69d1-82e0-4b41-bc8c-ecca5ca6a895_1753886576969.jpeg";
 
 interface LayoutProps {
   children: ReactNode;
@@ -35,7 +36,12 @@ export function Layout({ children }: LayoutProps) {
             >
               רבנות המשטרה
             </button>
-            <Shield className="h-6 w-6" />
+            <button 
+              onClick={() => setLocation("/")}
+              className="hover:opacity-80 transition-opacity"
+            >
+              <img src={logo} alt="לוגו רבנות המשטרה" className="h-8 w-auto" />
+            </button>
           </div>
         </header>
         <RegistrationForm />
@@ -63,7 +69,12 @@ export function Layout({ children }: LayoutProps) {
                 ניהול
               </button>
             </div>
-            <Shield className="h-6 w-6" />
+            <button 
+              onClick={() => setLocation("/")}
+              className="hover:opacity-80 transition-opacity"
+            >
+              <img src={logo} alt="לוגו רבנות המשטרה" className="h-8 w-auto" />
+            </button>
           </div>
         </header>
         <div className="p-4">
@@ -100,15 +111,20 @@ export function Layout({ children }: LayoutProps) {
             >
               רבנות המשטרה
             </button>
-            <Shield className="h-6 w-6" />
+            <button 
+              onClick={() => setLocation("/")}
+              className="hover:opacity-80 transition-opacity"
+            >
+              <img src={logo} alt="לוגו רבנות המשטרה" className="h-8 w-auto" />
+            </button>
           </div>
         </header>
         <div className="p-4">
           <div className="bg-white rounded-lg shadow-card p-6 mt-8 text-center">
-            <div className="text-4xl mb-4 text-red-500">❌</div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">בקשה נדחתה</h2>
-            <p className="text-gray-600 mb-4">הבקשה שלך להצטרף למערכת נדחתה.</p>
-            <p className="text-sm text-gray-500">אנא פנה למנהל המערכת לקבלת פרטים נוספים.</p>
+            <div className="text-4xl mb-4">❌</div>
+            <h2 className="text-xl font-bold text-red-600 mb-2">הבקשה נדחתה</h2>
+            <p className="text-gray-600 mb-4">הבקשה שלך לחברות באפליקציה נדחתה על ידי מנהל המערכת.</p>
+            <p className="text-sm text-gray-500">אם אתה חושב שמדובר בטעות, צור קשר עם מנהל המערכת.</p>
           </div>
         </div>
       </div>
@@ -119,25 +135,24 @@ export function Layout({ children }: LayoutProps) {
     <div className="max-w-md mx-auto bg-white min-h-screen">
       <header className="gradient-header text-white p-4 shadow-lg">
         <div className="flex items-center justify-between">
-          <button 
-            onClick={() => setLocation("/")}
-            className="text-xl font-bold hover:opacity-80 transition-opacity"
-          >
-            רבנות המשטרה
-          </button>
-          <div className="flex items-center space-x-reverse space-x-2">
-            <Shield className="h-5 w-5" />
-            <button className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -left-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                3
-              </span>
+          <div className="flex items-center">
+            <button 
+              onClick={() => setLocation("/")}
+              className="text-xl font-bold hover:opacity-80 transition-opacity"
+            >
+              רבנות המשטרה
             </button>
           </div>
+          <button 
+            onClick={() => setLocation("/")}
+            className="hover:opacity-80 transition-opacity"
+          >
+            <img src={logo} alt="לוגו רבנות המשטרה" className="h-8 w-auto" />
+          </button>
         </div>
       </header>
       
-      <main className="pb-20">
+      <main className="flex-1 pb-16">
         {children}
       </main>
       

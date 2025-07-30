@@ -58,6 +58,7 @@ export default function Home() {
         </Button>
         
         <Button
+          onClick={() => window.location.href = "/jewish-times"}
           className="bg-green-50 hover:bg-green-100 text-gray-800 p-4 rounded-lg h-auto flex-col space-y-2"
           variant="ghost"
         >
