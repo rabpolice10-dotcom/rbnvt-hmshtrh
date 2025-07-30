@@ -1,9 +1,9 @@
 import { 
-  users, questions, answers, news, synagogues, dailyHalacha, videos,
+  users, questions, answers, news, synagogues, dailyHalacha, videos, contactMessages,
   type User, type InsertUser, type Question, type InsertQuestion,
   type Answer, type InsertAnswer, type News, type InsertNews,
   type Synagogue, type InsertSynagogue, type DailyHalacha, type InsertDailyHalacha,
-  type Video, type InsertVideo
+  type Video, type InsertVideo, type ContactMessage, type InsertContactMessage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ilike, or } from "drizzle-orm";
@@ -44,6 +44,11 @@ export interface IStorage {
   // Video operations
   getAllVideos(): Promise<Video[]>;
   createVideo(video: InsertVideo): Promise<Video>;
+
+  // Contact Message operations
+  createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
+  getAllContactMessages(): Promise<ContactMessage[]>;
+  markContactMessageAsRead(id: string): Promise<ContactMessage>;
 
   // Search operations
   searchQuestions(query: string): Promise<Question[]>;
@@ -197,6 +202,27 @@ export class DatabaseStorage implements IStorage {
       .values(video)
       .returning();
     return newVideo;
+  }
+
+  async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {
+    const [newMessage] = await db
+      .insert(contactMessages)
+      .values(message)
+      .returning();
+    return newMessage;
+  }
+
+  async getAllContactMessages(): Promise<ContactMessage[]> {
+    return db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt));
+  }
+
+  async markContactMessageAsRead(id: string): Promise<ContactMessage> {
+    const [updatedMessage] = await db
+      .update(contactMessages)
+      .set({ isRead: true })
+      .where(eq(contactMessages.id, id))
+      .returning();
+    return updatedMessage;
   }
 
   async searchQuestions(query: string): Promise<Question[]> {

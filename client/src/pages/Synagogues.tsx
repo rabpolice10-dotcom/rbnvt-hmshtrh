@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Route, Clock, Navigation } from "lucide-react";
-import { SiGooglemaps } from "react-icons/si";
+import { SiWaze, SiGooglemaps } from "react-icons/si";
 import type { Synagogue } from "@shared/schema";
 
 export default function Synagogues() {
@@ -60,17 +60,17 @@ export default function Synagogues() {
                       size="sm"
                       variant="ghost"
                       onClick={() => openWaze(synagogue.address)}
-                      className="text-blue-600 hover:bg-blue-50 flex items-center space-x-1"
+                      className="text-blue-600 hover:bg-blue-50 flex items-center space-x-reverse space-x-1"
                       title="פתח בוויז"
                     >
-                      <Navigation className="h-4 w-4" />
+                      <SiWaze className="h-4 w-4" />
                       <span className="text-xs">Waze</span>
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => openMaps(synagogue.address, synagogue.latitude || undefined, synagogue.longitude || undefined)}
-                      className="text-green-600 hover:bg-green-50 flex items-center space-x-1"
+                      className="text-green-600 hover:bg-green-50 flex items-center space-x-reverse space-x-1"
                       title="פתח במפות גוגל"
                     >
                       <SiGooglemaps className="h-4 w-4" />

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, MessageCircleQuestion, Clock, CheckCircle, XCircle, Plus, Settings, Newspaper, MapPin, Video, BookOpen, Shield } from "lucide-react";
+import { Users, MessageCircleQuestion, Clock, CheckCircle, XCircle, Plus, Settings, Newspaper, MapPin, Video, BookOpen, Shield, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -21,8 +21,8 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const [selectedTab, setSelectedTab] = useState("users");
 
-  // Check if user is admin - for now, any approved user can access admin
-  const canAccess = user?.status === "approved" || user?.status === "pending";
+  // Check if user is admin - only real admins can access
+  const canAccess = user?.isAdmin === true;
 
   if (!canAccess) {
     return (
@@ -53,9 +53,10 @@ export default function Admin() {
       </Card>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="users">משתמשים</TabsTrigger>
           <TabsTrigger value="questions">שאלות</TabsTrigger>
+          <TabsTrigger value="contact">הודעות</TabsTrigger>
           <TabsTrigger value="news">חדשות</TabsTrigger>
           <TabsTrigger value="synagogues">בתי כנסת</TabsTrigger>
           <TabsTrigger value="videos">סרטונים</TabsTrigger>
@@ -68,6 +69,10 @@ export default function Admin() {
 
         <TabsContent value="questions" className="space-y-4">
           <QuestionManagement />
+        </TabsContent>
+
+        <TabsContent value="contact" className="space-y-4">
+          <ContactManagement />
         </TabsContent>
 
         <TabsContent value="news" className="space-y-4">
@@ -1062,6 +1067,107 @@ function HalachaManagement() {
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// Contact Management Component
+function ContactManagement() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: messages, isLoading } = useQuery({
+    queryKey: ["/api/admin/contact-messages"],
+  }) as { data: any[] | undefined; isLoading: boolean };
+
+  const markAsRead = useMutation({
+    mutationFn: async (messageId: string) => {
+      return apiRequest("POST", `/api/admin/contact-messages/${messageId}/read`, {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "הודעה סומנה כנקראה",
+        description: "ההודעה עודכנה בהצלחה",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/contact-messages"] });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "שגיאה",
+        description: "אירעה שגיאה בעדכון ההודעה",
+      });
+    }
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">ניהול הודעות צור קשר</h2>
+        <Badge variant="secondary">
+          {messages?.filter(msg => !msg.isRead).length || 0} הודעות חדשות
+        </Badge>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-police-blue mx-auto mb-4"></div>
+          <p className="text-gray-600">טוען הודעות...</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {messages && messages.length > 0 ? (
+            messages.map((message: any) => (
+              <Card key={message.id} className={`shadow-card ${!message.isRead ? 'border-police-blue border-2' : ''}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <h3 className="font-semibold text-gray-800">{message.fullName}</h3>
+                        {!message.isRead && (
+                          <Badge variant="default" className="mr-2 bg-police-blue">
+                            חדש
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">📞 {message.phone}</p>
+                      <p className="text-gray-800 leading-relaxed">{message.message}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between border-t pt-3">
+                    <div className="flex items-center space-x-reverse space-x-2">
+                      <Clock className="h-4 w-4 text-gray-400" />
+                      <span className="text-xs text-gray-500">
+                        {new Date(message.createdAt).toLocaleDateString('he-IL')} בשעה {new Date(message.createdAt).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    
+                    {!message.isRead && (
+                      <Button
+                        onClick={() => markAsRead.mutate(message.id)}
+                        disabled={markAsRead.isPending}
+                        size="sm"
+                        variant="outline"
+                        className="text-police-blue border-police-blue hover:bg-police-blue hover:text-white"
+                      >
+                        {markAsRead.isPending ? "מעדכן..." : "סמן כנקרא"}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card className="shadow-card">
+              <CardContent className="p-6 text-center">
+                <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">אין הודעות צור קשר</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 }

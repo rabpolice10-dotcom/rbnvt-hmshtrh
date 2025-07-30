@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertQuestionSchema, insertAnswerSchema, insertNewsSchema, insertSynagogueSchema, insertDailyHalachaSchema, insertVideoSchema } from "@shared/schema";
+import { insertUserSchema, insertQuestionSchema, insertAnswerSchema, insertNewsSchema, insertSynagogueSchema, insertDailyHalachaSchema, insertVideoSchema, insertContactMessageSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -248,12 +248,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contact route
   app.post("/api/contact", async (req, res) => {
     try {
-      const { name, phone, message } = req.body;
-      // This could be extended to store in database or send email
-      console.log(`Contact message from ${name} (${phone}): ${message}`);
-      res.json({ success: true, message: "ההודעה נשלחה בהצלחה" });
+      const messageData = insertContactMessageSchema.parse(req.body);
+      const message = await storage.createContactMessage(messageData);
+      res.json({ success: true, message: "ההודעה נשלחה בהצלחה", id: message.id });
     } catch (error) {
       res.status(400).json({ message: "שגיאה בשליחת ההודעה" });
+    }
+  });
+
+  // Admin route for contact messages
+  app.get("/api/admin/contact-messages", async (req, res) => {
+    try {
+      const messages = await storage.getAllContactMessages();
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בטעינת הודעות" });
+    }
+  });
+
+  app.post("/api/admin/contact-messages/:id/read", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const message = await storage.markContactMessageAsRead(id);
+      res.json({ message });
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בעדכון הודעה" });
     }
   });
 

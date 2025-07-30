@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AskRabbiModal } from "@/components/AskRabbiModal";
 import { MessageCircleQuestion, Clock, BookOpen, Newspaper, Sun, Calendar, CheckCircle, TriangleAlert } from "lucide-react";
 import type { News, DailyHalacha, Question } from "@shared/schema";
-import logo1 from "@assets/24cce150-a4e1-45c8-a607-fb4960da1131_1753886576969.jpeg";
-import logo2 from "@assets/bf4d69d1-82e0-4b41-bc8c-ecca5ca6a895_1753886576969.jpeg";
+import logo from "@assets/bf4d69d1-82e0-4b41-bc8c-ecca5ca6a895_1753886576969.jpeg";
 
 export default function Home() {
   const [showAskRabbi, setShowAskRabbi] = useState(false);
@@ -32,19 +31,7 @@ export default function Home() {
 
   return (
     <div className="p-4 space-y-4">
-      {/* Logos Section */}
-      <div className="flex justify-center items-center space-x-4 mb-6 bg-white p-4 rounded-lg shadow-sm">
-        <img 
-          src={logo1} 
-          alt="לוגו 1" 
-          className="h-16 w-auto object-contain"
-        />
-        <img 
-          src={logo2} 
-          alt="לוגו 2" 
-          className="h-16 w-auto object-contain"
-        />
-      </div>
+
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
@@ -58,7 +45,7 @@ export default function Home() {
         </Button>
         
         <Button
-          onClick={() => window.location.href = "/jewish-times"}
+          onClick={() => window.location.pathname = "/jewish-times"}
           className="bg-green-50 hover:bg-green-100 text-gray-800 p-4 rounded-lg h-auto flex-col space-y-2"
           variant="ghost"
         >
@@ -178,43 +165,7 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      {/* Jewish Times Widget */}
-      <Card className="shadow-card">
-        <CardContent className="p-4">
-          <div className="flex items-center mb-3">
-            <Sun className="h-5 w-5 text-yellow-600 ml-2" />
-            <h3 className="font-bold text-gray-800">זמנים יהודיים - ירושלים</h3>
-            <Button variant="ghost" className="mr-auto text-police-blue text-xs p-0 h-auto">
-              שנה מיקום
-            </Button>
-          </div>
-          
-          {jewishTimes ? (
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="text-center p-2 bg-yellow-50 rounded">
-                <p className="text-gray-600">זריחה</p>
-                <p className="font-bold text-gray-800">{(jewishTimes as any).sunrise}</p>
-              </div>
-              <div className="text-center p-2 bg-orange-50 rounded">
-                <p className="text-gray-600">שקיעה</p>
-                <p className="font-bold text-gray-800">{(jewishTimes as any).sunset}</p>
-              </div>
-              <div className="text-center p-2 bg-blue-50 rounded">
-                <p className="text-gray-600">כניסת שבת</p>
-                <p className="font-bold text-gray-800">{(jewishTimes as any).shabbatIn}</p>
-              </div>
-              <div className="text-center p-2 bg-purple-50 rounded">
-                <p className="text-gray-600">צאת שבת</p>
-                <p className="font-bold text-gray-800">{(jewishTimes as any).shabbatOut}</p>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-gray-500">טוען זמנים...</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+
 
       <AskRabbiModal open={showAskRabbi} onOpenChange={setShowAskRabbi} />
     </div>

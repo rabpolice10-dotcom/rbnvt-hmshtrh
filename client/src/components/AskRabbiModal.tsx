@@ -117,9 +117,9 @@ export function AskRabbiModal({ open, onOpenChange }: AskRabbiModalProps) {
                 checked={formData.isPrivate}
                 onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPrivate: !!checked }))}
               />
-              <Label htmlFor="private" className="text-sm text-gray-700">שאלה פרטית</Label>
+              <Label htmlFor="private" className="text-sm text-gray-700">שאלה פרטית (תופיע רק לשואל ולמנהלים)</Label>
             </div>
-            <p className="text-xs text-gray-500 mt-1">שאלה פרטית לא תוצג לציבור, רק למנהלים ולמשלח</p>
+            <p className="text-xs text-gray-500 mt-1">שאלה פרטית לא תוצג לציבור, רק למנהלים ולמשלח השאלה</p>
           </div>
           
           <Button 

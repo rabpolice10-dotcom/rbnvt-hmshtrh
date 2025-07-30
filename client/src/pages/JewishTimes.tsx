@@ -1,163 +1,211 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, MapPin, Sun, Moon, Star, Calendar } from "lucide-react";
-
-interface JewishTimesData {
-  location: string;
-  date: string;
-  sunrise: string;
-  sunset: string;
-  shacharit: string;
-  mincha: string;
-  maariv: string;
-  shabbatStart?: string;
-  shabbatEnd?: string;
-  candleLighting?: string;
-  dayOfWeek: string;
-}
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Sun, Moon, Star, Clock, MapPin, Calendar } from "lucide-react";
 
 export default function JewishTimes() {
-  const { data: jewishTimes, isLoading } = useQuery({
-    queryKey: ["/api/jewish-times/detailed"],
-    retry: false,
-  }) as { data: JewishTimesData | undefined; isLoading: boolean };
+  const [location, setLocation] = useState("ירושלים");
+  const [customLocation, setCustomLocation] = useState("");
+  const [isCustomMode, setIsCustomMode] = useState(false);
 
-  const currentDate = new Date().toLocaleDateString('he-IL', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'long'
+  const { data: jewishTimes, isLoading } = useQuery({
+    queryKey: ["/api/jewish-times", location],
+    retry: false,
   });
 
-  if (isLoading) {
-    return (
-      <div className="p-4">
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-police-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">טוען זמנים...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleLocationChange = () => {
+    if (customLocation.trim()) {
+      setLocation(customLocation.trim());
+      setIsCustomMode(false);
+      setCustomLocation("");
+    }
+  };
+
+  const commonLocations = [
+    "ירושלים",
+    "תל אביב",
+    "חיפה",
+    "באר שבע",
+    "אילת",
+    "צפת",
+    "טבריה",
+    "נתניה"
+  ];
 
   return (
     <div className="p-4 space-y-4">
-      {/* Header */}
-      <Card className="shadow-card bg-gradient-to-r from-police-blue-light to-blue-50">
+      <div className="flex items-center mb-6">
+        <Sun className="h-6 w-6 text-yellow-600 ml-2" />
+        <h1 className="text-xl font-bold text-gray-800">זמנים יהודיים</h1>
+      </div>
+
+      {/* Location Selection */}
+      <Card className="shadow-card">
         <CardContent className="p-4">
-          <div className="flex items-center mb-2">
-            <Clock className="h-5 w-5 text-police-blue ml-2" />
-            <h3 className="font-bold text-gray-800">זמנים יהודיים</h3>
+          <div className="flex items-center mb-3">
+            <MapPin className="h-5 w-5 text-police-blue ml-2" />
+            <h3 className="font-bold text-gray-800">בחירת מיקום</h3>
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <Calendar className="h-4 w-4 ml-1" />
-            <span>{currentDate}</span>
+          
+          <div className="space-y-3">
+            <div>
+              <Label className="text-sm font-medium text-gray-700">מיקום נוכחי: {location}</Label>
+            </div>
+            
+            {!isCustomMode ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {commonLocations.map((loc) => (
+                    <Button
+                      key={loc}
+                      variant={location === loc ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setLocation(loc)}
+                      className={`text-sm ${location === loc ? "bg-police-blue text-white" : ""}`}
+                    >
+                      {loc}
+                    </Button>
+                  ))}
+                </div>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsCustomMode(true)}
+                  className="w-full text-police-blue"
+                >
+                  הכנס מיקום אחר
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex space-x-reverse space-x-2">
+                  <Input
+                    value={customLocation}
+                    onChange={(e) => setCustomLocation(e.target.value)}
+                    placeholder="הכנס שם עיר..."
+                    className="text-right flex-1"
+                  />
+                  <Button
+                    onClick={handleLocationChange}
+                    disabled={!customLocation.trim()}
+                    size="sm"
+                    className="bg-police-blue hover:bg-police-blue-dark text-white"
+                  >
+                    עדכן
+                  </Button>
+                </div>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setIsCustomMode(false);
+                    setCustomLocation("");
+                  }}
+                  className="w-full text-gray-600"
+                >
+                  חזור לרשימה
+                </Button>
+              </div>
+            )}
           </div>
-          {jewishTimes?.location && (
-            <div className="flex items-center text-sm text-gray-600 mt-1">
-              <MapPin className="h-4 w-4 ml-1" />
-              <span>{jewishTimes.location}</span>
+        </CardContent>
+      </Card>
+
+      {/* Times Display */}
+      <Card className="shadow-card">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <Calendar className="h-5 w-5 text-police-blue ml-2" />
+              <h3 className="font-bold text-gray-800">זמנים להיום</h3>
+            </div>
+            <div className="text-sm text-gray-600">
+              {new Date().toLocaleDateString('he-IL')}
+            </div>
+          </div>
+          
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-police-blue mx-auto mb-4"></div>
+              <p className="text-gray-600">טוען זמנים...</p>
+            </div>
+          ) : jewishTimes ? (
+            <div className="space-y-4">
+              {/* Basic Times */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center p-3 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                  <Sun className="h-6 w-6 text-yellow-600 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-1">זריחה</p>
+                  <p className="font-bold text-lg text-gray-800">{(jewishTimes as any).sunrise}</p>
+                </div>
+                
+                <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-red-50 rounded-lg border border-orange-200">
+                  <Sun className="h-6 w-6 text-orange-600 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-1">שקיעה</p>
+                  <p className="font-bold text-lg text-gray-800">{(jewishTimes as any).sunset}</p>
+                </div>
+              </div>
+
+              {/* Shabbat Times */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                  <Star className="h-6 w-6 text-blue-600 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-1">כניסת שבת</p>
+                  <p className="font-bold text-lg text-gray-800">{(jewishTimes as any).shabbatIn}</p>
+                </div>
+                
+                <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+                  <Moon className="h-6 w-6 text-purple-600 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-1">צאת שבת</p>
+                  <p className="font-bold text-lg text-gray-800">{(jewishTimes as any).shabbatOut}</p>
+                </div>
+              </div>
+
+              {/* Additional Times */}
+              {(jewishTimes as any).additionalTimes && (
+                <div className="space-y-2 pt-4 border-t border-gray-200">
+                  <h4 className="font-semibold text-gray-800 text-sm">זמנים נוספים</h4>
+                  <div className="grid grid-cols-1 gap-2 text-sm">
+                    {(jewishTimes as any).dawn && (
+                      <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <span className="text-gray-600">עלות השחר</span>
+                        <span className="font-medium">{(jewishTimes as any).dawn}</span>
+                      </div>
+                    )}
+                    {(jewishTimes as any).dusk && (
+                      <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <span className="text-gray-600">צאת הכוכבים</span>
+                        <span className="font-medium">{(jewishTimes as any).dusk}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-600 mb-2">לא ניתן לטעון זמנים</h3>
+              <p className="text-gray-500">אנא בדוק את החיבור לאינטרנט ונסה שוב</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Daily Times */}
+      {/* Information Card */}
       <Card className="shadow-card">
         <CardContent className="p-4">
-          <h4 className="font-semibold text-gray-800 mb-3">זמנים יומיים</h4>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-              <div className="flex items-center">
-                <Sun className="h-5 w-5 text-orange-500 ml-2" />
-                <span className="font-medium">זריחה</span>
-              </div>
-              <span className="text-lg font-bold text-orange-600">
-                {jewishTimes?.sunrise || "06:30"}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center">
-                <Clock className="h-5 w-5 text-blue-500 ml-2" />
-                <span className="font-medium">שחרית</span>
-              </div>
-              <span className="text-lg font-bold text-blue-600">
-                {jewishTimes?.shacharit || "07:00"}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-              <div className="flex items-center">
-                <Sun className="h-5 w-5 text-yellow-500 ml-2" />
-                <span className="font-medium">מנחה</span>
-              </div>
-              <span className="text-lg font-bold text-yellow-600">
-                {jewishTimes?.mincha || "13:15"}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-              <div className="flex items-center">
-                <Moon className="h-5 w-5 text-purple-500 ml-2" />
-                <span className="font-medium">שקיעה</span>
-              </div>
-              <span className="text-lg font-bold text-purple-600">
-                {jewishTimes?.sunset || "17:30"}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg">
-              <div className="flex items-center">
-                <Star className="h-5 w-5 text-indigo-500 ml-2" />
-                <span className="font-medium">מעריב</span>
-              </div>
-              <span className="text-lg font-bold text-indigo-600">
-                {jewishTimes?.maariv || "18:15"}
-              </span>
-            </div>
+          <h3 className="font-bold text-gray-800 mb-2">מידע חשוב</h3>
+          <div className="text-sm text-gray-600 space-y-2">
+            <p>• הזמנים מחושבים לפי מיקום הגיאוגרפי של העיר שנבחרה</p>
+            <p>• זמני השבת מחושבים עם הוספת 18 דקות לכניסה ו-42 דקות ליציאה</p>
+            <p>• במקרה של ספק, יש להתייעץ עם רב מוסמך</p>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Shabbat Times */}
-      {jewishTimes?.shabbatStart && (
-        <Card className="shadow-card">
-          <CardContent className="p-4">
-            <h4 className="font-semibold text-gray-800 mb-3">זמני שבת</h4>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-pink-50 rounded-lg">
-                <div className="flex items-center">
-                  <Star className="h-5 w-5 text-pink-500 ml-2" />
-                  <span className="font-medium">הדלקת נרות</span>
-                </div>
-                <span className="text-lg font-bold text-pink-600">
-                  {jewishTimes.candleLighting || jewishTimes.shabbatStart}
-                </span>
-              </div>
-
-              {jewishTimes.shabbatEnd && (
-                <div className="flex items-center justify-between p-3 bg-teal-50 rounded-lg">
-                  <div className="flex items-center">
-                    <Moon className="h-5 w-5 text-teal-500 ml-2" />
-                    <span className="font-medium">צאת השבת</span>
-                  </div>
-                  <span className="text-lg font-bold text-teal-600">
-                    {jewishTimes.shabbatEnd}
-                  </span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Note */}
-      <Card className="shadow-card">
-        <CardContent className="p-4">
-          <p className="text-sm text-gray-600 text-center">
-            הזמנים מחושבים לפי מיקומך הנוכחי ומקורות הלכתיים מהימנים
-          </p>
         </CardContent>
       </Card>
     </div>

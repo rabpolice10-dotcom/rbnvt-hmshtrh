@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AskRabbiModal } from "@/components/AskRabbiModal";
-import { MessageCircleQuestion, Search, Plus, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { MessageCircleQuestion, Search, Plus, CheckCircle, Clock, AlertCircle, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { Question } from "@shared/schema";
 
@@ -95,6 +95,12 @@ export default function Questions() {
                       {question.isUrgent && (
                         <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded mr-2">
                           דחוף
+                        </span>
+                      )}
+                      {question.isPrivate && (
+                        <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded mr-2 flex items-center">
+                          <Lock className="h-3 w-3 ml-1" />
+                          פרטי
                         </span>
                       )}
                     </div>

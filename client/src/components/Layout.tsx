@@ -135,20 +135,20 @@ export function Layout({ children }: LayoutProps) {
     <div className="max-w-md mx-auto bg-white min-h-screen">
       <header className="gradient-header text-white p-4 shadow-lg">
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
+          <div className="flex items-center space-x-reverse space-x-3">
             <button 
               onClick={() => setLocation("/")}
               className="text-xl font-bold hover:opacity-80 transition-opacity"
             >
               רבנות המשטרה
             </button>
+            <button 
+              onClick={() => setLocation("/")}
+              className="hover:opacity-80 transition-opacity"
+            >
+              <img src={logo} alt="לוגו רבנות המשטרה" className="h-8 w-auto" />
+            </button>
           </div>
-          <button 
-            onClick={() => setLocation("/")}
-            className="hover:opacity-80 transition-opacity"
-          >
-            <img src={logo} alt="לוגו רבנות המשטרה" className="h-8 w-auto" />
-          </button>
         </div>
       </header>
       
