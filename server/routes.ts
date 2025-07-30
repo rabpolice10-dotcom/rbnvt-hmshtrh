@@ -1,0 +1,250 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { insertUserSchema, insertQuestionSchema, insertAnswerSchema, insertNewsSchema, insertSynagogueSchema, insertDailyHalachaSchema, insertVideoSchema } from "@shared/schema";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Auth routes
+  app.post("/api/register", async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      
+      // Check if device already registered
+      const existingUser = await storage.getUserByDeviceId(userData.deviceId);
+      if (existingUser) {
+        return res.json({ user: existingUser });
+      }
+
+      // Check if personal ID already exists
+      const existingPersonalId = await storage.getUserByPersonalId(userData.personalId);
+      if (existingPersonalId) {
+        return res.status(400).json({ message: "מספר אישי זה כבר רשום במערכת" });
+      }
+
+      const user = await storage.createUser(userData);
+      res.json({ user });
+    } catch (error) {
+      res.status(400).json({ message: "שגיאה ברישום המשתמש" });
+    }
+  });
+
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { deviceId } = req.body;
+      const user = await storage.getUserByDeviceId(deviceId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+
+      res.json({ user });
+    } catch (error) {
+      res.status(400).json({ message: "שגיאה בהתחברות" });
+    }
+  });
+
+  // Admin routes
+  app.get("/api/admin/pending-users", async (req, res) => {
+    try {
+      const pendingUsers = await storage.getPendingUsers();
+      res.json(pendingUsers);
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בטעינת משתמשים ממתינים" });
+    }
+  });
+
+  app.post("/api/admin/approve-user/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { approvedBy } = req.body;
+      const user = await storage.updateUserStatus(id, "approved", approvedBy);
+      res.json({ user });
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה באישור משתמש" });
+    }
+  });
+
+  app.post("/api/admin/reject-user/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { approvedBy } = req.body;
+      const user = await storage.updateUserStatus(id, "rejected", approvedBy);
+      res.json({ user });
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בדחיית משתמש" });
+    }
+  });
+
+  // Questions routes
+  app.post("/api/questions", async (req, res) => {
+    try {
+      const questionData = insertQuestionSchema.parse(req.body);
+      const question = await storage.createQuestion(questionData);
+      res.json({ question });
+    } catch (error) {
+      res.status(400).json({ message: "שגיאה בשליחת השאלה" });
+    }
+  });
+
+  app.get("/api/questions/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const questions = await storage.getQuestionsByUser(userId);
+      res.json(questions);
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בטעינת השאלות" });
+    }
+  });
+
+  app.get("/api/questions", async (req, res) => {
+    try {
+      const questions = await storage.getAllQuestions();
+      res.json(questions);
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בטעינת השאלות" });
+    }
+  });
+
+  app.get("/api/questions/search", async (req, res) => {
+    try {
+      const { q } = req.query;
+      if (!q || typeof q !== 'string') {
+        return res.status(400).json({ message: "נדרש מונח חיפוש" });
+      }
+      const questions = await storage.searchQuestions(q);
+      res.json(questions);
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בחיפוש" });
+    }
+  });
+
+  // Answers routes
+  app.post("/api/answers", async (req, res) => {
+    try {
+      const answerData = insertAnswerSchema.parse(req.body);
+      const answer = await storage.createAnswer(answerData);
+      res.json({ answer });
+    } catch (error) {
+      res.status(400).json({ message: "שגיאה בשליחת התשובה" });
+    }
+  });
+
+  app.get("/api/answers/question/:questionId", async (req, res) => {
+    try {
+      const { questionId } = req.params;
+      const answers = await storage.getAnswersByQuestion(questionId);
+      res.json(answers);
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בטעינת התשובות" });
+    }
+  });
+
+  // News routes
+  app.get("/api/news", async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const news = limit ? await storage.getRecentNews(limit) : await storage.getAllNews();
+      res.json(news);
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בטעינת החדשות" });
+    }
+  });
+
+  app.post("/api/news", async (req, res) => {
+    try {
+      const newsData = insertNewsSchema.parse(req.body);
+      const news = await storage.createNews(newsData);
+      res.json({ news });
+    } catch (error) {
+      res.status(400).json({ message: "שגיאה בפרסום החדשה" });
+    }
+  });
+
+  // Synagogues routes
+  app.get("/api/synagogues", async (req, res) => {
+    try {
+      const synagogues = await storage.getAllSynagogues();
+      res.json(synagogues);
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בטעינת בתי הכנסת" });
+    }
+  });
+
+  app.post("/api/synagogues", async (req, res) => {
+    try {
+      const synagogueData = insertSynagogueSchema.parse(req.body);
+      const synagogue = await storage.createSynagogue(synagogueData);
+      res.json({ synagogue });
+    } catch (error) {
+      res.status(400).json({ message: "שגיאה בהוספת בית הכנסת" });
+    }
+  });
+
+  // Daily Halacha routes
+  app.get("/api/daily-halacha", async (req, res) => {
+    try {
+      const halacha = await storage.getTodayHalacha();
+      if (!halacha) {
+        return res.status(404).json({ message: "לא נמצאה הלכה יומית" });
+      }
+      res.json(halacha);
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בטעינת ההלכה היומית" });
+    }
+  });
+
+  app.post("/api/daily-halacha", async (req, res) => {
+    try {
+      const halachaData = insertDailyHalachaSchema.parse(req.body);
+      const halacha = await storage.createDailyHalacha(halachaData);
+      res.json({ halacha });
+    } catch (error) {
+      res.status(400).json({ message: "שגיאה בהוספת הלכה יומית" });
+    }
+  });
+
+  // Videos routes
+  app.get("/api/videos", async (req, res) => {
+    try {
+      const videos = await storage.getAllVideos();
+      res.json(videos);
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בטעינת הסרטונים" });
+    }
+  });
+
+  app.post("/api/videos", async (req, res) => {
+    try {
+      const videoData = insertVideoSchema.parse(req.body);
+      const video = await storage.createVideo(videoData);
+      res.json({ video });
+    } catch (error) {
+      res.status(400).json({ message: "שגיאה בהוספת סרטון" });
+    }
+  });
+
+  // Jewish times API proxy
+  app.get("/api/jewish-times", async (req, res) => {
+    try {
+      const { city = "jerusalem" } = req.query;
+      // This would typically call MyZmanim API
+      // For now, return mock data structure
+      const times = {
+        sunrise: "06:42",
+        sunset: "16:51",
+        shabbatIn: "16:33",
+        shabbatOut: "17:49",
+        city: city as string,
+        date: new Date().toISOString()
+      };
+      res.json(times);
+    } catch (error) {
+      res.status(500).json({ message: "שגיאה בטעינת הזמנים" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
