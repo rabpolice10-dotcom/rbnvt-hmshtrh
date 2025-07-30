@@ -48,12 +48,21 @@ export function Layout({ children }: LayoutProps) {
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <header className="gradient-header text-white p-4 shadow-lg">
           <div className="flex items-center justify-between">
-            <button 
-              onClick={() => setLocation("/")}
-              className="text-xl font-bold hover:opacity-80 transition-opacity"
-            >
-              רבנות המשטרה
-            </button>
+            <div className="flex flex-col">
+              <button 
+                onClick={() => setLocation("/")}
+                className="text-xl font-bold hover:opacity-80 transition-opacity"
+              >
+                רבנות המשטרה
+              </button>
+              <button
+                onClick={() => setLocation("/admin")}
+                className="text-xs text-white/50 hover:text-white transition-colors mt-1"
+                style={{ fontSize: '10px' }}
+              >
+                ניהול
+              </button>
+            </div>
             <Shield className="h-6 w-6" />
           </div>
         </header>
@@ -63,6 +72,17 @@ export function Layout({ children }: LayoutProps) {
             <h2 className="text-xl font-bold text-gray-800 mb-2">ממתין לאישור</h2>
             <p className="text-gray-600 mb-4">הבקשה שלך נשלחה בהצלחה ומחכה לאישור מנהל המערכת.</p>
             <p className="text-sm text-gray-500">תקבל הודעה כאשר החשבון יאושר.</p>
+            
+            {/* Hidden Admin Access */}
+            <div className="mt-8">
+              <button
+                onClick={() => setLocation("/admin")}
+                className="text-xs text-gray-300 hover:text-police-blue transition-colors"
+                style={{ fontSize: '10px' }}
+              >
+                ניהול מערכת
+              </button>
+            </div>
           </div>
         </div>
       </div>
