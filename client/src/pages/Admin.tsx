@@ -430,7 +430,7 @@ function NewsManagement() {
 
   const { data: news, isLoading } = useQuery({
     queryKey: ["/api/news"],
-  });
+  }) as { data: any[] | undefined; isLoading: boolean };
 
   const createNews = useMutation({
     mutationFn: async (data: typeof newsData) => {
@@ -588,7 +588,7 @@ function SynagogueManagement() {
 
   const { data: synagogues, isLoading } = useQuery({
     queryKey: ["/api/synagogues"],
-  });
+  }) as { data: any[] | undefined; isLoading: boolean };
 
   const createSynagogue = useMutation({
     mutationFn: async (data: typeof synagogueData) => {
@@ -794,7 +794,7 @@ function VideoManagement() {
 
   const { data: videos, isLoading } = useQuery({
     queryKey: ["/api/videos"],
-  });
+  }) as { data: any[] | undefined; isLoading: boolean };
 
   const createVideo = useMutation({
     mutationFn: async (data: typeof videoData) => {
@@ -943,7 +943,7 @@ function HalachaManagement() {
 
   const { data: todayHalacha, isLoading } = useQuery({
     queryKey: ["/api/daily-halacha"],
-  });
+  }) as { data: any | undefined; isLoading: boolean };
 
   const createHalacha = useMutation({
     mutationFn: async (data: typeof halachaData) => {
