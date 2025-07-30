@@ -4,14 +4,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserCheck, UserX, Users, MessageCircleQuestion } from "lucide-react";
+import { UserCheck, UserX, Users, MessageCircleQuestion, ArrowRight, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import type { User, Question } from "@shared/schema";
 
 export default function Admin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const { data: pendingUsers, isLoading: loadingUsers } = useQuery({
     queryKey: ["/api/admin/pending-users"],
@@ -69,8 +71,24 @@ export default function Admin() {
   const urgentQuestions = unansweredQuestions.filter(q => q.isUrgent);
 
   return (
-    <div className="p-4 space-y-4">
-      <h1 className="text-xl font-bold text-gray-800">לוח בקרה - מנהלים</h1>
+    <div className="max-w-md mx-auto bg-white min-h-screen">
+      {/* Header */}
+      <header className="gradient-header text-white p-4 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <button 
+              onClick={() => setLocation("/")}
+              className="ml-3 hover:opacity-80 transition-opacity"
+            >
+              <ArrowRight className="h-5 w-5" />
+            </button>
+            <h1 className="text-xl font-bold">לוח בקרה - מנהלים</h1>
+          </div>
+          <Shield className="h-6 w-6" />
+        </div>
+      </header>
+
+      <div className="p-4 space-y-4">
 
       {/* Statistics */}
       <div className="grid grid-cols-2 gap-4">
@@ -208,6 +226,7 @@ export default function Admin() {
           )}
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }
