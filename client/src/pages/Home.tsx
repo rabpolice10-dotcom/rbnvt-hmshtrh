@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { AskRabbiModal } from "@/components/AskRabbiModal";
 import { MessageCircleQuestion, Clock, BookOpen, Newspaper, Sun, Calendar, CheckCircle, TriangleAlert } from "lucide-react";
 import type { News, DailyHalacha, Question } from "@shared/schema";
+import logo1 from "@assets/24cce150-a4e1-45c8-a607-fb4960da1131_1753886576969.jpeg";
+import logo2 from "@assets/bf4d69d1-82e0-4b41-bc8c-ecca5ca6a895_1753886576969.jpeg";
 
 export default function Home() {
   const [showAskRabbi, setShowAskRabbi] = useState(false);
@@ -30,6 +32,20 @@ export default function Home() {
 
   return (
     <div className="p-4 space-y-4">
+      {/* Logos Section */}
+      <div className="flex justify-center items-center space-x-4 mb-6 bg-white p-4 rounded-lg shadow-sm">
+        <img 
+          src={logo1} 
+          alt="לוגו 1" 
+          className="h-16 w-auto object-contain"
+        />
+        <img 
+          src={logo2} 
+          alt="לוגו 2" 
+          className="h-16 w-auto object-contain"
+        />
+      </div>
+
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
         <Button
