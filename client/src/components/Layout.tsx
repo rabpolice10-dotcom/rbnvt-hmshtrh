@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { RegistrationForm } from "@/components/RegistrationForm";
 import { BottomNavigation } from "@/components/BottomNavigation";
+import { useLocation } from "wouter";
 import { Bell, Shield } from "lucide-react";
 
 interface LayoutProps {
@@ -10,6 +11,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
 
   if (isLoading) {
     return (
@@ -27,7 +29,12 @@ export function Layout({ children }: LayoutProps) {
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <header className="gradient-header text-white p-4 shadow-lg">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold">רבנות המשטרה</h1>
+            <button 
+              onClick={() => setLocation("/")}
+              className="text-xl font-bold hover:opacity-80 transition-opacity"
+            >
+              רבנות המשטרה
+            </button>
             <Shield className="h-6 w-6" />
           </div>
         </header>
@@ -41,7 +48,12 @@ export function Layout({ children }: LayoutProps) {
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <header className="gradient-header text-white p-4 shadow-lg">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold">רבנות המשטרה</h1>
+            <button 
+              onClick={() => setLocation("/")}
+              className="text-xl font-bold hover:opacity-80 transition-opacity"
+            >
+              רבנות המשטרה
+            </button>
             <Shield className="h-6 w-6" />
           </div>
         </header>
@@ -62,7 +74,12 @@ export function Layout({ children }: LayoutProps) {
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <header className="gradient-header text-white p-4 shadow-lg">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold">רבנות המשטרה</h1>
+            <button 
+              onClick={() => setLocation("/")}
+              className="text-xl font-bold hover:opacity-80 transition-opacity"
+            >
+              רבנות המשטרה
+            </button>
             <Shield className="h-6 w-6" />
           </div>
         </header>
@@ -82,7 +99,12 @@ export function Layout({ children }: LayoutProps) {
     <div className="max-w-md mx-auto bg-white min-h-screen">
       <header className="gradient-header text-white p-4 shadow-lg">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">רבנות המשטרה</h1>
+          <button 
+            onClick={() => setLocation("/")}
+            className="text-xl font-bold hover:opacity-80 transition-opacity"
+          >
+            רבנות המשטרה
+          </button>
           <div className="flex items-center space-x-reverse space-x-2">
             <Shield className="h-5 w-5" />
             <button className="relative">
