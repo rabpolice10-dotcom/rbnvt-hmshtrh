@@ -35,10 +35,10 @@ export default function SimpleUserManagement() {
     mutationFn: ({ userId, status }: { userId: string; status: string }) =>
       apiRequest(`/api/admin/users/${userId}/status`, {
         method: 'PUT',
-        body: JSON.stringify({ 
+        body: { 
           status, 
           deviceId: localStorage.getItem('deviceId') || 'admin-device-simple'
-        })
+        }
       }),
     onSuccess: () => {
       toast({
@@ -62,11 +62,11 @@ export default function SimpleUserManagement() {
     mutationFn: ({ action, userIds }: { action: string; userIds: string[] }) =>
       apiRequest('/api/admin/users/bulk-action', {
         method: 'POST',
-        body: JSON.stringify({ 
+        body: { 
           action, 
           userIds, 
           deviceId: localStorage.getItem('deviceId') || 'admin-device-simple'
-        })
+        }
       }),
     onSuccess: (result) => {
       toast({
