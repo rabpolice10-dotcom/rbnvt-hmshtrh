@@ -88,9 +88,12 @@ export default function AdminDashboard() {
 
   // Check admin access
   useEffect(() => {
+    console.log('Checking admin access:', { user, localStorage_isAdmin: localStorage.getItem('isAdmin') });
+    
     const checkAdminAccess = async () => {
       // Check if user has admin privileges
       if (user?.email === "admin@police.gov.il" || user?.isAdmin) {
+        console.log('Admin access granted via user object');
         setHasAdminAccess(true);
         setIsCheckingAdmin(false);
         return;
@@ -99,12 +102,14 @@ export default function AdminDashboard() {
       // Check localStorage for admin flag
       const isAdminStored = localStorage.getItem('isAdmin') === 'true';
       if (isAdminStored) {
+        console.log('Admin access granted via localStorage');
         setHasAdminAccess(true);
         setIsCheckingAdmin(false);
         return;
       }
 
       // If no admin access found
+      console.log('No admin access found');
       setHasAdminAccess(false);
       setIsCheckingAdmin(false);
     };
