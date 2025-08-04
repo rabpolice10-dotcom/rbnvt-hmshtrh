@@ -39,14 +39,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { deviceId } = req.body;
-      const user = await storage.getUserByDeviceId(deviceId);
+      const { deviceId, personalId } = req.body;
+      
+      // First check if user exists by personal ID
+      const user = await storage.getUserByPersonalId(personalId);
       
       if (!user) {
-        return res.status(404).json({ message: "משתמש לא נמצא" });
+        return res.status(404).json({ message: "מספר אישי לא רשום במערכת" });
       }
 
-      res.json({ user });
+      if (user.status !== "approved") {
+        return res.status(403).json({ message: "החשבון לא אושר עדיין על ידי מנהל המערכת" });
+      }
+
+      // Update the user's device ID for this login
+      const updatedUser = await storage.updateUserDeviceId(user.id, deviceId);
+      
+      res.json({ user: updatedUser });
     } catch (error) {
       res.status(400).json({ message: "שגיאה בהתחברות" });
     }

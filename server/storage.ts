@@ -15,6 +15,7 @@ export interface IStorage {
   getUserByPersonalId(personalId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserStatus(id: string, status: "pending" | "approved" | "rejected", approvedBy?: string): Promise<User>;
+  updateUserDeviceId(id: string, deviceId: string): Promise<User>;
   getPendingUsers(): Promise<User[]>;
 
   // Question operations
@@ -88,6 +89,15 @@ export class DatabaseStorage implements IStorage {
         approvedBy,
         approvedAt: status === "approved" ? new Date() : null
       })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserDeviceId(id: string, deviceId: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ deviceId })
       .where(eq(users.id, id))
       .returning();
     return user;

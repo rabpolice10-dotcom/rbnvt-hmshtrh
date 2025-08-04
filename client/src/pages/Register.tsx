@@ -31,7 +31,16 @@ export default function Register() {
 
   const registerMutation = useMutation({
     mutationFn: async (userData: InsertUser) => {
-      return await apiRequest("/api/auth/register", userData);
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
+      return response.json();
     },
     onSuccess: () => {
       setIsSubmitted(true);
@@ -69,10 +78,11 @@ export default function Register() {
               תקבל הודעה כשהבקשה תאושר ותוכל להתחבר לאפליקציה.
             </p>
             <Button 
-              onClick={() => setLocation("/")} 
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              onClick={() => setLocation("/login")} 
+              variant="outline"
+              className="w-full"
             >
-              חזרה לעמוד הבית
+              יש לי כבר חשבון - התחבר
             </Button>
           </CardContent>
         </Card>
@@ -191,10 +201,10 @@ export default function Register() {
 
           <div className="mt-6 text-center">
             <button
-              onClick={() => setLocation("/")}
+              onClick={() => setLocation("/login")}
               className="text-blue-600 hover:text-blue-800 text-sm underline"
             >
-              חזרה לעמוד הבית
+              כבר יש לי חשבון - התחבר
             </button>
           </div>
         </CardContent>

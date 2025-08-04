@@ -15,6 +15,7 @@ import Contact from "@/pages/Contact";
 import JewishTimes from "@/pages/JewishTimes";
 import Landing from "@/pages/Landing";
 import Register from "@/pages/Register";
+import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 
 function AppContent() {
@@ -31,9 +32,14 @@ function AppContent() {
     return <Register />;
   }
 
-  // Show landing page for non-authenticated users or while loading
+  // Show login page for non-authenticated users
+  if (location === "/login") {
+    return <Login />;
+  }
+
+  // Show login page for non-authenticated users or while loading
   if (isLoading || !isAuthenticated) {
-    return <Register />;
+    return <Login />;
   }
 
   // Show app for authenticated users
