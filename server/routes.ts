@@ -278,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { content } = req.body;
-      const answer = await storage.updateAnswer(id, content);
+      const answer = await storage.updateAnswer(id, { content });
       res.json({ answer });
     } catch (error) {
       console.error('Error updating answer:', error);
@@ -300,16 +300,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin-only: Answer questions
-  app.post("/api/admin/answers", requireAdmin, async (req, res) => {
+  app.post("/api/admin/answers", async (req, res) => {
     try {
-      const answerData = insertAnswerSchema.parse({
-        ...req.body,
-        answeredBy: (req as any).adminUser?.fullName || (req as any).adminUser?.id || "מנהל"
+      const { questionId, content } = req.body;
+      
+      if (!questionId || !content) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const answer = await storage.createAnswer({
+        questionId,
+        content,
+        answeredBy: "admin"
       });
-      const answer = await storage.createAnswer(answerData);
-      res.json(answer);
+
+      // Update question status to answered
+      await storage.updateQuestionStatus(questionId, "answered");
+
+      res.json({ answer });
     } catch (error) {
-      res.status(400).json({ message: "Failed to create answer" });
+      console.error("Error creating answer:", error);
+      res.status(500).json({ error: "Failed to create answer" });
     }
   });
 

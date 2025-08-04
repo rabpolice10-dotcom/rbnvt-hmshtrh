@@ -33,7 +33,7 @@ export interface IStorage {
   // Answer operations
   createAnswer(answer: InsertAnswer): Promise<Answer>;
   getAnswersByQuestion(questionId: string): Promise<Answer[]>;
-  updateAnswer(id: string, content: string): Promise<Answer>;
+  updateAnswer(id: string, data: { content: string }): Promise<Answer>;
 
   // News operations
   getAllNews(): Promise<News[]>;
@@ -235,10 +235,10 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(answers).where(eq(answers.questionId, questionId)).orderBy(desc(answers.createdAt));
   }
 
-  async updateAnswer(id: string, content: string): Promise<Answer> {
+  async updateAnswer(id: string, data: { content: string }): Promise<Answer> {
     const [updated] = await db
       .update(answers)
-      .set({ content, updatedAt: new Date() })
+      .set({ content: data.content, updatedAt: new Date() })
       .where(eq(answers.id, id))
       .returning();
     return updated;

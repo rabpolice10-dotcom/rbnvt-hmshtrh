@@ -279,7 +279,7 @@ export function AdminQuestionManager() {
                       ערוך שאלה
                     </Button>
 
-                    {!question.isApproved && (
+                    {question.status === "answered" && !question.isApproved && (
                       <Button
                         onClick={() => approveQuestion.mutate(question.id)}
                         disabled={approveQuestion.isPending}
@@ -287,7 +287,7 @@ export function AdminQuestionManager() {
                         className="bg-green-600 hover:bg-green-700 text-white"
                       >
                         <CheckCircle className="h-4 w-4 ml-2" />
-                        אשר שאלה
+                        אשר לפרסום
                       </Button>
                     )}
                   </div>
@@ -462,6 +462,9 @@ export function AdminQuestionManager() {
               {selectedQuestion.status === "pending" && (
                 <div className="space-y-3">
                   <h4 className="font-medium">הוסף תשובה:</h4>
+                  <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800 mb-3">
+                    💡 לאחר מתן התשובה, יופיע כפתור אישור לפרסום השאלה לציבור
+                  </div>
                   <Textarea
                     value={newAnswerContent}
                     onChange={(e) => setNewAnswerContent(e.target.value)}
@@ -479,16 +482,25 @@ export function AdminQuestionManager() {
                     >
                       שלח תשובה
                     </Button>
-                    {!selectedQuestion.isApproved && (
-                      <Button
-                        onClick={() => approveQuestion.mutate(selectedQuestion.id)}
-                        disabled={approveQuestion.isPending}
-                        variant="outline"
-                      >
-                        אשר שאלה
-                      </Button>
-                    )}
                   </div>
+                </div>
+              )}
+
+              {/* Approve for publication - only show after answer is given */}
+              {selectedQuestion.status === "answered" && !selectedQuestion.isApproved && (
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <h4 className="font-medium text-green-800 mb-2">השאלה נענתה - אישור לפרסום</h4>
+                  <p className="text-sm text-green-700 mb-3">
+                    השאלה נענתה בהצלחה. לחץ על הכפתור למטה כדי לאשר את פרסום השאלה והתשובה לציבור.
+                  </p>
+                  <Button
+                    onClick={() => approveQuestion.mutate(selectedQuestion.id)}
+                    disabled={approveQuestion.isPending}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <CheckCircle className="h-4 w-4 ml-2" />
+                    אשר לפרסום לציבור
+                  </Button>
                 </div>
               )}
             </div>
