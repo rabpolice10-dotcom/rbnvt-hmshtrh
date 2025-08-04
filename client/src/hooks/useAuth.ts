@@ -34,8 +34,8 @@ export function useAuth() {
   
   // console.log('Auth check:', { isAdminLoggedIn, adminEmail, deviceId });
 
-  // Disable auth check for fresh sessions - force login
-  const shouldCheckAuth = false; // Always force login for security
+  // Enable auth check only after admin login
+  const shouldCheckAuth = isAdminLoggedIn; // Only check auth for admin users
   
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user", deviceId],
@@ -81,7 +81,7 @@ export function useAuth() {
 
 
 
-  // Return admin user if admin is logged in (this should rarely happen now)
+  // Return admin user if admin is logged in
   if (isAdminLoggedIn && adminEmail) {
     return {
       user: {

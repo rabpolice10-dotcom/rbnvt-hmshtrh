@@ -34,21 +34,6 @@ export default function Login() {
     mutationFn: async (data: LoginUser) => {
       console.log('Starting login with:', { email: data.email, deviceId });
       
-      // Check if admin login - SIMPLE VERSION
-      if (data.email === ADMIN_EMAIL && data.password === ADMIN_PASSWORD) {
-        // Store admin flag
-        localStorage.setItem('isAdmin', 'true');
-        localStorage.setItem('adminEmail', ADMIN_EMAIL);
-        localStorage.setItem('deviceId', 'admin-device-simple');
-        
-        return { 
-          isAdmin: true, 
-          email: ADMIN_EMAIL,
-          fullName: "מנהל המערכת",
-          deviceId: 'admin-device-simple'
-        };
-      }
-      
       const loginPayload = { ...data, deviceId };
       console.log('Sending login request:', loginPayload);
       
@@ -66,10 +51,22 @@ export default function Login() {
       
       const result = await response.json();
       console.log('Login successful:', result);
+      
       // Store the user's device ID for future requests
       if (result.user && result.user.deviceId) {
         localStorage.setItem('deviceId', result.user.deviceId);
       }
+      
+      // Check if this is an admin user and set appropriate flags
+      if (result.user && result.user.isAdmin) {
+        localStorage.setItem('isAdmin', 'true');
+        localStorage.setItem('adminEmail', result.user.email);
+        return { 
+          isAdmin: true, 
+          user: result.user
+        };
+      }
+      
       return result;
     },
     onSuccess: async (result) => {
@@ -92,12 +89,9 @@ export default function Login() {
         description: "ברוך הבא לרבנות המשטרה",
       });
       
-      // Clear any localStorage flags and set the correct device ID
+      // Clear any admin localStorage flags
       localStorage.removeItem('isAdmin');
       localStorage.removeItem('adminEmail');
-      if (result.user && result.user.deviceId) {
-        localStorage.setItem('deviceId', result.user.deviceId);
-      }
       
       // Invalidate the auth query to refresh user data
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
