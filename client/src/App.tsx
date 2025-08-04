@@ -23,7 +23,7 @@ function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
 
-  console.log('App state:', { isAuthenticated, isLoading, location });
+  // console.log('App state:', { isAuthenticated, isLoading, location });
 
   // Always show landing page first for unauthenticated users
   if (!isAuthenticated && !isLoading) {

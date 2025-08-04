@@ -32,8 +32,11 @@ export function useAuth() {
   const isAdminLoggedIn = localStorage.getItem('isAdmin') === 'true';
   const adminEmail = localStorage.getItem('adminEmail');
   
-  console.log('Auth check:', { isAdminLoggedIn, adminEmail, deviceId });
+  // console.log('Auth check:', { isAdminLoggedIn, adminEmail, deviceId });
 
+  // Disable auth check for fresh sessions - force login
+  const shouldCheckAuth = false; // Always force login for security
+  
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user", deviceId],
     queryFn: async () => {
@@ -43,8 +46,12 @@ export function useAuth() {
       }
       return response.json();
     },
-    enabled: !!deviceId && !isAdminLoggedIn,
+    enabled: shouldCheckAuth && !!deviceId && !isAdminLoggedIn,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
+    staleTime: 30000,
   });
 
   // Registration mutation
@@ -111,7 +118,7 @@ export function useAuth() {
     logout
   };
   
-  console.log('Auth result:', { hasUser: !!user, isLoading, isAuthenticated: !!user });
+  // console.log('Auth result:', { hasUser: !!user, isLoading, isAuthenticated: !!user });
   
   return result;
 }
