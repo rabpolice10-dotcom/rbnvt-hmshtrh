@@ -377,16 +377,21 @@ export default function AdminDashboard() {
               </div>
               <Button 
                 onClick={() => {
-                  console.log('Logout button clicked');
-                  // Clear all auth data immediately
-                  localStorage.removeItem('isAdmin');
-                  localStorage.removeItem('adminEmail');
-                  localStorage.removeItem('user');
-                  localStorage.removeItem('deviceId');
+                  console.log('Logout button clicked - clearing all data');
+                  
+                  // Clear ALL localStorage and sessionStorage
+                  localStorage.clear();
                   sessionStorage.clear();
                   
-                  // Force immediate redirect without any delay
-                  window.location = "/" as any;
+                  // Clear any cookies
+                  document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                  });
+                  
+                  console.log('Data cleared, redirecting...');
+                  
+                  // Use replace to avoid back button issues
+                  window.location.replace("/");
                 }}
                 variant="outline"
                 className="bg-white text-police-blue border-white hover:bg-gray-100"

@@ -25,17 +25,17 @@ function AppContent() {
 
   // console.log('App state:', { isAuthenticated, isLoading, location });
 
+  // Check localStorage immediately for admin status
+  const isAdminInStorage = localStorage.getItem('isAdmin') === 'true';
+  
   // Always show landing page first for unauthenticated users
-  if (!isAuthenticated && !isLoading) {
+  if (!isAuthenticated && !isLoading && !isAdminInStorage) {
     // Allow access to specific auth pages
     if (location === "/register") {
       return <Register />;
     }
     if (location === "/login") {
       return <Login />;
-    }
-    if (location === "/admin") {
-      return <AdminDashboard />;
     }
     // Default to landing page (login/register) for all other routes
     return <Landing />;
@@ -50,8 +50,8 @@ function AppContent() {
     );
   }
 
-  // Allow admin access 
-  if (location === "/admin") {
+  // Allow admin access only if admin flag exists
+  if (location === "/admin" && isAdminInStorage) {
     return <AdminDashboard />;
   }
 
