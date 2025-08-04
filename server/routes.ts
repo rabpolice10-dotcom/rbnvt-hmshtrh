@@ -99,6 +99,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
+      if (user.status !== "approved") {
+        return res.status(401).json({ message: "User not approved" });
+      }
+      
       res.json(user);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch user" });

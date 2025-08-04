@@ -19,7 +19,14 @@ export function useAuth() {
   const adminEmail = localStorage.getItem('adminEmail');
 
   const { data: user, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/user"],
+    queryKey: ["/api/auth/user", deviceId],
+    queryFn: async () => {
+      const response = await fetch(`/api/auth/user?deviceId=${deviceId}`);
+      if (!response.ok) {
+        throw new Error('Unauthorized');
+      }
+      return response.json();
+    },
     enabled: !!deviceId && !isAdminLoggedIn,
     retry: false,
   });

@@ -58,7 +58,10 @@ export default function Login() {
         throw new Error(error.message);
       }
       
-      return response.json();
+      const result = await response.json();
+      // Store the user's device ID for future requests
+      localStorage.setItem('deviceId', result.user.deviceId);
+      return result;
     },
     onSuccess: async (result) => {
       if (result.isAdmin) {
