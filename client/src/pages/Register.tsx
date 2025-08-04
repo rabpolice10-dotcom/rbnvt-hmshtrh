@@ -155,7 +155,7 @@ export default function Register() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-right">מספר טלפון ישראלי *</FormLabel>
+                    <FormLabel className="text-right">מספר טלפון *</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 

@@ -2,32 +2,33 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Phone, Send, ExternalLink } from "lucide-react";
+import { MessageSquare, Send } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Contact() {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    fullName: "",
-    phone: "",
-    message: ""
-  });
+  const { user } = useAuth();
+  const [message, setMessage] = useState("");
 
   const submitMessage = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      return apiRequest("POST", "/api/contact", data);
+    mutationFn: async (messageText: string) => {
+      return apiRequest("POST", "/api/contact", {
+        userId: user?.id,
+        fullName: user?.fullName,
+        phone: user?.phone,
+        message: messageText
+      });
     },
     onSuccess: () => {
       toast({
         title: "ההודעה נשלחה בהצלחה",
         description: "נחזור אליך בהקדם האפשרי",
       });
-      setFormData({ fullName: "", phone: "", message: "" });
+      setMessage("");
     },
     onError: () => {
       toast({
@@ -40,7 +41,9 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    submitMessage.mutate(formData);
+    if (message.trim()) {
+      submitMessage.mutate(message);
+    }
   };
 
   const openWhatsApp = () => {
@@ -89,35 +92,19 @@ export default function Contact() {
             <h3 className="font-bold text-gray-800">שלח הודעה למנהלי האתר</h3>
           </div>
           
+          {user && (
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">שולח: {user.fullName}</p>
+              <p className="text-sm text-gray-600">טלפון: {user.phone}</p>
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1">שם מלא</Label>
-              <Input
-                value={formData.fullName}
-                onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                placeholder="הכנס את שמך המלא"
-                className="text-right"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1">מספר טלפון</Label>
-              <Input
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="050-1234567"
-                className="text-right"
-                type="tel"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-1">הודעה</Label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">הודעה</label>
               <Textarea
-                value={formData.message}
-                onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
                 placeholder="כתב את הודעתך כאן..."
                 className="h-32 resize-none text-right"
                 required
@@ -139,7 +126,7 @@ export default function Contact() {
       <Card className="shadow-card">
         <CardContent className="p-4">
           <div className="flex items-center mb-3">
-            <Phone className="h-5 w-5 text-police-blue ml-2" />
+            <MessageSquare className="h-5 w-5 text-police-blue ml-2" />
             <h3 className="font-bold text-gray-800">פרטי יצירת קשר נוספים</h3>
           </div>
           

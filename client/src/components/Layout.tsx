@@ -73,16 +73,7 @@ export function Layout({ children }: LayoutProps) {
               </button>
             </div>
             
-            {/* Hidden Admin Access */}
-            <div className="mt-4">
-              <button
-                onClick={() => setLocation("/admin")}
-                className="text-xs text-gray-300 hover:text-police-blue transition-colors"
-                style={{ fontSize: '10px' }}
-              >
-                ניהול מערכת
-              </button>
-            </div>
+
           </div>
         </div>
       </div>

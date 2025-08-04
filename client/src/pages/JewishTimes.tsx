@@ -39,7 +39,7 @@ export default function JewishTimes() {
     <div className="p-4 space-y-4">
       <div className="flex items-center mb-6">
         <Sun className="h-6 w-6 text-yellow-600 ml-2" />
-        <h1 className="text-xl font-bold text-gray-800">זמנים יהודיים</h1>
+        <h1 className="text-xl font-bold text-gray-800">זמני הלכה</h1>
       </div>
 
       {/* Location Selection */}

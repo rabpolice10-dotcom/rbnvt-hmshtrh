@@ -50,9 +50,46 @@ export default function Home() {
           variant="ghost"
         >
           <Clock className="h-8 w-8 text-green-600" />
-          <span className="text-sm font-medium">זמנים יהודיים</span>
+          <span className="text-sm font-medium">זמני הלכה</span>
         </Button>
       </div>
+
+      {/* Jewish Times Quick View */}
+      {jewishTimes && (
+        <Card 
+          className="shadow-card cursor-pointer hover:shadow-lg transition-shadow" 
+          onClick={() => window.location.pathname = "/jewish-times"}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center">
+                <Sun className="h-5 w-5 text-yellow-600 ml-2" />
+                <h3 className="font-bold text-gray-800">זמני הלכה להיום</h3>
+              </div>
+              <div className="text-xs text-gray-500">לחץ להרחבה</div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">זריחה:</span>
+                <span className="font-medium">{(jewishTimes as any).sunrise}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">שקיעה:</span>
+                <span className="font-medium">{(jewishTimes as any).sunset}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">סוף זמן ק"ש:</span>
+                <span className="font-medium">{(jewishTimes as any).shemaLatest}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">סוף זמן תפילה:</span>
+                <span className="font-medium">{(jewishTimes as any).tefillaLatest}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Daily Halacha Card */}
       <Card className="shadow-card">
@@ -86,7 +123,11 @@ export default function Home() {
               <MessageCircleQuestion className="h-5 w-5 text-blue-600 ml-2" />
               <h3 className="font-bold text-gray-800">שאלות ותשובות אחרונות</h3>
             </div>
-            <Button variant="ghost" className="text-police-blue text-sm p-0 h-auto">
+            <Button 
+              variant="ghost" 
+              className="text-police-blue text-sm p-0 h-auto"
+              onClick={() => window.location.pathname = "/questions"}
+            >
               צפה בכל
             </Button>
           </div>
@@ -131,7 +172,11 @@ export default function Home() {
               <Newspaper className="h-5 w-5 text-red-600 ml-2" />
               <h3 className="font-bold text-gray-800">חדשות ועדכונים</h3>
             </div>
-            <Button variant="ghost" className="text-police-blue text-sm p-0 h-auto">
+            <Button 
+              variant="ghost" 
+              className="text-police-blue text-sm p-0 h-auto"
+              onClick={() => window.location.pathname = "/news"}
+            >
               צפה בכל
             </Button>
           </div>

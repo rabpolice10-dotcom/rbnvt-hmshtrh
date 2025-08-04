@@ -489,7 +489,7 @@ function NewsManagement() {
           </DialogTrigger>
           <DialogContent className="max-w-md mx-auto">
             <DialogHeader>
-              <DialogTitle className="text-right">הוסף חדשה חדשה</DialogTitle>
+              <DialogTitle className="text-right">הוסף ידיעה חדשה</DialogTitle>
             </DialogHeader>
             <form onSubmit={(e) => {
               e.preventDefault();
@@ -680,26 +680,7 @@ function SynagogueManagement() {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>קו רוחב</Label>
-                  <Input
-                    value={synagogueData.latitude}
-                    onChange={(e) => setSynagogueData(prev => ({ ...prev, latitude: e.target.value }))}
-                    placeholder="32.0853"
-                    className="text-right"
-                  />
-                </div>
-                <div>
-                  <Label>קו אורך</Label>
-                  <Input
-                    value={synagogueData.longitude}
-                    onChange={(e) => setSynagogueData(prev => ({ ...prev, longitude: e.target.value }))}
-                    placeholder="34.7818"
-                    className="text-right"
-                  />
-                </div>
-              </div>
+
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <Label>שחרית</Label>

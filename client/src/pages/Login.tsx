@@ -153,9 +153,7 @@ export default function Login() {
               אין לי חשבון - הרשם למערכת
             </button>
             
-            <div className="text-xs text-gray-400 mt-4 text-center">
-              מנהלי מערכת: השתמשו בפרטי הכניסה שלכם
-            </div>
+
           </div>
         </CardContent>
       </Card>
