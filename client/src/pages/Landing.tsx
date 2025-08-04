@@ -13,7 +13,7 @@ export default function Landing() {
             <UserCheck className="h-12 w-12 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-police-blue mb-2">אפליקציית רבנות המשטרה</h1>
-          <p className="text-xl text-gray-600">פלטפורמה דתית לשוטרים ועובדי המשטרה</p>
+          <p className="text-xl text-gray-600">רבנות המשטרה מתחברת אליכם!</p>
         </div>
 
         {/* Features Grid */}
