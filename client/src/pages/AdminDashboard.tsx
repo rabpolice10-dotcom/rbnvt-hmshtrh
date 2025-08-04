@@ -367,18 +367,19 @@ export default function AdminDashboard() {
                 <span className="text-sm">מערכת פעילה</span>
               </div>
               <div className="flex gap-2">
-                <Button 
+                <button 
                   onClick={performLogout}
-                  variant="outline"
-                  size="lg"
-                  className="bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white border-2 border-red-400 hover:from-red-600 hover:via-red-700 hover:to-red-800 hover:border-red-500 font-bold shadow-2xl hover:shadow-red-500/30 transition-all duration-300 px-8 py-3 rounded-xl transform hover:scale-105 hover:-translate-y-1 relative overflow-hidden group"
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-xl shadow-2xl hover:shadow-red-600/50 transition-all duration-300 transform hover:scale-110 hover:-translate-y-1 border-2 border-red-400 hover:border-red-300"
+                  style={{
+                    background: 'linear-gradient(135deg, #dc2626, #b91c1c, #991b1b)',
+                    boxShadow: '0 10px 25px rgba(220, 38, 38, 0.4), 0 0 0 1px rgba(239, 68, 68, 0.3)',
+                  }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <span className="flex items-center gap-3 text-lg relative z-10">
-                    <span className="text-2xl animate-pulse">🚪</span>
-                    <span className="tracking-wide font-extrabold drop-shadow-lg">התנתק מהמערכת</span>
+                  <span className="flex items-center gap-2 text-lg">
+                    <span className="text-xl">🚪</span>
+                    <span>התנתק מהמערכת</span>
                   </span>
-                </Button>
+                </button>
               </div>
             </div>
           </div>
@@ -389,7 +390,7 @@ export default function AdminDashboard() {
         value={selectedTab} 
         onValueChange={(tab) => {
           setSelectedTab(tab);
-          setViewedTabs(prev => new Set([...prev, tab]));
+          setViewedTabs(prev => new Set([...Array.from(prev), tab]));
         }}
       >
         <TabsList className="grid w-full grid-cols-5">
