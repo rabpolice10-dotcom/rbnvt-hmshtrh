@@ -37,7 +37,7 @@ export default function Admin() {
 
       try {
         const response = await apiRequest("POST", "/api/admin/check", { deviceId: user.deviceId });
-        const adminData = response as AdminCheckResponse;
+        const adminData = response as unknown as AdminCheckResponse;
         setHasAdminAccess(adminData.isAdmin);
       } catch (error) {
         console.error("Admin check failed:", error);
@@ -249,8 +249,8 @@ export default function Admin() {
                         <h3 className="font-semibold text-gray-800">{pendingUser.fullName}</h3>
                         <p className="text-sm text-gray-600">{pendingUser.email}</p>
                         <p className="text-sm text-gray-600">טלפון: {pendingUser.phone}</p>
-                        {pendingUser.rank && <p className="text-sm text-gray-600">דרגה: {pendingUser.rank}</p>}
-                        {pendingUser.unit && <p className="text-sm text-gray-600">יחידה: {pendingUser.unit}</p>}
+                        {(pendingUser as any).rank && <p className="text-sm text-gray-600">דרגה: {(pendingUser as any).rank}</p>}
+                        {(pendingUser as any).unit && <p className="text-sm text-gray-600">יחידה: {(pendingUser as any).unit}</p>}
                         {pendingUser.personalId && (
                           <p className="text-sm text-gray-600">מספר אישי: {pendingUser.personalId}</p>
                         )}

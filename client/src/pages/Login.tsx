@@ -52,21 +52,33 @@ export default function Login() {
     },
     onSuccess: async (result) => {
       if (result.isAdmin) {
+        // Store admin device ID in localStorage for admin functionality
+        const adminDeviceId = `admin-device-${Date.now()}`;
+        localStorage.setItem('deviceId', adminDeviceId);
+        
         toast({
           title: "התחברות מנהל הצליחה",
           description: "עובר לממשק ניהול",
         });
-        setLocation("/admin");
-      } else {
-        toast({
-          title: "התחברות הצליחה",
-          description: "ברוך הבא לרבנות המשטרה",
-        });
-        // Invalidate the auth query to refresh user data
-        await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-        // Navigate to home page
-        setLocation("/");
+        
+        // Invalidate and refetch user data
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+        
+        setTimeout(() => {
+          setLocation("/admin");
+        }, 500);
+        return;
       }
+      
+      toast({
+        title: "התחברות הצליחה",
+        description: "ברוך הבא לרבנות המשטרה",
+      });
+      
+      // Invalidate the auth query to refresh user data
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Navigate to home page
+      setLocation("/");
     },
     onError: (error: any) => {
       toast({

@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const answerData = insertAnswerSchema.parse({
         ...req.body,
-        answeredBy: req.adminUser.fullName || req.adminUser.id
+        answeredBy: (req as any).adminUser?.fullName || (req as any).adminUser?.id || "מנהל"
       });
       const answer = await storage.createAnswer(answerData);
       res.json(answer);
@@ -220,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const newsData = insertNewsSchema.parse({
         ...req.body,
-        createdBy: req.adminUser.id
+        createdBy: (req as any).adminUser?.id || "admin"
       });
       const news = await storage.createNews(newsData);
       res.json(news);
@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const halachaData = insertDailyHalachaSchema.parse({
         ...req.body,
-        createdBy: req.adminUser.id
+        createdBy: (req as any).adminUser?.id || "admin"
       });
       const halacha = await storage.createDailyHalacha(halachaData);
       res.json(halacha);
@@ -364,7 +364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const videoData = insertVideoSchema.parse({
         ...req.body,
-        addedBy: req.adminUser.id
+        addedBy: (req as any).adminUser?.id || "admin"
       });
       const video = await storage.createVideo(videoData);
       res.json(video);
@@ -407,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const longitude = 35.2137;
       
       // Calculate sunrise and sunset (simplified calculation)
-      const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+      const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
       const sunriseHour = 6 + Math.sin((dayOfYear - 81) * 2 * Math.PI / 365) * 1.5;
       const sunsetHour = 18 + Math.sin((dayOfYear - 81) * 2 * Math.PI / 365) * 1.5;
       
@@ -491,6 +491,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "שגיאה בטעינת זמנים יהודיים" });
+    }
+  });
+
+  // Admin check endpoint  
+  app.post("/api/admin/check", async (req, res) => {
+    try {
+      const { deviceId } = req.body;
+      
+      if (!deviceId) {
+        return res.status(400).json({ message: "Device ID is required" });
+      }
+
+      // Find user by device ID
+      const user = await storage.getUserByDeviceId(deviceId);
+      
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      if (user.status !== "approved") {
+        return res.status(401).json({ message: "User not approved" });
+      }
+
+      res.json({ 
+        isAdmin: user.isAdmin,
+        user: user
+      });
+    } catch (error) {
+      console.error("Admin check error:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
