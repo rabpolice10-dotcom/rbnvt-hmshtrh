@@ -28,12 +28,23 @@ export function useAuth() {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminEmail, setAdminEmail] = useState<string | null>(null);
   
-  // Update admin status on each render
+  // Update admin status on each render and listen for changes
   useEffect(() => {
-    const adminStatus = localStorage.getItem('isAdmin') === 'true';
-    const email = localStorage.getItem('adminEmail');
-    setIsAdminLoggedIn(adminStatus);
-    setAdminEmail(email);
+    const updateAdminStatus = () => {
+      const adminStatus = localStorage.getItem('isAdmin') === 'true';
+      const email = localStorage.getItem('adminEmail');
+      setIsAdminLoggedIn(adminStatus);
+      setAdminEmail(email);
+    };
+    
+    updateAdminStatus();
+    
+    // Listen for storage changes
+    window.addEventListener('storage', updateAdminStatus);
+    
+    return () => {
+      window.removeEventListener('storage', updateAdminStatus);
+    };
   }, []);
   
   // console.log('Auth check:', { isAdminLoggedIn, adminEmail, deviceId });

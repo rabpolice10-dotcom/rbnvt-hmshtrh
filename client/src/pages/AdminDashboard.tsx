@@ -37,6 +37,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
+import { performLogout } from "@/lib/logout";
 import type { User, Question, Answer, News, Synagogue, DailyHalacha, Video as VideoType, ContactMessage } from "@shared/schema";
 
 // Form schemas
@@ -335,18 +336,7 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-bold text-gray-800 mb-2">אין הרשאת גישה</h2>
             <p className="text-gray-600 mb-4">רק מנהלי מערכת יכולים לגשת לדף זה.</p>
             <Button 
-              onClick={() => {
-                console.log('Second logout button clicked');
-                // Clear all auth data immediately
-                localStorage.removeItem('isAdmin');
-                localStorage.removeItem('adminEmail');
-                localStorage.removeItem('user');
-                localStorage.removeItem('deviceId');
-                sessionStorage.clear();
-                
-                // Force immediate redirect without any delay
-                window.location = "/" as any;
-              }}
+              onClick={performLogout}
               className="bg-police-blue hover:bg-police-blue-dark text-white"
             >
               חזור לדף ההרשמה/התחברות
@@ -376,23 +366,7 @@ export default function AdminDashboard() {
                 <span className="text-sm">מערכת פעילה</span>
               </div>
               <Button 
-                onClick={() => {
-                  console.log('Logout button clicked - clearing all data');
-                  
-                  // Clear ALL localStorage and sessionStorage
-                  localStorage.clear();
-                  sessionStorage.clear();
-                  
-                  // Clear any cookies
-                  document.cookie.split(";").forEach(function(c) { 
-                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-                  });
-                  
-                  console.log('Data cleared, redirecting...');
-                  
-                  // Use replace to avoid back button issues
-                  window.location.replace("/");
-                }}
+                onClick={performLogout}
                 variant="outline"
                 className="bg-white text-police-blue border-white hover:bg-gray-100"
               >
