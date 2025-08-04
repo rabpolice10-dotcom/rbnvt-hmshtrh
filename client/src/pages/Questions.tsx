@@ -187,22 +187,6 @@ export default function Questions() {
                       <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
                         {question.category}
                       </span>
-                      {question.isUrgent && (
-                        <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded mr-2">
-                          דחוף
-                        </span>
-                      )}
-                      {question.isPrivate && (
-                        <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded mr-2 flex items-center">
-                          <Lock className="h-3 w-3 ml-1" />
-                          פרטי
-                        </span>
-                      )}
-                      {!question.isApproved && (
-                        <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded mr-2">
-                          ממתין לאישור
-                        </span>
-                      )}
                     </div>
                     <p className="text-gray-800 mb-3 line-clamp-3">{question.content}</p>
                     <div className="flex items-center justify-between text-xs text-gray-500">
