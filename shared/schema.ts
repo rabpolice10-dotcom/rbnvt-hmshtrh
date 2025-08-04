@@ -188,6 +188,15 @@ export const insertQuestionSchema = createInsertSchema(questions).omit({
   id: true,
   createdAt: true,
   status: true,
+  updatedAt: true,
+  isApproved: true,
+  isNew: true,
+  hasNewAnswer: true,
+  answerNotificationSent: true,
+  isSeenByAdmin: true,
+  approvedBy: true,
+  approvedAt: true,
+  answeredAt: true,
 });
 
 export const insertAnswerSchema = createInsertSchema(answers).omit({

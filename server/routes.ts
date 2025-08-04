@@ -203,11 +203,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Questions routes
   app.post("/api/questions", async (req, res) => {
     try {
+      console.log('Question submission attempt:', req.body);
       const questionData = insertQuestionSchema.parse(req.body);
+      console.log('Parsed question data:', questionData);
       const question = await storage.createQuestion(questionData);
+      console.log('Question created successfully:', question.id);
       res.json({ question });
     } catch (error) {
-      res.status(400).json({ message: "שגיאה בשליחת השאלה" });
+      console.error('Error creating question:', error);
+      res.status(400).json({ message: "שגיאה בשליחת השאלה", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -859,13 +863,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const questions = await storage.getAllQuestions();
       const contactMessages = await storage.getAllContactMessages();
       const news = await storage.getAllNews();
-      const users = await storage.getAllUsers();
+      const pendingUsers = await storage.getPendingUsers();
       
       const badges = {
         questions: questions.filter(q => !q.isSeenByAdmin).length,
         contacts: contactMessages.filter(c => !c.isSeenByAdmin).length,
         news: news.filter(n => !n.isSeenByAdmin).length,
-        users: users.users.filter(u => u.status === "pending").length, // Pending users are always "new"
+        users: pendingUsers.length, // Pending users are always "new"
       };
       
       res.json(badges);
