@@ -32,23 +32,19 @@ export default function Login() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginUser) => {
-      // Check if admin login
+      // Check if admin login - SIMPLE VERSION
       if (data.email === ADMIN_EMAIL && data.password === ADMIN_PASSWORD) {
-        // Generate unique admin device ID and store it
-        const adminDeviceId = `admin-device-${Date.now()}`;
-        localStorage.setItem('deviceId', adminDeviceId);
+        // Store admin flag
+        localStorage.setItem('isAdmin', 'true');
+        localStorage.setItem('adminEmail', ADMIN_EMAIL);
+        localStorage.setItem('deviceId', 'admin-device-simple');
         
-        // Update admin user with this device ID
-        await fetch("/api/admin/set-device", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            email: ADMIN_EMAIL,
-            deviceId: adminDeviceId
-          }),
-        });
-        
-        return { isAdmin: true, deviceId: adminDeviceId };
+        return { 
+          isAdmin: true, 
+          email: ADMIN_EMAIL,
+          fullName: "מנהל המערכת",
+          deviceId: 'admin-device-simple'
+        };
       }
       
       const response = await fetch("/api/auth/login", {

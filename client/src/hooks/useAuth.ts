@@ -1,36 +1,59 @@
 import { useQuery } from "@tanstack/react-query";
-import { User } from "@shared/schema";
-
-// Get device ID from localStorage
-const getDeviceId = () => {
-  const deviceId = localStorage.getItem("device-id");
-  if (!deviceId) {
-    const newDeviceId = crypto.randomUUID();
-    localStorage.setItem("device-id", newDeviceId);
-    return newDeviceId;
-  }
-  return deviceId;
-};
+import { useState, useEffect } from "react";
 
 export function useAuth() {
-  const deviceId = getDeviceId();
-  
-  const { data: user, isLoading } = useQuery<User>({
-    queryKey: ["/api/auth/user", deviceId],
-    queryFn: async () => {
-      const response = await fetch(`/api/auth/user?deviceId=${deviceId}`);
-      if (!response.ok) {
-        throw new Error('Unauthorized');
-      }
-      return response.json();
-    },
+  const [deviceId, setDeviceId] = useState<string>("");
+
+  useEffect(() => {
+    // Generate or get existing device ID
+    let storedDeviceId = localStorage.getItem("deviceId");
+    if (!storedDeviceId) {
+      storedDeviceId = `device-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem("deviceId", storedDeviceId);
+    }
+    setDeviceId(storedDeviceId);
+  }, []);
+
+  // Check if admin is logged in via localStorage
+  const isAdminLoggedIn = localStorage.getItem('isAdmin') === 'true';
+  const adminEmail = localStorage.getItem('adminEmail');
+
+  const { data: user, isLoading, error } = useQuery({
+    queryKey: ["/api/auth/user"],
+    enabled: !!deviceId && !isAdminLoggedIn,
     retry: false,
   });
 
+  // Return admin user if admin is logged in
+  if (isAdminLoggedIn && adminEmail) {
+    return {
+      user: {
+        id: 'admin-user',
+        email: adminEmail,
+        fullName: 'מנהל המערכת',
+        deviceId: 'admin-device-simple',
+        isAdmin: true,
+        status: 'approved' as const,
+        personalId: 'admin',
+        phone: 'admin',
+        password: 'admin123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        approvedAt: new Date(),
+        approvedBy: 'system'
+      },
+      deviceId: 'admin-device-simple',
+      isLoading: false,
+      isAuthenticated: true,
+      error: null
+    };
+  }
+
   return {
-    user,
-    isLoading,
-    isAuthenticated: !!user && user.status === "approved",
+    user: user ? { ...user, deviceId } : null,
     deviceId,
+    isLoading,
+    isAuthenticated: !!user,
+    error
   };
 }
