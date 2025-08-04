@@ -37,7 +37,7 @@ function AppContent() {
     if (location === "/admin") {
       return <AdminDashboard />;
     }
-    // Default to landing page for all other routes
+    // Default to landing page (login/register) for all other routes
     return <Landing />;
   }
 

@@ -68,6 +68,7 @@ export function useAuth() {
 
   // Logout function
   const logout = () => {
+    localStorage.removeItem('user');
     localStorage.removeItem('isAdmin');
     localStorage.removeItem('adminEmail');
     localStorage.removeItem('deviceId');
