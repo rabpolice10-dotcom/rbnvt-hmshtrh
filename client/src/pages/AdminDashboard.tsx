@@ -379,7 +379,6 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
-
       {/* Main Dashboard */}
       <Tabs 
         value={selectedTab} 
@@ -457,7 +456,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center gap-3 flex-row-reverse">
                   <CheckCircle className="h-8 w-8 text-green-600" />
                   <div className="text-right flex-1">
-                    <p className="text-sm text-gray-600 text-right">שאלות נענו</p>
+                    <p className="text-sm text-gray-600 text-right">שאלות שנענו</p>
                     <p className="text-2xl font-bold text-gray-800 text-right">{statistics.answeredQuestions}</p>
                   </div>
                 </div>
