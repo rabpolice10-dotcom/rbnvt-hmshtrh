@@ -336,9 +336,12 @@ export default function AdminDashboard() {
             <p className="text-gray-600 mb-4">רק מנהלי מערכת יכולים לגשת לדף זה.</p>
             <Button 
               onClick={() => {
-                // Clear all authentication data and reload
+                // Clear all authentication data and force full page reload
                 localStorage.clear();
-                window.location.replace("/");
+                sessionStorage.clear();
+                // Force complete page reload to clear all React state
+                window.location.href = "/";
+                window.location.reload();
               }}
               className="bg-police-blue hover:bg-police-blue-dark text-white"
             >
@@ -370,9 +373,12 @@ export default function AdminDashboard() {
               </div>
               <Button 
                 onClick={() => {
-                  // Clear all authentication data and reload
+                  // Clear all authentication data and force full page reload
                   localStorage.clear();
-                  window.location.replace("/");
+                  sessionStorage.clear();
+                  // Force complete page reload to clear all React state
+                  window.location.href = "/";
+                  window.location.reload();
                 }}
                 variant="outline"
                 className="bg-white text-police-blue border-white hover:bg-gray-100"

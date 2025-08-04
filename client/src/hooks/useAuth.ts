@@ -75,12 +75,16 @@ export function useAuth() {
 
 
 
+  // Check if localStorage admin flags are still valid (not cleared)
+  const currentIsAdminLoggedIn = localStorage.getItem('isAdmin') === 'true';
+  const currentAdminEmail = localStorage.getItem('adminEmail');
+  
   // Return admin user if admin is logged in
-  if (isAdminLoggedIn && adminEmail) {
+  if (currentIsAdminLoggedIn && currentAdminEmail) {
     return {
       user: {
         id: 'admin-user',
-        email: adminEmail,
+        email: currentAdminEmail,
         fullName: 'מנהל המערכת',
         deviceId: 'admin-device-simple',
         isAdmin: true,
