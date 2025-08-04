@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { performLogout } from "@/lib/logout";
 import logo from "@assets/bf4d69d1-82e0-4b41-bc8c-ecca5ca6a895_1753886576969.jpeg";
 import { loginSchema, type LoginUser } from "@shared/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,6 +22,9 @@ export default function Login() {
   const { toast } = useToast();
   const { deviceId } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Check if user is already logged in as admin and show logout option
+  const isAdminLoggedIn = localStorage.getItem('isAdmin') === 'true';
 
   const form = useForm<LoginUser>({
     resolver: zodResolver(loginSchema),
@@ -123,6 +127,20 @@ export default function Login() {
           <CardDescription className="text-gray-600">
             הכנס אימייל וסיסמה להתחברות
           </CardDescription>
+          
+          {isAdminLoggedIn && (
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800 mb-2 text-center">משתמש מחובר כבר קיים במערכת</p>
+              <Button 
+                onClick={performLogout}
+                variant="outline" 
+                size="sm"
+                className="w-full text-blue-700 border-blue-300 hover:bg-blue-100"
+              >
+                התנתק ממשתמש קיים
+              </Button>
+            </div>
+          )}
         </CardHeader>
         
         <CardContent>
