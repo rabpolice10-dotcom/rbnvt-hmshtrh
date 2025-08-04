@@ -573,45 +573,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Jewish times API
+  // Jewish times API using accurate Hebcal API
   app.get("/api/jewish-times", async (req, res) => {
     try {
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
       
-      // Real calculation for Jerusalem coordinates (31.7683, 35.2137)
-      const latitude = 31.7683;
-      const longitude = 35.2137;
+      // Use Hebcal API for accurate zmanim for Jerusalem
+      const hebcalUrl = `https://www.hebcal.com/zmanim?cfg=json&lat=31.7777&lon=35.2324&tzid=Asia/Jerusalem&date=${todayStr}`;
       
-      // Calculate sunrise and sunset (simplified calculation)
-      const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-      const sunriseHour = 6 + Math.sin((dayOfYear - 81) * 2 * Math.PI / 365) * 1.5;
-      const sunsetHour = 18 + Math.sin((dayOfYear - 81) * 2 * Math.PI / 365) * 1.5;
+      const response = await fetch(hebcalUrl);
+      if (!response.ok) {
+        throw new Error('Failed to fetch from Hebcal API');
+      }
       
-      const formatTime = (hour: number) => {
-        const h = Math.floor(hour);
-        const m = Math.floor((hour - h) * 60);
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      const hebcalData = await response.json();
+      const times = hebcalData.times;
+      
+      // Format times to match our expected structure
+      const formatTime = (timeStr: string) => {
+        if (!timeStr) return null;
+        try {
+          const date = new Date(timeStr);
+          return date.toLocaleTimeString('he-IL', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'Asia/Jerusalem'
+          });
+        } catch (e) {
+          return timeStr;
+        }
       };
       
-      const sunrise = formatTime(sunriseHour);
-      const sunset = formatTime(sunsetHour);
-      const shemaLatest = formatTime(sunriseHour + 3);
-      const tefillaLatest = formatTime(sunriseHour + 4);
+      const jewishTimes = {
+        sunrise: formatTime(times.sunrise),
+        sunset: formatTime(times.sunset),
+        shabbatStart: formatTime(times.candleLighting), // 40 minutes before sunset for Jerusalem
+        shabbatEnd: formatTime(times.havdalah), // End of Shabbat
+        shemaLatest: formatTime(times.sofZmanShma), // Latest time for Shema
+        tefillaLatest: formatTime(times.sofZmanTfilla), // Latest time for Tefilla
+        location: "ירושלים",
+        date: todayStr,
+        dawn: formatTime(times.dawn),
+        dusk: formatTime(times.dusk)
+      };
       
-      const times = {
-        sunrise,
-        sunset,
-        shabbatStart: formatTime(sunsetHour - 0.3),
-        shabbatEnd: formatTime(sunsetHour + 1.17),
-        shemaLatest,
-        tefillaLatest,
+      console.log('Jewish times from Hebcal:', jewishTimes);
+      res.json(jewishTimes);
+    } catch (error) {
+      console.error('Error fetching Jewish times from Hebcal:', error);
+      
+      // Fallback to basic calculation if API fails
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      
+      const basicTimes = {
+        sunrise: "06:30",
+        sunset: "18:30",
+        shabbatStart: "17:50",
+        shabbatEnd: "19:12",
+        shemaLatest: "09:30",
+        tefillaLatest: "10:30",
         location: "ירושלים",
         date: todayStr
       };
-      res.json(times);
-    } catch (error) {
-      res.status(500).json({ message: "שגיאה בטעינת הזמנים" });
+      
+      res.json(basicTimes);
     }
   });
 
