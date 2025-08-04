@@ -370,10 +370,14 @@ export default function AdminDashboard() {
                 <Button 
                   onClick={performLogout}
                   variant="outline"
-                  size="sm"
-                  className="bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500 hover:from-red-600 hover:to-red-700 hover:border-red-600 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-2"
+                  size="lg"
+                  className="bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white border-2 border-red-400 hover:from-red-600 hover:via-red-700 hover:to-red-800 hover:border-red-500 font-bold shadow-2xl hover:shadow-red-500/30 transition-all duration-300 px-8 py-3 rounded-xl transform hover:scale-105 hover:-translate-y-1 relative overflow-hidden group"
                 >
-                  🚪 התנתק מהמערכת
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <span className="flex items-center gap-3 text-lg relative z-10">
+                    <span className="text-2xl animate-pulse">🚪</span>
+                    <span className="tracking-wide font-extrabold drop-shadow-lg">התנתק מהמערכת</span>
+                  </span>
                 </Button>
               </div>
             </div>
