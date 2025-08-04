@@ -49,9 +49,7 @@ export function useAuth() {
   
   // console.log('Auth check:', { isAdminLoggedIn, adminEmail, deviceId });
 
-  // Enable auth check only after admin login
-  const shouldCheckAuth = isAdminLoggedIn; // Only check auth for admin users
-  
+  // Enable auth check for all users (not just admin)
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user", deviceId],
     queryFn: async () => {
@@ -61,7 +59,7 @@ export function useAuth() {
       }
       return response.json();
     },
-    enabled: shouldCheckAuth && !!deviceId && !isAdminLoggedIn,
+    enabled: !!deviceId && !isAdminLoggedIn, // Check for regular users, not admin
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -126,17 +124,23 @@ export function useAuth() {
     };
   }
 
-  const result = {
+  const isAuthenticated = !!user && !error;
+  
+  console.log('useAuth for regular user:', { 
+    user: user ? { id: user.id, email: user.email, isAdmin: user.isAdmin } : null, 
+    isAuthenticated, 
+    isLoading, 
+    error: error?.message || null,
+    deviceId
+  });
+  
+  return {
     user: user ? { ...user, deviceId } : null,
     deviceId,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated,
     error,
     register: (userData: { fullName: string; personalId: string; phone: string }) => registerMutation.mutateAsync(userData),
     logout
   };
-  
-  // console.log('Auth result:', { hasUser: !!user, isLoading, isAuthenticated: !!user });
-  
-  return result;
 }

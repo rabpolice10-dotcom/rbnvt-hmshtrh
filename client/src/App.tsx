@@ -23,10 +23,10 @@ function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
 
-  // console.log('App state:', { isAuthenticated, isLoading, location });
-
   // Check localStorage immediately for admin status
   const isAdminInStorage = localStorage.getItem('isAdmin') === 'true';
+  
+  console.log('App state:', { isAuthenticated, isLoading, location, isAdminInStorage });
   
   // Force login page if explicitly requested
   if (location === "/login") {
