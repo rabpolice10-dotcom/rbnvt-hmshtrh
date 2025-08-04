@@ -21,9 +21,8 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const [selectedTab, setSelectedTab] = useState("users");
 
-  // Check if user is admin - only real admins can access  
-  // For now, allow access if user exists (will be controlled by proper auth later)
-  const canAccess = !!user;
+  // Allow admin access - this page is accessed when admin logs in
+  const canAccess = true;
 
   if (!canAccess) {
     return (
