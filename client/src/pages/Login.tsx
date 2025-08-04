@@ -32,6 +32,8 @@ export default function Login() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginUser) => {
+      console.log('Starting login with:', { email: data.email, deviceId });
+      
       // Check if admin login - SIMPLE VERSION
       if (data.email === ADMIN_EMAIL && data.password === ADMIN_PASSWORD) {
         // Store admin flag
@@ -47,14 +49,18 @@ export default function Login() {
         };
       }
       
+      const loginPayload = { ...data, deviceId };
+      console.log('Sending login request:', loginPayload);
+      
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, deviceId }),
+        body: JSON.stringify(loginPayload),
       });
       
       if (!response.ok) {
         const error = await response.json();
+        console.error('Login error response:', error);
         throw new Error(error.message);
       }
       

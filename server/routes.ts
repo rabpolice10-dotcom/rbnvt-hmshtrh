@@ -62,27 +62,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password, deviceId } = req.body;
       
+      console.log('Login attempt:', { email, deviceId, password: '***' });
+      
       // Find user by email
       const user = await storage.getUserByEmail(email);
       
       if (!user) {
+        console.log('User not found:', email);
         return res.status(404).json({ message: "כתובת אימייל לא רשומה במערכת" });
       }
 
+      console.log('User found:', { id: user.id, email: user.email, status: user.status });
+
       // Check password (in production, use proper password hashing)
       if (user.password !== password) {
+        console.log('Password mismatch:', { expected: user.password, received: password });
         return res.status(401).json({ message: "סיסמה לא נכונה" });
       }
 
       if (user.status !== "approved") {
+        console.log('User not approved:', user.status);
         return res.status(403).json({ message: "החשבון לא אושר עדיין על ידי מנהל המערכת" });
       }
 
       // Update the user's device ID for this login
       const updatedUser = await storage.updateUserDeviceId(user.id, deviceId);
       
+      console.log('Login successful for user:', updatedUser.email);
       res.json({ user: updatedUser });
     } catch (error) {
+      console.error('Login error:', error);
       res.status(400).json({ message: "שגיאה בהתחברות" });
     }
   });
