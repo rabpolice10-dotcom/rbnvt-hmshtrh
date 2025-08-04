@@ -2,18 +2,17 @@
 export const performLogout = () => {
   console.log('Starting logout process...');
   
-  // Clear all localStorage and sessionStorage
-  localStorage.clear();
+  // Clear specific items from localStorage
+  localStorage.removeItem('isAdmin');
+  localStorage.removeItem('adminEmail');
+  localStorage.removeItem('user');
+  localStorage.removeItem('deviceId');
+  
+  // Clear sessionStorage
   sessionStorage.clear();
   
-  // Clear any cookies
-  document.cookie.split(";").forEach(function(c) { 
-    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-  });
+  console.log('All data cleared, redirecting...');
   
-  console.log('All data cleared, triggering page reload...');
-  
-  // Force complete page refresh to clear all React state
-  window.location.href = "/";
-  window.location.reload();
+  // Direct redirect without reload to avoid timing issues
+  window.location.replace("/");
 };
