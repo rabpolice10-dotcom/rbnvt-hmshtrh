@@ -58,13 +58,7 @@ export default function Landing() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-card hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 text-center">
-              <UserCheck className="h-12 w-12 text-police-blue mx-auto mb-4" />
-              <h3 className="font-semibold text-lg mb-2">קהילה</h3>
-              <p className="text-gray-600">הצטרפות לקהילה דתית של שוטרים</p>
-            </CardContent>
-          </Card>
+          
         </div>
 
         {/* Login/Register Buttons */}
