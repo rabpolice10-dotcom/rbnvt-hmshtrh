@@ -7,68 +7,36 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Download, User, Calendar, Activity, CheckCircle, XCircle, Clock } from "lucide-react";
 
-// Simplified interfaces
-interface UserStats {
-  user: any;
-  questionsCount: number;
-  lastActivity: string;
-}
-
-interface SystemStats {
-  totalUsers: number;
-  pendingUsers: number;
-  approvedUsers: number;
-  rejectedUsers: number;
-  totalQuestions: number;
-  answeredQuestions: number;
-  pendingQuestions: number;
-  recentRegistrations: number;
-  activeUsers: number;
-}
-
-export default function UserManagement() {
+export default function SimpleUserManagement() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [currentPage, setCurrentPage] = useState(1);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
-  // Fetch users with filtering and pagination
+  // Fetch users
   const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = useQuery({
-    queryKey: ['/api/admin/users', { search, statusFilter, sortBy, sortOrder, page: currentPage }],
-    queryFn: () => apiRequest(`/api/admin/users?status=${statusFilter}&search=${search}&sortBy=${sortBy}&sortOrder=${sortOrder}&page=${currentPage}&limit=20`)
+    queryKey: ['/api/admin/users', { search, statusFilter }],
+    queryFn: () => apiRequest(`/api/admin/users?status=${statusFilter}&search=${search}&page=1&limit=50`)
   });
 
   // Fetch system statistics
-  const { data: systemStats } = useQuery<SystemStats>({
+  const { data: systemStats } = useQuery({
     queryKey: ['/api/admin/system-stats'],
     queryFn: () => apiRequest('/api/admin/system-stats')
   });
 
-  // Fetch detailed user information
-  const { data: userDetails } = useQuery({
-    queryKey: ['/api/admin/users', selectedUser],
-    queryFn: () => apiRequest(`/api/admin/users/${selectedUser}`),
-    enabled: !!selectedUser
-  });
-
   // Update user status mutation
   const updateStatusMutation = useMutation({
-    mutationFn: ({ userId, status, reason }: { userId: string; status: string; reason?: string }) =>
+    mutationFn: ({ userId, status }: { userId: string; status: string }) =>
       apiRequest(`/api/admin/users/${userId}/status`, {
         method: 'PUT',
         body: JSON.stringify({ 
           status, 
-          reason,
           deviceId: localStorage.getItem('deviceId') || 'admin-device-simple'
         })
       }),
@@ -91,13 +59,12 @@ export default function UserManagement() {
 
   // Bulk action mutation
   const bulkActionMutation = useMutation({
-    mutationFn: ({ action, userIds, reason }: { action: string; userIds: string[]; reason?: string }) =>
+    mutationFn: ({ action, userIds }: { action: string; userIds: string[] }) =>
       apiRequest('/api/admin/users/bulk-action', {
         method: 'POST',
         body: JSON.stringify({ 
           action, 
           userIds, 
-          reason,
           deviceId: localStorage.getItem('deviceId') || 'admin-device-simple'
         })
       }),
@@ -109,34 +76,6 @@ export default function UserManagement() {
       setSelectedUsers([]);
       refetchUsers();
       queryClient.invalidateQueries({ queryKey: ['/api/admin/system-stats'] });
-    }
-  });
-
-  // Export users mutation
-  const exportMutation = useMutation({
-    mutationFn: (format: string) => apiRequest(`/api/admin/users/export?format=${format}`),
-    onSuccess: (data, format) => {
-      if (format === 'csv') {
-        // Handle CSV download
-        const blob = new Blob([data], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'users-export.csv';
-        a.click();
-      } else {
-        // Handle JSON download
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'users-export.json';
-        a.click();
-      }
-      toast({
-        title: "הצלחה",
-        description: "נתוני המשתמשים יוצאו בהצלחה",
-      });
     }
   });
 
@@ -154,18 +93,12 @@ export default function UserManagement() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('he-IL', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return new Date(dateString).toLocaleDateString('he-IL');
   };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedUsers(usersData?.users.map((u: any) => u.user.id) || []);
+      setSelectedUsers(usersData?.users?.map((u: any) => u.user.id) || []);
     } else {
       setSelectedUsers([]);
     }
@@ -238,13 +171,12 @@ export default function UserManagement() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>ניהול משתמשים</span>
+            <span>ניהול משתמשים מקיף</span>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => exportMutation.mutate('json')}
-                disabled={exportMutation.isPending}
+                onClick={() => window.open('/api/admin/users/export?format=json')}
               >
                 <Download className="w-4 h-4 ml-1" />
                 יצוא JSON
@@ -252,8 +184,7 @@ export default function UserManagement() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => exportMutation.mutate('csv')}
-                disabled={exportMutation.isPending}
+                onClick={() => window.open('/api/admin/users/export?format=csv')}
               >
                 <Download className="w-4 h-4 ml-1" />
                 יצוא CSV
@@ -284,32 +215,6 @@ export default function UserManagement() {
                 <SelectItem value="pending">ממתין לאישור</SelectItem>
                 <SelectItem value="approved">מאושר</SelectItem>
                 <SelectItem value="rejected">נדחה</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Sort By */}
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="מיון לפי" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="createdAt">תאריך הצטרפות</SelectItem>
-                <SelectItem value="fullName">שם</SelectItem>
-                <SelectItem value="email">אימייל</SelectItem>
-                <SelectItem value="status">סטטוס</SelectItem>
-                <SelectItem value="lastLoginAt">התחברות אחרונה</SelectItem>
-                <SelectItem value="loginCount">מספר התחברויות</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Sort Order */}
-            <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => setSortOrder(value)}>
-              <SelectTrigger className="w-full md:w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">יורד</SelectItem>
-                <SelectItem value="asc">עולה</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -370,7 +275,7 @@ export default function UserManagement() {
                   <TableRow>
                     <TableHead className="w-12">
                       <Checkbox
-                        checked={selectedUsers.length === usersData?.users.length && usersData?.users.length > 0}
+                        checked={selectedUsers.length === usersData?.users?.length && usersData?.users.length > 0}
                         onCheckedChange={handleSelectAll}
                       />
                     </TableHead>
@@ -380,12 +285,11 @@ export default function UserManagement() {
                     <TableHead>סטטוס</TableHead>
                     <TableHead>שאלות</TableHead>
                     <TableHead>תאריך הצטרפות</TableHead>
-                    <TableHead>פעילות אחרונה</TableHead>
                     <TableHead>פעולות</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {usersData?.users.map((item: any) => (
+                  {usersData?.users?.map((item: any) => (
                     <TableRow key={item.user.id} className="hover:bg-gray-50">
                       <TableCell>
                         <Checkbox
@@ -405,77 +309,7 @@ export default function UserManagement() {
                       <TableCell>{item.questionsCount || 0}</TableCell>
                       <TableCell>{formatDate(item.user.createdAt)}</TableCell>
                       <TableCell>
-                        {item.user.lastLoginAt ? formatDate(item.user.lastLoginAt) : 'מעולם לא התחבר'}
-                      </TableCell>
-                      <TableCell>
                         <div className="flex gap-1">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedUser(item.user.id)}
-                              >
-                                פרטים
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                              <DialogHeader>
-                                <DialogTitle>פרטי משתמש - {item.user.fullName}</DialogTitle>
-                              </DialogHeader>
-                              {userDetails && (
-                                <div className="space-y-4" dir="rtl">
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                      <h4 className="font-semibold mb-2">פרטים אישיים</h4>
-                                      <div className="space-y-1 text-sm">
-                                        <p><strong>שם:</strong> {userDetails.user.fullName}</p>
-                                        <p><strong>אימייל:</strong> {userDetails.user.email}</p>
-                                        <p><strong>טלפון:</strong> {userDetails.user.phone}</p>
-                                        <p><strong>ת.ז.:</strong> {userDetails.user.personalId}</p>
-                                        <p><strong>סטטוס:</strong> {getStatusBadge(userDetails.user.status)}</p>
-                                      </div>
-                                    </div>
-                                    
-                                    <div>
-                                      <h4 className="font-semibold mb-2">סטטיסטיקות</h4>
-                                      <div className="space-y-1 text-sm">
-                                        <p><strong>שאלות שנשלחו:</strong> {userDetails.statistics.questionsSubmitted}</p>
-                                        <p><strong>שאלות שנענו:</strong> {userDetails.statistics.questionsAnswered}</p>
-                                        <p><strong>התחברויות:</strong> {userDetails.statistics.totalLoginCount}</p>
-                                        <p><strong>התחברות אחרונה:</strong> {userDetails.statistics.lastLogin ? formatDate(userDetails.statistics.lastLogin) : 'מעולם לא'}</p>
-                                        <p><strong>תאריך הצטרפות:</strong> {formatDate(userDetails.statistics.joinDate)}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <h4 className="font-semibold mb-2">פעילות אחרונה</h4>
-                                    <div className="max-h-40 overflow-y-auto">
-                                      {userDetails.recentActivity.length > 0 ? (
-                                        userDetails.recentActivity.map((activity, index) => (
-                                          <div key={index} className="border-b pb-2 mb-2 last:border-b-0">
-                                            <div className="flex justify-between items-start">
-                                              <div>
-                                                <p className="font-medium text-sm">{activity.title}</p>
-                                                <p className="text-xs text-gray-600">{activity.content}</p>
-                                              </div>
-                                              <div className="text-xs text-gray-500">
-                                                {formatDate(activity.date)}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ))
-                                      ) : (
-                                        <p className="text-sm text-gray-500">אין פעילות אחרונה</p>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </DialogContent>
-                          </Dialog>
-
                           {item.user.status === 'pending' && (
                             <>
                               <Button
@@ -521,7 +355,7 @@ export default function UserManagement() {
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>ביטול</AlertDialogCancel>
                                   <AlertDialogAction 
-                                    onClick={() => updateStatusMutation.mutate({ userId: item.user.id, status: 'rejected', reason: 'חריגה מהכללים' })}
+                                    onClick={() => updateStatusMutation.mutate({ userId: item.user.id, status: 'rejected' })}
                                   >
                                     בטל אישור
                                   </AlertDialogAction>
@@ -538,28 +372,10 @@ export default function UserManagement() {
             </div>
           )}
 
-          {/* Pagination */}
-          {usersData && usersData.pages > 1 && (
-            <div className="flex justify-center gap-2 mt-6">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
-              >
-                קודם
-              </Button>
-              <span className="px-4 py-2 text-sm">
-                עמוד {currentPage} מתוך {usersData.pages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === usersData.pages}
-                onClick={() => setCurrentPage(currentPage + 1)}
-              >
-                הבא
-              </Button>
+          {/* No users message */}
+          {!usersLoading && (!usersData?.users || usersData.users.length === 0) && (
+            <div className="text-center py-8 text-gray-500">
+              לא נמצאו משתמשים עם הקריטריונים שנבחרו
             </div>
           )}
         </CardContent>

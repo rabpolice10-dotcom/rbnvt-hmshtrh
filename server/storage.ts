@@ -482,10 +482,7 @@ export class DatabaseStorage implements IStorage {
     const { status, search, sortBy = 'createdAt', sortOrder = 'desc', page = 1, limit = 50 } = params;
     const offset = (page - 1) * limit;
 
-    // Build base query
-    let query = db.select().from(users);
-    
-    // Apply filters
+    // Build base query with filters
     const filters = [];
     if (status && status !== 'all') {
       filters.push(eq(users.status, status as any));
@@ -501,48 +498,80 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
-    if (filters.length > 0) {
-      query = query.where(and(...filters));
+    // Get filtered users with simplified approach
+    const allUsers = await db.select().from(users);
+    let filteredUsers = allUsers;
+
+    // Apply filters manually for simplicity
+    if (status && status !== 'all') {
+      filteredUsers = filteredUsers.filter(user => user.status === status);
+    }
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredUsers = filteredUsers.filter(user => 
+        user.fullName.toLowerCase().includes(searchLower) ||
+        user.email.toLowerCase().includes(searchLower) ||
+        user.phone.includes(search) ||
+        user.personalId.includes(search)
+      );
     }
 
-    // Apply sorting and pagination
-    const orderColumn = sortBy === 'fullName' ? users.fullName :
-                       sortBy === 'email' ? users.email :
-                       sortBy === 'status' ? users.status :
-                       sortBy === 'loginCount' ? users.loginCount :
-                       sortBy === 'lastLoginAt' ? users.lastLoginAt :
-                       users.createdAt;
+    // Sort users
+    filteredUsers.sort((a, b) => {
+      let aVal: any, bVal: any;
+      switch (sortBy) {
+        case 'fullName':
+          aVal = a.fullName;
+          bVal = b.fullName;
+          break;
+        case 'email':
+          aVal = a.email;
+          bVal = b.email;
+          break;
+        case 'status':
+          aVal = a.status;
+          bVal = b.status;
+          break;
+        case 'loginCount':
+          aVal = a.loginCount || 0;
+          bVal = b.loginCount || 0;
+          break;
+        case 'lastLoginAt':
+          aVal = a.lastLoginAt || new Date(0);
+          bVal = b.lastLoginAt || new Date(0);
+          break;
+        default:
+          aVal = a.createdAt;
+          bVal = b.createdAt;
+      }
+      
+      if (sortOrder === 'desc') {
+        return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+      } else {
+        return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      }
+    });
 
-    query = query.orderBy(sortOrder === 'desc' ? desc(orderColumn) : orderColumn)
-                 .limit(limit)
-                 .offset(offset);
+    // Apply pagination
+    const total = filteredUsers.length;
+    const pages = Math.ceil(total / limit);
+    const paginatedUsers = filteredUsers.slice(offset, offset + limit);
 
-    const userResults = await query;
-    
-    // Get question counts for each user
+    // Add question counts
     const usersWithStats = await Promise.all(
-      userResults.map(async (user) => {
-        const [questionCount] = await db
-          .select({ count: users.questionsSubmitted })
-          .from(users)
-          .where(eq(users.id, user.id));
+      paginatedUsers.map(async (user) => {
+        const userQuestions = await db
+          .select()
+          .from(questions)
+          .where(eq(questions.userId, user.id));
         
         return {
           ...user,
-          questionsCount: questionCount?.count || 0,
+          questionsCount: userQuestions.length,
           lastActivity: user.lastLoginAt?.toISOString() || user.createdAt.toISOString()
         };
       })
     );
-
-    // Get total count
-    const [totalResult] = await db
-      .select({ count: users.id })
-      .from(users)
-      .where(filters.length > 0 ? and(...filters) : undefined);
-    
-    const total = totalResult?.count || 0;
-    const pages = Math.ceil(total / limit);
 
     return {
       users: usersWithStats,
@@ -652,41 +681,25 @@ export class DatabaseStorage implements IStorage {
     recentRegistrations: number;
     activeUsers: number;
   }> {
-    const [totalUsers] = await db.select({ count: users.id }).from(users);
-    const [pendingUsers] = await db.select({ count: users.id }).from(users).where(eq(users.status, 'pending'));
-    const [approvedUsers] = await db.select({ count: users.id }).from(users).where(eq(users.status, 'approved'));
-    const [rejectedUsers] = await db.select({ count: users.id }).from(users).where(eq(users.status, 'rejected'));
+    // Simplified approach to avoid complex counting queries
+    const allUsers = await db.select().from(users);
+    const allQuestions = await db.select().from(questions);
     
-    const [totalQuestions] = await db.select({ count: questions.id }).from(questions);
-    const [answeredQuestions] = await db.select({ count: questions.id }).from(questions).where(eq(questions.status, 'answered'));
-    const [pendingQuestions] = await db.select({ count: questions.id }).from(questions).where(eq(questions.status, 'pending'));
-    
-    // Recent registrations (last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const [recentRegistrations] = await db
-      .select({ count: users.id })
-      .from(users)
-      .where(users.createdAt >= sevenDaysAgo);
-    
-    // Active users (logged in last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const [activeUsers] = await db
-      .select({ count: users.id })
-      .from(users)
-      .where(users.lastLoginAt >= thirtyDaysAgo);
 
     return {
-      totalUsers: totalUsers?.count || 0,
-      pendingUsers: pendingUsers?.count || 0,
-      approvedUsers: approvedUsers?.count || 0,
-      rejectedUsers: rejectedUsers?.count || 0,
-      totalQuestions: totalQuestions?.count || 0,
-      answeredQuestions: answeredQuestions?.count || 0,
-      pendingQuestions: pendingQuestions?.count || 0,
-      recentRegistrations: recentRegistrations?.count || 0,
-      activeUsers: activeUsers?.count || 0
+      totalUsers: allUsers.length,
+      pendingUsers: allUsers.filter(u => u.status === 'pending').length,
+      approvedUsers: allUsers.filter(u => u.status === 'approved').length,
+      rejectedUsers: allUsers.filter(u => u.status === 'rejected').length,
+      totalQuestions: allQuestions.length,
+      answeredQuestions: allQuestions.filter(q => q.status === 'answered').length,
+      pendingQuestions: allQuestions.filter(q => q.status === 'pending').length,
+      recentRegistrations: allUsers.filter(u => u.createdAt >= sevenDaysAgo).length,
+      activeUsers: allUsers.filter(u => u.lastLoginAt && u.lastLoginAt >= thirtyDaysAgo).length
     };
   }
 
@@ -714,8 +727,8 @@ export class DatabaseStorage implements IStorage {
             .where(eq(users.id, id))
             .returning();
           return { id, success: true, user: updatedUser };
-        } catch (error) {
-          return { id, success: false, error: error.message };
+        } catch (error: any) {
+          return { id, success: false, error: error?.message || 'Unknown error' };
         }
       })
     );

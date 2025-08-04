@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { performLogout } from "@/lib/logout";
+import SimpleUserManagement from "@/components/SimpleUserManagement";
 import type { User, Question, Answer, News, Synagogue, DailyHalacha, Video as VideoType, ContactMessage } from "@shared/schema";
 
 // Form schemas
@@ -515,61 +516,9 @@ export default function AdminDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Users Management Tab */}
+        {/* Comprehensive Users Management Tab */}
         <TabsContent value="users" className="space-y-4">
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                ניהול משתמשים - משתמשים ממתינים לאישור
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {!pendingUsers || pendingUsers.length === 0 ? (
-                <p className="text-center text-gray-600 py-8">אין משתמשים ממתינים לאישור</p>
-              ) : (
-                pendingUsers.map((pendingUser) => (
-                  <div key={pendingUser.id} className="border rounded-lg p-4 space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2 text-right flex-1">
-                        <h3 className="font-semibold text-gray-800 text-lg text-right">{pendingUser.fullName}</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                          <p className="text-right"><strong>אימייל:</strong> {pendingUser.email}</p>
-                          <p className="text-right"><strong>טלפון:</strong> {pendingUser.phone}</p>
-                          <p className="text-right"><strong>מספר אישי:</strong> {pendingUser.personalId}</p>
-                          <p className="text-right"><strong>תאריך הרשמה:</strong> {new Date(pendingUser.createdAt).toLocaleDateString('he-IL')}</p>
-                        </div>
-                      </div>
-                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                        <Clock className="h-3 w-3 mr-1" />
-                        ממתין לאישור
-                      </Badge>
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                        onClick={() => approveUserMutation.mutate(pendingUser.id)}
-                        disabled={approveUserMutation.isPending}
-                      >
-                        <CheckCircle className="h-4 w-4 ml-1" />
-                        אשר משתמש
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => rejectUserMutation.mutate(pendingUser.id)}
-                        disabled={rejectUserMutation.isPending}
-                      >
-                        <XCircle className="h-4 w-4 ml-1" />
-                        דחה משתמש
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
+          <SimpleUserManagement />
         </TabsContent>
 
         {/* Questions Management Tab */}
