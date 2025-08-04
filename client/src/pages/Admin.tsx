@@ -31,7 +31,15 @@ export default function Admin() {
   useEffect(() => {
     const checkAdminAccess = async () => {
       // For admin email, always grant access
-      if (user?.email === "admin@police.gov.il") {
+      if (user?.email === "admin@police.gov.il" || user?.isAdmin) {
+        setHasAdminAccess(true);
+        setIsCheckingAdmin(false);
+        return;
+      }
+
+      // Check localStorage for admin flag
+      const isAdminStored = localStorage.getItem('isAdmin') === 'true';
+      if (isAdminStored) {
         setHasAdminAccess(true);
         setIsCheckingAdmin(false);
         return;
@@ -55,7 +63,7 @@ export default function Admin() {
     };
 
     checkAdminAccess();
-  }, [user?.email, user?.deviceId]);
+  }, [user?.email, user?.deviceId, user?.isAdmin]);
 
   // Fetch pending users
   const { data: pendingUsers } = useQuery({

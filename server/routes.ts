@@ -85,8 +85,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "החשבון לא אושר עדיין על ידי מנהל המערכת" });
       }
 
-      // Update the user's device ID for this login
-      const updatedUser = await storage.updateUserDeviceId(user.id, deviceId);
+      // Update the user's device ID for this login only if different
+      let updatedUser = user;
+      if (user.deviceId !== deviceId) {
+        try {
+          updatedUser = await storage.updateUserDeviceId(user.id, deviceId);
+        } catch (error) {
+          // If device ID conflict, generate a unique one
+          const uniqueDeviceId = `${deviceId}-${Date.now()}`;
+          updatedUser = await storage.updateUserDeviceId(user.id, uniqueDeviceId);
+        }
+      }
       
       console.log('Login successful for user:', updatedUser.email);
       res.json({ user: updatedUser });
@@ -118,7 +127,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin routes
+  // Admin routes - both endpoints for compatibility
+  app.get("/api/users/pending", async (req, res) => {
+    try {
+      const pendingUsers = await storage.getPendingUsers();
+      console.log('Pending users found:', pendingUsers.length);
+      res.json(pendingUsers);
+    } catch (error) {
+      console.error('Error fetching pending users:', error);
+      res.status(500).json({ message: "שגיאה בטעינת משתמשים ממתינים" });
+    }
+  });
+
   app.get("/api/admin/pending-users", async (req, res) => {
     try {
       const pendingUsers = await storage.getPendingUsers();

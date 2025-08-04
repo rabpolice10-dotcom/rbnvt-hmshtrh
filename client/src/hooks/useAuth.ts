@@ -7,6 +7,14 @@ export function useAuth() {
   useEffect(() => {
     // Generate or get existing device ID
     let storedDeviceId = localStorage.getItem("deviceId");
+    
+    // Clear admin device ID if user is not admin
+    const isAdminStored = localStorage.getItem('isAdmin') === 'true';
+    if (!isAdminStored && storedDeviceId === 'admin-device-simple') {
+      localStorage.removeItem("deviceId");
+      storedDeviceId = null;
+    }
+    
     if (!storedDeviceId) {
       storedDeviceId = `device-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       localStorage.setItem("deviceId", storedDeviceId);
