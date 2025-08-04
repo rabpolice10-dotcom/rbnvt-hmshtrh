@@ -31,21 +31,12 @@ export function Layout({ children }: LayoutProps) {
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <header className="gradient-header text-white p-4 shadow-lg">
           <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <button 
-                onClick={() => setLocation("/")}
-                className="text-xl font-bold hover:opacity-80 transition-opacity"
-              >
-                רבנות המשטרה
-              </button>
-              <button
-                onClick={() => setLocation("/admin")}
-                className="text-xs text-white/50 hover:text-white transition-colors mt-1"
-                style={{ fontSize: '10px' }}
-              >
-                ניהול
-              </button>
-            </div>
+            <button 
+              onClick={() => setLocation("/")}
+              className="text-xl font-bold hover:opacity-80 transition-opacity"
+            >
+              רבנות המשטרה
+            </button>
             <button 
               onClick={() => setLocation("/")}
               className="hover:opacity-80 transition-opacity"
