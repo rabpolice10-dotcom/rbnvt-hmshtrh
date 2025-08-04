@@ -79,7 +79,7 @@ interface QuestionWithAnswers extends Question {
 }
 
 export default function AdminDashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedTab, setSelectedTab] = useState("overview");
@@ -365,13 +365,16 @@ export default function AdminDashboard() {
                 <Activity className="h-5 w-5" />
                 <span className="text-sm">מערכת פעילה</span>
               </div>
-              <Button 
-                onClick={performLogout}
-                variant="outline"
-                className="bg-white text-police-blue border-white hover:bg-gray-100"
-              >
-                יציאה לדף ההתחברות
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={performLogout}
+                  variant="outline"
+                  size="sm"
+                  className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:border-red-600 font-bold"
+                >
+                  התנתק מהמערכת
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
