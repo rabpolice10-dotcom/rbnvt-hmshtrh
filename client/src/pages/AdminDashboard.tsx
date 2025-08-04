@@ -86,20 +86,12 @@ export default function AdminDashboard() {
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
 
-  // Check admin access
+  // Check admin access - prioritize localStorage admin flag
   useEffect(() => {
     console.log('Checking admin access:', { user, localStorage_isAdmin: localStorage.getItem('isAdmin') });
     
     const checkAdminAccess = async () => {
-      // Check if user has admin privileges
-      if (user?.email === "admin@police.gov.il" || user?.isAdmin) {
-        console.log('Admin access granted via user object');
-        setHasAdminAccess(true);
-        setIsCheckingAdmin(false);
-        return;
-      }
-
-      // Check localStorage for admin flag
+      // FIRST check localStorage for admin flag (immediate after login)
       const isAdminStored = localStorage.getItem('isAdmin') === 'true';
       if (isAdminStored) {
         console.log('Admin access granted via localStorage');
@@ -108,10 +100,20 @@ export default function AdminDashboard() {
         return;
       }
 
-      // If no admin access found
-      console.log('No admin access found');
-      setHasAdminAccess(false);
-      setIsCheckingAdmin(false);
+      // THEN check if user has admin privileges
+      if (user?.email === "admin@police.gov.il" || user?.isAdmin) {
+        console.log('Admin access granted via user object');
+        setHasAdminAccess(true);
+        setIsCheckingAdmin(false);
+        return;
+      }
+
+      // Only deny access if we have no user AND no admin flag
+      if (!user && !isAdminStored) {
+        console.log('No admin access found');
+        setHasAdminAccess(false);
+        setIsCheckingAdmin(false);
+      }
     };
 
     checkAdminAccess();

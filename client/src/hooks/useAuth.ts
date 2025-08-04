@@ -7,16 +7,12 @@ export function useAuth() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Clear ALL authentication data on app initialization
-    localStorage.removeItem('isAdmin');
-    localStorage.removeItem('adminEmail');
-    localStorage.removeItem('user');
-    
-    // Generate or get existing device ID
+    // Generate or get existing device ID - but preserve admin login
     let storedDeviceId = localStorage.getItem("deviceId");
     
-    // Clear admin device ID completely
-    if (storedDeviceId === 'admin-device-simple') {
+    // Don't clear admin device ID if user is admin
+    const isAdminStored = localStorage.getItem('isAdmin') === 'true';
+    if (!isAdminStored && storedDeviceId === 'admin-device-simple') {
       localStorage.removeItem("deviceId");
       storedDeviceId = null;
     }
