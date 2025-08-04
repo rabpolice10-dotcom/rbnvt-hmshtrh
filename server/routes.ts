@@ -148,6 +148,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Multiple endpoints for user approval compatibility
+  app.post("/api/users/approve/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { approvedBy } = req.body;
+      console.log('Approving user:', { id, approvedBy });
+      const user = await storage.updateUserStatus(id, "approved", approvedBy || "admin");
+      console.log('User approved successfully:', user.email, user.status);
+      res.json({ user });
+    } catch (error) {
+      console.error('Error approving user:', error);
+      res.status(500).json({ message: "שגיאה באישור משתמש" });
+    }
+  });
+
   app.post("/api/admin/approve-user/:id", async (req, res) => {
     try {
       const { id } = req.params;
@@ -156,6 +171,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ user });
     } catch (error) {
       res.status(500).json({ message: "שגיאה באישור משתמש" });
+    }
+  });
+
+  // Multiple endpoints for user rejection compatibility  
+  app.post("/api/users/reject/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { approvedBy } = req.body;
+      console.log('Rejecting user:', { id, approvedBy });
+      const user = await storage.updateUserStatus(id, "rejected", approvedBy || "admin");
+      console.log('User rejected successfully:', user.email, user.status);
+      res.json({ user });
+    } catch (error) {
+      console.error('Error rejecting user:', error);
+      res.status(500).json({ message: "שגיאה בדחיית משתמש" });
     }
   });
 
