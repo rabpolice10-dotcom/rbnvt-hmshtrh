@@ -26,6 +26,7 @@ export const users = pgTable("users", {
 export const questions = pgTable("questions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id).notNull(),
+  title: text("title").notNull().default(""),
   category: text("category").notNull(),
   content: text("content").notNull(),
   isUrgent: boolean("is_urgent").default(false).notNull(),

@@ -33,19 +33,27 @@ export interface IStorage {
   // News operations
   getAllNews(): Promise<News[]>;
   createNews(news: InsertNews): Promise<News>;
+  updateNews(id: string, data: Partial<InsertNews>): Promise<News>;
+  deleteNews(id: string): Promise<void>;
   getRecentNews(limit?: number): Promise<News[]>;
 
   // Synagogue operations
   getAllSynagogues(): Promise<Synagogue[]>;
   createSynagogue(synagogue: InsertSynagogue): Promise<Synagogue>;
+  updateSynagogue(id: string, data: Partial<InsertSynagogue>): Promise<Synagogue>;
+  deleteSynagogue(id: string): Promise<void>;
 
   // Daily Halacha operations
   getTodayHalacha(): Promise<DailyHalacha | undefined>;
   createDailyHalacha(halacha: InsertDailyHalacha): Promise<DailyHalacha>;
+  updateDailyHalacha(id: string, data: Partial<InsertDailyHalacha>): Promise<DailyHalacha>;
+  deleteDailyHalacha(id: string): Promise<void>;
 
   // Video operations
   getAllVideos(): Promise<Video[]>;
   createVideo(video: InsertVideo): Promise<Video>;
+  updateVideo(id: string, data: Partial<InsertVideo>): Promise<Video>;
+  deleteVideo(id: string): Promise<void>;
 
   // Contact Message operations
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
@@ -170,6 +178,15 @@ export class DatabaseStorage implements IStorage {
     return newNews;
   }
 
+  async updateNews(id: string, data: Partial<InsertNews>): Promise<News> {
+    const [newsItem] = await db.update(news).set(data).where(eq(news.id, id)).returning();
+    return newsItem;
+  }
+
+  async deleteNews(id: string): Promise<void> {
+    await db.delete(news).where(eq(news.id, id));
+  }
+
   async getRecentNews(limit: number = 5): Promise<News[]> {
     return db.select().from(news).orderBy(desc(news.publishedAt)).limit(limit);
   }
@@ -184,6 +201,15 @@ export class DatabaseStorage implements IStorage {
       .values(synagogue)
       .returning();
     return newSynagogue;
+  }
+
+  async updateSynagogue(id: string, data: Partial<InsertSynagogue>): Promise<Synagogue> {
+    const [synagogue] = await db.update(synagogues).set(data).where(eq(synagogues.id, id)).returning();
+    return synagogue;
+  }
+
+  async deleteSynagogue(id: string): Promise<void> {
+    await db.delete(synagogues).where(eq(synagogues.id, id));
   }
 
   async getTodayHalacha(): Promise<DailyHalacha | undefined> {
@@ -210,6 +236,15 @@ export class DatabaseStorage implements IStorage {
     return newHalacha;
   }
 
+  async updateDailyHalacha(id: string, data: Partial<InsertDailyHalacha>): Promise<DailyHalacha> {
+    const [halacha] = await db.update(dailyHalacha).set(data).where(eq(dailyHalacha.id, id)).returning();
+    return halacha;
+  }
+
+  async deleteDailyHalacha(id: string): Promise<void> {
+    await db.delete(dailyHalacha).where(eq(dailyHalacha.id, id));
+  }
+
   async getAllVideos(): Promise<Video[]> {
     return db.select().from(videos).orderBy(desc(videos.createdAt));
   }
@@ -220,6 +255,15 @@ export class DatabaseStorage implements IStorage {
       .values(video)
       .returning();
     return newVideo;
+  }
+
+  async updateVideo(id: string, data: Partial<InsertVideo>): Promise<Video> {
+    const [video] = await db.update(videos).set(data).where(eq(videos.id, id)).returning();
+    return video;
+  }
+
+  async deleteVideo(id: string): Promise<void> {
+    await db.delete(videos).where(eq(videos.id, id));
   }
 
   async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {

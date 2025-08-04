@@ -4,6 +4,26 @@ import { storage } from "./storage";
 import { insertUserSchema, insertQuestionSchema, insertAnswerSchema, insertNewsSchema, insertSynagogueSchema, insertDailyHalachaSchema, insertVideoSchema, insertContactMessageSchema } from "@shared/schema";
 import { z } from "zod";
 
+// Admin middleware to check if user is admin
+const requireAdmin = async (req: any, res: any, next: any) => {
+  try {
+    const { deviceId } = req.body;
+    if (!deviceId) {
+      return res.status(401).json({ message: "Unauthorized - No device ID" });
+    }
+
+    const user = await storage.getUserByDeviceId(deviceId);
+    if (!user || !user.isAdmin) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+
+    req.adminUser = user;
+    next();
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Auth routes with Hebrew validation
@@ -160,14 +180,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Answers routes
-  app.post("/api/answers", async (req, res) => {
+  // Admin-only: Answer questions
+  app.post("/api/admin/answers", requireAdmin, async (req, res) => {
     try {
-      const answerData = insertAnswerSchema.parse(req.body);
+      const answerData = insertAnswerSchema.parse({
+        ...req.body,
+        answeredBy: req.adminUser.fullName || req.adminUser.id
+      });
       const answer = await storage.createAnswer(answerData);
-      res.json({ answer });
+      res.json(answer);
     } catch (error) {
-      res.status(400).json({ message: "שגיאה בשליחת התשובה" });
+      res.status(400).json({ message: "Failed to create answer" });
     }
   });
 
@@ -192,13 +215,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/news", async (req, res) => {
+  // Admin-only: Create news
+  app.post("/api/admin/news", requireAdmin, async (req, res) => {
     try {
-      const newsData = insertNewsSchema.parse(req.body);
+      const newsData = insertNewsSchema.parse({
+        ...req.body,
+        createdBy: req.adminUser.id
+      });
       const news = await storage.createNews(newsData);
-      res.json({ news });
+      res.json(news);
     } catch (error) {
-      res.status(400).json({ message: "שגיאה בפרסום החדשה" });
+      const errorMessage = error instanceof z.ZodError 
+        ? error.errors.map(e => e.message).join(", ")
+        : "Failed to create news";
+      res.status(400).json({ message: errorMessage });
+    }
+  });
+
+  // Admin-only: Update news
+  app.put("/api/admin/news/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const newsData = insertNewsSchema.parse(req.body);
+      const news = await storage.updateNews(id, newsData);
+      res.json(news);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update news" });
+    }
+  });
+
+  // Admin-only: Delete news
+  app.delete("/api/admin/news/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteNews(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to delete news" });
     }
   });
 
@@ -212,13 +265,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/synagogues", async (req, res) => {
+  // Admin-only: Create synagogue
+  app.post("/api/admin/synagogues", requireAdmin, async (req, res) => {
     try {
       const synagogueData = insertSynagogueSchema.parse(req.body);
       const synagogue = await storage.createSynagogue(synagogueData);
-      res.json({ synagogue });
+      res.json(synagogue);
     } catch (error) {
-      res.status(400).json({ message: "שגיאה בהוספת בית הכנסת" });
+      res.status(400).json({ message: "Failed to create synagogue" });
+    }
+  });
+
+  // Admin-only: Update synagogue
+  app.put("/api/admin/synagogues/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const synagogueData = insertSynagogueSchema.parse(req.body);
+      const synagogue = await storage.updateSynagogue(id, synagogueData);
+      res.json(synagogue);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update synagogue" });
+    }
+  });
+
+  // Admin-only: Delete synagogue
+  app.delete("/api/admin/synagogues/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteSynagogue(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to delete synagogue" });
     }
   });
 
@@ -235,13 +312,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/daily-halacha", async (req, res) => {
+  // Admin-only: Create daily halacha
+  app.post("/api/admin/daily-halacha", requireAdmin, async (req, res) => {
     try {
-      const halachaData = insertDailyHalachaSchema.parse(req.body);
+      const halachaData = insertDailyHalachaSchema.parse({
+        ...req.body,
+        createdBy: req.adminUser.id
+      });
       const halacha = await storage.createDailyHalacha(halachaData);
-      res.json({ halacha });
+      res.json(halacha);
     } catch (error) {
-      res.status(400).json({ message: "שגיאה בהוספת הלכה יומית" });
+      res.status(400).json({ message: "Failed to create daily halacha" });
+    }
+  });
+
+  // Admin-only: Update daily halacha
+  app.put("/api/admin/daily-halacha/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const halachaData = insertDailyHalachaSchema.parse(req.body);
+      const halacha = await storage.updateDailyHalacha(id, halachaData);
+      res.json(halacha);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update daily halacha" });
+    }
+  });
+
+  // Admin-only: Delete daily halacha
+  app.delete("/api/admin/daily-halacha/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteDailyHalacha(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to delete daily halacha" });
     }
   });
 
@@ -255,13 +359,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/videos", async (req, res) => {
+  // Admin-only: Create video
+  app.post("/api/admin/videos", requireAdmin, async (req, res) => {
     try {
-      const videoData = insertVideoSchema.parse(req.body);
+      const videoData = insertVideoSchema.parse({
+        ...req.body,
+        addedBy: req.adminUser.id
+      });
       const video = await storage.createVideo(videoData);
-      res.json({ video });
+      res.json(video);
     } catch (error) {
-      res.status(400).json({ message: "שגיאה בהוספת סרטון" });
+      res.status(400).json({ message: "Failed to create video" });
+    }
+  });
+
+  // Admin-only: Update video
+  app.put("/api/admin/videos/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const videoData = insertVideoSchema.parse(req.body);
+      const video = await storage.updateVideo(id, videoData);
+      res.json(video);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update video" });
+    }
+  });
+
+  // Admin-only: Delete video
+  app.delete("/api/admin/videos/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteVideo(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to delete video" });
     }
   });
 
