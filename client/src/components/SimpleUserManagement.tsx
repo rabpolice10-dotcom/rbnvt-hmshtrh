@@ -97,8 +97,8 @@ export default function SimpleUserManagement() {
   };
 
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedUsers(usersData?.users?.map((u: any) => u.user.id) || []);
+    if (checked && usersData?.users) {
+      setSelectedUsers(usersData.users.map((u: any) => u.user?.id || u.id).filter(Boolean));
     } else {
       setSelectedUsers([]);
     }
@@ -289,84 +289,90 @@ export default function SimpleUserManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {usersData?.users?.map((item: any) => (
-                    <TableRow key={item.user.id} className="hover:bg-gray-50">
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedUsers.includes(item.user.id)}
-                          onCheckedChange={(checked) => handleSelectUser(item.user.id, !!checked)}
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {item.user.isAdmin && <Badge variant="secondary" className="text-xs">מנהל</Badge>}
-                          {item.user.fullName}
-                        </div>
-                      </TableCell>
-                      <TableCell>{item.user.email}</TableCell>
-                      <TableCell>{item.user.phone}</TableCell>
-                      <TableCell>{getStatusBadge(item.user.status)}</TableCell>
-                      <TableCell>{item.questionsCount || 0}</TableCell>
-                      <TableCell>{formatDate(item.user.createdAt)}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {item.user.status === 'pending' && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-green-600 border-green-200 hover:bg-green-50"
-                                onClick={() => updateStatusMutation.mutate({ userId: item.user.id, status: 'approved' })}
-                                disabled={updateStatusMutation.isPending}
-                              >
-                                אשר
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-red-600 border-red-200 hover:bg-red-50"
-                                onClick={() => updateStatusMutation.mutate({ userId: item.user.id, status: 'rejected' })}
-                                disabled={updateStatusMutation.isPending}
-                              >
-                                דחה
-                              </Button>
-                            </>
-                          )}
-
-                          {item.user.status === 'approved' && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
+                  {usersData?.users?.map((item: any) => {
+                    const user = item.user || item;
+                    const userId = user?.id;
+                    if (!userId) return null;
+                    
+                    return (
+                      <TableRow key={userId} className="hover:bg-gray-50">
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedUsers.includes(userId)}
+                            onCheckedChange={(checked) => handleSelectUser(userId, !!checked)}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {user.isAdmin && <Badge variant="secondary" className="text-xs">מנהל</Badge>}
+                            {user.fullName || 'ללא שם'}
+                          </div>
+                        </TableCell>
+                        <TableCell>{user.email || 'ללא אימייל'}</TableCell>
+                        <TableCell>{user.phone || 'ללא טלפון'}</TableCell>
+                        <TableCell>{getStatusBadge(user.status || 'pending')}</TableCell>
+                        <TableCell>{item.questionsCount || 0}</TableCell>
+                        <TableCell>{user.createdAt ? formatDate(user.createdAt) : 'ללא תאריך'}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            {user.status === 'pending' && (
+                              <>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                  className="text-green-600 border-green-200 hover:bg-green-50"
+                                  onClick={() => updateStatusMutation.mutate({ userId, status: 'approved' })}
+                                  disabled={updateStatusMutation.isPending}
                                 >
-                                  בטל אישור
+                                  אשר
                                 </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>ביטול אישור משתמש</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    האם אתה בטוח שברצונך לבטל את אישור המשתמש {item.user.fullName}?
-                                    משתמש זה לא יוכל יותר לגשת למערכת.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>ביטול</AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    onClick={() => updateStatusMutation.mutate({ userId: item.user.id, status: 'rejected' })}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-red-600 border-red-200 hover:bg-red-50"
+                                  onClick={() => updateStatusMutation.mutate({ userId, status: 'rejected' })}
+                                  disabled={updateStatusMutation.isPending}
+                                >
+                                  דחה
+                                </Button>
+                              </>
+                            )}
+
+                            {user.status === 'approved' && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-orange-600 border-orange-200 hover:bg-orange-50"
                                   >
                                     בטל אישור
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>ביטול אישור משתמש</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      האם אתה בטוח שברצונך לבטל את אישור המשתמש {user.fullName}?
+                                      משתמש זה לא יוכל יותר לגשת למערכת.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>ביטול</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => updateStatusMutation.mutate({ userId, status: 'rejected' })}
+                                    >
+                                      בטל אישור
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
