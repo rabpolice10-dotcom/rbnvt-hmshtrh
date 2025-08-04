@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sun, Moon, Star, Clock, MapPin, Calendar } from "lucide-react";
+import { getHebrewDate } from "@/utils/hebrewDate";
 
 export default function JewishTimes() {
   const [location, setLocation] = useState("ירושלים");
@@ -39,7 +40,7 @@ export default function JewishTimes() {
     <div className="p-4 space-y-4">
       <div className="flex items-center mb-6">
         <Sun className="h-6 w-6 text-yellow-600 ml-2" />
-        <h1 className="text-xl font-bold text-gray-800">זמני הלכה</h1>
+        <h1 className="text-xl font-bold text-gray-800">זמני היום</h1>
       </div>
 
       {/* Location Selection */}
@@ -125,7 +126,7 @@ export default function JewishTimes() {
               <h3 className="font-bold text-gray-800">זמנים להיום</h3>
             </div>
             <div className="text-sm text-gray-600">
-              {new Date().toLocaleDateString('he-IL')}
+              {getHebrewDate()}
             </div>
           </div>
           

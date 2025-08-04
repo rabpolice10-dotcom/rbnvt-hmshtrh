@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AskRabbiModal } from "@/components/AskRabbiModal";
 import { MessageCircleQuestion, Clock, BookOpen, Newspaper, Sun, Calendar, CheckCircle, TriangleAlert } from "lucide-react";
 import type { News, DailyHalacha, Question } from "@shared/schema";
+import { getHebrewDate } from "@/utils/hebrewDate";
 import logo from "@assets/bf4d69d1-82e0-4b41-bc8c-ecca5ca6a895_1753886576969.jpeg";
 
 export default function Home() {
@@ -64,9 +65,13 @@ export default function Home() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center">
                 <Sun className="h-5 w-5 text-yellow-600 ml-2" />
-                <h3 className="font-bold text-gray-800">זמני הלכה להיום</h3>
+                <h3 className="font-bold text-gray-800">זמני היום</h3>
               </div>
-              <div className="text-xs text-gray-500">לחץ להרחבה</div>
+              <div className="text-xs text-gray-500">לכל זמני היום</div>
+            </div>
+            
+            <div className="mb-3 text-center">
+              <div className="text-sm font-medium text-gray-700">{getHebrewDate()}</div>
             </div>
             
             <div className="grid grid-cols-2 gap-3 text-sm">
