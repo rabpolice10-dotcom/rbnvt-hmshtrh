@@ -124,9 +124,7 @@ export default function Login() {
         <CardHeader className="text-center">
           <img src={logo} alt="לוגו רבנות המשטרה" className="h-16 w-auto mx-auto mb-4" />
           <CardTitle className="text-xl">התחברות לרבנות המשטרה</CardTitle>
-          <CardDescription className="text-gray-600">
-            הכנס אימייל וסיסמה להתחברות
-          </CardDescription>
+          <CardDescription className="text-gray-600">הכנס דואר אלקטרוני וסיסמה להתחברות</CardDescription>
           
           {isAdminLoggedIn && (
             <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
