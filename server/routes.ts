@@ -215,6 +215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.params;
       const questions = await storage.getQuestionsByUser(userId);
+      // Return all questions for the specific user (their own questions)
       res.json(questions);
     } catch (error) {
       res.status(500).json({ message: "שגיאה בטעינת השאלות" });
@@ -241,10 +242,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/questions", async (req, res) => {
     try {
       const questions = await storage.getAllQuestions();
-      // Filter only visible questions for regular users
-      const visibleQuestions = questions.filter(q => q.isVisible === true);
-      console.log(`Returning ${visibleQuestions.length} visible questions out of ${questions.length} total`);
-      res.json(visibleQuestions);
+      // Filter only public, answered questions for regular users
+      const publicAnsweredQuestions = questions.filter(q => 
+        q.isVisible === true && 
+        q.isPrivate === false && 
+        q.status === "answered"
+      );
+      console.log(`Returning ${publicAnsweredQuestions.length} public answered questions out of ${questions.length} total`);
+      res.json(publicAnsweredQuestions);
     } catch (error) {
       console.error('Error fetching questions:', error);
       res.status(500).json({ message: "שגיאה בטעינת השאלות" });

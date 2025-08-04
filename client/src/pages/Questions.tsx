@@ -19,8 +19,14 @@ export default function Questions() {
   const [filterBy, setFilterBy] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
-  const { data: questions, isLoading } = useQuery({
+  // Get public answered questions for all users + user's own questions
+  const { data: publicQuestions, isLoading: publicLoading } = useQuery({
     queryKey: ["/api/questions"],
+    enabled: !!user,
+  }) as { data: Question[] | undefined; isLoading: boolean };
+
+  const { data: userQuestions, isLoading: userLoading } = useQuery({
+    queryKey: ["/api/questions/user", user?.id],
     enabled: !!user,
   }) as { data: Question[] | undefined; isLoading: boolean };
 
@@ -29,8 +35,16 @@ export default function Questions() {
     enabled: searchQuery.length > 2,
   }) as { data: Question[] | undefined };
 
+  const isLoading = publicLoading || userLoading;
+  
+  // Combine public questions with user's own questions (avoiding duplicates)
+  const allQuestions = publicQuestions && userQuestions ? [
+    ...publicQuestions,
+    ...userQuestions.filter(uq => !publicQuestions.some(pq => pq.id === uq.id))
+  ] : (publicQuestions || userQuestions || []);
+
   // Filter and sort questions
-  let displayQuestions = searchQuery.length > 2 ? searchResults : questions;
+  let displayQuestions = searchQuery.length > 2 ? searchResults : allQuestions;
   
   if (displayQuestions) {
     // Apply filters
