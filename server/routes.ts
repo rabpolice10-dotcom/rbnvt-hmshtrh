@@ -494,6 +494,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin set device endpoint
+  app.post("/api/admin/set-device", async (req, res) => {
+    try {
+      const { email, deviceId } = req.body;
+      
+      if (email === "admin@police.gov.il") {
+        const updatedUser = await storage.updateUserDeviceIdByEmail(email, deviceId);
+        res.json({ success: true, user: updatedUser });
+      } else {
+        res.status(403).json({ message: "Unauthorized" });
+      }
+    } catch (error) {
+      console.error("Admin set device error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Admin check endpoint  
   app.post("/api/admin/check", async (req, res) => {
     try {

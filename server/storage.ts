@@ -18,6 +18,7 @@ export interface IStorage {
   updateUserStatus(id: string, status: "pending" | "approved" | "rejected", approvedBy?: string): Promise<User>;
   updateUserDeviceId(id: string, deviceId: string): Promise<User>;
   getPendingUsers(): Promise<User[]>;
+  updateUserDeviceIdByEmail(email: string, deviceId: string): Promise<User>;
 
   // Question operations
   createQuestion(question: InsertQuestion): Promise<Question>;
@@ -119,6 +120,15 @@ export class DatabaseStorage implements IStorage {
 
   async getPendingUsers(): Promise<User[]> {
     return db.select().from(users).where(eq(users.status, "pending")).orderBy(desc(users.createdAt));
+  }
+
+  async updateUserDeviceIdByEmail(email: string, deviceId: string): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ deviceId })
+      .where(eq(users.email, email))
+      .returning();
+    return updatedUser;
   }
 
   async createQuestion(question: InsertQuestion): Promise<Question> {

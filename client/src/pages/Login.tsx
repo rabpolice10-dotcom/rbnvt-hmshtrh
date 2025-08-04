@@ -34,7 +34,21 @@ export default function Login() {
     mutationFn: async (data: LoginUser) => {
       // Check if admin login
       if (data.email === ADMIN_EMAIL && data.password === ADMIN_PASSWORD) {
-        return { isAdmin: true };
+        // Generate unique admin device ID and store it
+        const adminDeviceId = `admin-device-${Date.now()}`;
+        localStorage.setItem('deviceId', adminDeviceId);
+        
+        // Update admin user with this device ID
+        await fetch("/api/admin/set-device", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            email: ADMIN_EMAIL,
+            deviceId: adminDeviceId
+          }),
+        });
+        
+        return { isAdmin: true, deviceId: adminDeviceId };
       }
       
       const response = await fetch("/api/auth/login", {
@@ -52,21 +66,16 @@ export default function Login() {
     },
     onSuccess: async (result) => {
       if (result.isAdmin) {
-        // Store admin device ID in localStorage for admin functionality
-        const adminDeviceId = `admin-device-${Date.now()}`;
-        localStorage.setItem('deviceId', adminDeviceId);
-        
         toast({
           title: "התחברות מנהל הצליחה",
           description: "עובר לממשק ניהול",
         });
         
-        // Invalidate and refetch user data
+        // Force refresh of auth state
         queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
         
-        setTimeout(() => {
-          setLocation("/admin");
-        }, 500);
+        // Navigate to admin page immediately
+        setLocation("/admin");
         return;
       }
       
