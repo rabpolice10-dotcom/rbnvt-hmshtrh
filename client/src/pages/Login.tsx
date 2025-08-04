@@ -126,19 +126,7 @@ export default function Login() {
           <CardTitle className="text-xl">התחברות לרבנות המשטרה</CardTitle>
           <CardDescription className="text-gray-600">הכנס דואר אלקטרוני וסיסמה להתחברות</CardDescription>
           
-          {isAdminLoggedIn && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800 mb-2 text-center">משתמש מחובר כבר קיים במערכת</p>
-              <Button 
-                onClick={performLogout}
-                variant="outline" 
-                size="sm"
-                className="w-full text-blue-700 border-blue-300 hover:bg-blue-100"
-              >
-                התנתק ממשתמש קיים
-              </Button>
-            </div>
-          )}
+          
         </CardHeader>
         
         <CardContent>

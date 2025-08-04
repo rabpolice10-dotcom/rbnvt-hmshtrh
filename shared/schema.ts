@@ -36,8 +36,11 @@ export const questions = pgTable("questions", {
   status: text("status", { enum: ["pending", "answered", "closed"] }).default("pending").notNull(),
   isApproved: boolean("is_approved").default(false).notNull(),
   isNew: boolean("is_new").default(true).notNull(),
+  hasNewAnswer: boolean("has_new_answer").default(false).notNull(),
+  answerNotificationSent: boolean("answer_notification_sent").default(false).notNull(),
   approvedBy: varchar("approved_by"),
   approvedAt: timestamp("approved_at"),
+  answeredAt: timestamp("answered_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -111,6 +114,18 @@ export const contactMessages = pgTable("contact_messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  type: text("type", { enum: ["question_answered", "question_approved", "news_urgent"] }).notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  relatedId: varchar("related_id"), // ID of related question, news, etc.
+  isRead: boolean("is_read").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   questions: many(questions),
@@ -128,6 +143,13 @@ export const answersRelations = relations(answers, ({ one }) => ({
   question: one(questions, {
     fields: [answers.questionId],
     references: [questions.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
   }),
 }));
 
@@ -191,6 +213,11 @@ export const insertContactMessageSchema = createInsertSchema(contactMessages).om
   isRead: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -209,5 +236,7 @@ export type Video = typeof videos.$inferSelect;
 export type InsertVideo = z.infer<typeof insertVideoSchema>;
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 

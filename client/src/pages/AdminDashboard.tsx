@@ -357,7 +357,7 @@ export default function AdminDashboard() {
               <Shield className="h-8 w-8" />
               <div>
                 <h1 className="text-2xl font-bold">מערכת ניהול מאוחדת</h1>
-                <p className="text-blue-100">ברוך הבא, {user?.fullName || "מנהל המערכת"}</p>
+                <p className="text-[#4585d9]">ברוך הבא, {user?.fullName || "מנהל המערכת"}</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -736,10 +736,17 @@ export default function AdminDashboard() {
                         </Button>
 
                         {question.status === "answered" && (
-                          <Badge className="bg-green-100 text-green-800">
-                            <CheckCircle className="h-3 w-3 ml-1" />
-                            נענה
-                          </Badge>
+                          <div className="flex gap-2">
+                            <Badge className="bg-green-100 text-green-800">
+                              <CheckCircle className="h-3 w-3 ml-1" />
+                              נענה
+                            </Badge>
+                            {(question as any).hasNewAnswer && (
+                              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                                התראה נשלחה למשתמש
+                              </Badge>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>

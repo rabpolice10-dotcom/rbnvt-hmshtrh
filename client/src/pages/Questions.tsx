@@ -1,18 +1,21 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AskRabbiModal } from "@/components/AskRabbiModal";
-import { MessageCircleQuestion, Search, Plus, CheckCircle, Clock, AlertCircle, Lock, Filter, ArrowUpDown } from "lucide-react";
+import { MessageCircleQuestion, Search, Plus, CheckCircle, Clock, AlertCircle, Lock, Filter, ArrowUpDown, Bell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
 import type { Question } from "@shared/schema";
 
 export default function Questions() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
   const [showAskRabbi, setShowAskRabbi] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
@@ -94,6 +97,16 @@ export default function Questions() {
     }
   };
 
+  // Mark question answer as viewed
+  const markQuestionAnswerViewed = useMutation({
+    mutationFn: async (questionId: string) => {
+      return apiRequest("POST", `/api/questions/${questionId}/mark-answer-viewed`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questions/user"] });
+    }
+  });
+
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -173,9 +186,13 @@ export default function Questions() {
           displayQuestions.map((question) => (
             <Card 
               key={question.id} 
-              className="shadow-card cursor-pointer hover:shadow-lg transition-shadow"
+              className="shadow-card cursor-pointer hover:shadow-lg transition-shadow relative"
               onClick={() => {
                 if (question.status === "answered") {
+                  // Mark as viewed if it has new answer
+                  if ((question as any).hasNewAnswer && question.userId === user?.id) {
+                    markQuestionAnswerViewed.mutate(question.id);
+                  }
                   navigate(`/questions/${question.id}`);
                 }
               }}
@@ -183,10 +200,19 @@ export default function Questions() {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <div className="flex items-center mb-2">
+                    <div className="flex items-center mb-2 gap-2">
                       <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
                         {question.category}
                       </span>
+                      {/* Show notification badge for answered questions with new answers */}
+                      {question.status === "answered" && 
+                       (question as any).hasNewAnswer && 
+                       question.userId === user?.id && (
+                        <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                          <Bell className="h-3 w-3" />
+                          תשובה חדשה!
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-gray-800 mb-3 line-clamp-3">{question.content}</p>
                     <div className="flex items-center justify-between text-xs text-gray-500">

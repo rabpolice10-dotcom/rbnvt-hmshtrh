@@ -1,14 +1,19 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { AskRabbiModal } from "@/components/AskRabbiModal";
-import { MessageCircleQuestion, Clock, BookOpen, Newspaper, Sun, Calendar, CheckCircle, TriangleAlert } from "lucide-react";
-import type { News, DailyHalacha, Question } from "@shared/schema";
+import { MessageCircleQuestion, Clock, BookOpen, Newspaper, Sun, Calendar, CheckCircle, TriangleAlert, Bell, BellRing } from "lucide-react";
+import type { News, DailyHalacha, Question, Notification } from "@shared/schema";
 import { getHebrewDate } from "@/utils/hebrewDate";
+import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
 import logo from "@assets/bf4d69d1-82e0-4b41-bc8c-ecca5ca6a895_1753886576969.jpeg";
 
 export default function Home(): JSX.Element {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [showAskRabbi, setShowAskRabbi] = useState(false);
 
   const { data: dailyHalacha } = useQuery({
@@ -24,25 +29,109 @@ export default function Home(): JSX.Element {
     queryKey: ["/api/questions"],
     retry: false,
   }) as { data: Question[] | undefined };
+
+  // Get user's notifications
+  const { data: notifications } = useQuery({
+    queryKey: ["/api/notifications", user?.id],
+    enabled: !!user,
+  }) as { data: Notification[] | undefined };
+
+  // Get user's questions to check for new answers
+  const { data: userQuestions } = useQuery({
+    queryKey: ["/api/questions/user", user?.id],
+    enabled: !!user,
+  }) as { data: Question[] | undefined };
+
+  // Count unread notifications
+  const unreadNotifications = notifications?.filter(n => !n.isRead).length || 0;
+  
+  // Count questions with new answers
+  const questionsWithNewAnswers = userQuestions?.filter(q => 
+    q.status === "answered" && (q as any).hasNewAnswer
+  ).length || 0;
   
   console.log('Home page questions:', recentQuestions);
+  console.log('User notifications:', notifications);
+  console.log('Questions with new answers:', questionsWithNewAnswers);
 
   const { data: jewishTimes } = useQuery({
     queryKey: ["/api/jewish-times"],
     retry: false,
   });
 
+  // Mark notifications as read
+  const markNotificationsAsRead = useMutation({
+    mutationFn: async (notificationIds: string[]) => {
+      return apiRequest("POST", "/api/notifications/mark-read", { notificationIds });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    }
+  });
+
+  // Mark question answer as viewed
+  const markQuestionAnswerViewed = useMutation({
+    mutationFn: async (questionId: string) => {
+      return apiRequest("POST", `/api/questions/${questionId}/mark-answer-viewed`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questions/user"] });
+    }
+  });
+
   return (
     <div className="p-4 space-y-4">
+      {/* Notifications Banner */}
+      {(unreadNotifications > 0 || questionsWithNewAnswers > 0) && (
+        <Card className="shadow-card bg-blue-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <BellRing className="h-6 w-6 text-blue-600" />
+                <div>
+                  <h3 className="font-bold text-blue-800 text-right">יש לך התראות חדשות!</h3>
+                  <p className="text-sm text-blue-600 text-right">
+                    {questionsWithNewAnswers > 0 && `${questionsWithNewAnswers} שאלות נענו`}
+                    {questionsWithNewAnswers > 0 && unreadNotifications > 0 && " • "}
+                    {unreadNotifications > 0 && `${unreadNotifications} התראות חדשות`}
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  window.location.pathname = "/questions";
+                  // Mark notifications as read when user clicks
+                  if (notifications && notifications.length > 0) {
+                    const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
+                    if (unreadIds.length > 0) {
+                      markNotificationsAsRead.mutate(unreadIds);
+                    }
+                  }
+                }}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                צפה בהתראות
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
         <Button
           onClick={() => setShowAskRabbi(true)}
-          className="bg-police-blue-light hover:bg-blue-100 text-gray-800 p-4 rounded-lg h-auto flex-col space-y-2"
+          className="bg-police-blue-light hover:bg-blue-100 text-gray-800 p-4 rounded-lg h-auto flex-col space-y-2 relative"
           variant="ghost"
         >
           <MessageCircleQuestion className="h-8 w-8 text-police-blue" />
           <span className="text-sm font-medium">שאל את הרב</span>
+          {questionsWithNewAnswers > 0 && (
+            <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
+              {questionsWithNewAnswers}
+            </Badge>
+          )}
         </Button>
         
         <Button

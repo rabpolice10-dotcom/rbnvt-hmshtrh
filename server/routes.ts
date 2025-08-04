@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertQuestionSchema, insertAnswerSchema, insertNewsSchema, insertSynagogueSchema, insertDailyHalachaSchema, insertVideoSchema, insertContactMessageSchema } from "@shared/schema";
+import { insertUserSchema, insertQuestionSchema, insertAnswerSchema, insertNewsSchema, insertSynagogueSchema, insertDailyHalachaSchema, insertVideoSchema, insertContactMessageSchema, insertNotificationSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Admin middleware to check if user is admin
@@ -335,8 +335,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         answeredBy: "admin"
       });
 
-      // Update question status to answered
+      // Update question status to answered and mark as having new answer
       await storage.updateQuestionStatus(questionId, "answered");
+      await storage.markQuestionAnswered(questionId);
+
+      // Get the question to create notification for the user
+      const question = await storage.getQuestionById(questionId);
+      if (question) {
+        // Create notification for the user
+        await storage.createNotification({
+          userId: question.userId,
+          type: "question_answered",
+          title: "שאלתך נענתה!",
+          message: `התקבלה תשובה לשאלה שלך: "${question.content.substring(0, 50)}..."`,
+          relatedId: questionId
+        });
+      }
 
       res.json({ answer });
     } catch (error) {
@@ -708,6 +722,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Mark viewed error:", error);
       res.status(500).json({ message: "Failed to mark items as viewed" });
+    }
+  });
+
+  // Notification routes
+  app.get("/api/notifications/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const notifications = await storage.getUserNotifications(userId);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "שגיאה בטעינת ההתראות" });
+    }
+  });
+
+  app.post("/api/notifications/mark-read", async (req, res) => {
+    try {
+      const { notificationIds } = req.body;
+      await storage.markNotificationsAsRead(notificationIds);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking notifications as read:", error);
+      res.status(500).json({ message: "שגיאה בעדכון ההתראות" });
+    }
+  });
+
+  app.post("/api/questions/:id/mark-answer-viewed", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.markQuestionAnswerViewed(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking answer as viewed:", error);
+      res.status(500).json({ message: "שגיאה בעדכון השאלה" });
     }
   });
 
