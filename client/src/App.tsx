@@ -23,24 +23,36 @@ function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
 
-  // Allow admin access regardless of user status
+  console.log('App state:', { isAuthenticated, isLoading, location });
+
+  // Always show landing page first for unauthenticated users
+  if (!isAuthenticated && !isLoading) {
+    // Allow access to specific auth pages
+    if (location === "/register") {
+      return <Register />;
+    }
+    if (location === "/login") {
+      return <Login />;
+    }
+    if (location === "/admin") {
+      return <AdminDashboard />;
+    }
+    // Default to landing page for all other routes
+    return <Landing />;
+  }
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-police-blue to-police-blue-dark flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    );
+  }
+
+  // Allow admin access 
   if (location === "/admin") {
     return <AdminDashboard />;
-  }
-
-  // Show register page for non-authenticated users
-  if (location === "/register") {
-    return <Register />;
-  }
-
-  // Show login page for non-authenticated users
-  if (location === "/login") {
-    return <Login />;
-  }
-
-  // Show landing page (login/register) for non-authenticated users or while loading
-  if (isLoading || !isAuthenticated) {
-    return <Landing />;
   }
 
   // Show app for authenticated users
