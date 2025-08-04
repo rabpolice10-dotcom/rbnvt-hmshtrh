@@ -358,11 +358,15 @@ export default function AdminDashboard() {
                 <span className="text-sm">מערכת פעילה</span>
               </div>
               <Button 
-                onClick={() => window.location.href = "/"}
+                onClick={() => {
+                  localStorage.removeItem('user');
+                  localStorage.removeItem('deviceId');
+                  window.location.href = "/";
+                }}
                 variant="outline"
                 className="bg-white text-police-blue border-white hover:bg-gray-100"
               >
-                דף הבית
+                יציאה מהמערכת
               </Button>
             </div>
           </div>
@@ -419,11 +423,11 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="shadow-card">
               <CardContent className="p-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-row-reverse">
                   <Users className="h-8 w-8 text-blue-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">משתמשים ממתינים</p>
-                    <p className="text-2xl font-bold text-gray-800">{statistics.totalUsers}</p>
+                  <div className="text-right flex-1">
+                    <p className="text-sm text-gray-600 text-right">משתמשים ממתינים</p>
+                    <p className="text-2xl font-bold text-gray-800 text-right">{statistics.totalUsers}</p>
                   </div>
                 </div>
               </CardContent>
@@ -431,11 +435,11 @@ export default function AdminDashboard() {
 
             <Card className="shadow-card">
               <CardContent className="p-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-row-reverse">
                   <MessageCircleQuestion className="h-8 w-8 text-orange-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">שאלות ממתינות</p>
-                    <p className="text-2xl font-bold text-gray-800">{statistics.pendingQuestions}</p>
+                  <div className="text-right flex-1">
+                    <p className="text-sm text-gray-600 text-right">שאלות ממתינות</p>
+                    <p className="text-2xl font-bold text-gray-800 text-right">{statistics.pendingQuestions}</p>
                   </div>
                 </div>
               </CardContent>
@@ -443,11 +447,11 @@ export default function AdminDashboard() {
 
             <Card className="shadow-card">
               <CardContent className="p-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-row-reverse">
                   <CheckCircle className="h-8 w-8 text-green-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">שאלות נענו</p>
-                    <p className="text-2xl font-bold text-gray-800">{statistics.answeredQuestions}</p>
+                  <div className="text-right flex-1">
+                    <p className="text-sm text-gray-600 text-right">שאלות נענו</p>
+                    <p className="text-2xl font-bold text-gray-800 text-right">{statistics.answeredQuestions}</p>
                   </div>
                 </div>
               </CardContent>
@@ -455,11 +459,11 @@ export default function AdminDashboard() {
 
             <Card className="shadow-card">
               <CardContent className="p-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-row-reverse">
                   <MessageSquare className="h-8 w-8 text-purple-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">הודעות חדשות</p>
-                    <p className="text-2xl font-bold text-gray-800">{statistics.unreadMessages}</p>
+                  <div className="text-right flex-1">
+                    <p className="text-sm text-gray-600 text-right">הודעות חדשות</p>
+                    <p className="text-2xl font-bold text-gray-800 text-right">{statistics.unreadMessages}</p>
                   </div>
                 </div>
               </CardContent>
@@ -478,24 +482,24 @@ export default function AdminDashboard() {
               <div className="space-y-3">
                 {pendingUsers?.slice(0, 3).map((user) => (
                   <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">{user.fullName}</p>
-                      <p className="text-sm text-gray-600">בקשת הרשמה חדשה</p>
+                    <div className="text-right flex-1">
+                      <p className="font-medium text-right">{user.fullName}</p>
+                      <p className="text-sm text-gray-600 text-right">בקשת הרשמה חדשה</p>
                     </div>
                     <Badge variant="secondary">
-                      <Clock className="h-3 w-3 ml-1" />
+                      <Clock className="h-3 w-3 mr-1" />
                       ממתין
                     </Badge>
                   </div>
                 ))}
                 {allQuestions?.filter(q => q.status === "pending").slice(0, 2).map((question) => (
                   <div key={question.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">{question.title || question.content.substring(0, 50)}...</p>
-                      <p className="text-sm text-gray-600">שאלה חדשה ממתינה לתשובה</p>
+                    <div className="text-right flex-1">
+                      <p className="font-medium text-right">{question.title || question.content.substring(0, 50)}...</p>
+                      <p className="text-sm text-gray-600 text-right">שאלה חדשה ממתינה לתשובה</p>
                     </div>
                     <Badge variant="secondary">
-                      <MessageCircleQuestion className="h-3 w-3 ml-1" />
+                      <MessageCircleQuestion className="h-3 w-3 mr-1" />
                       ממתין
                     </Badge>
                   </div>
@@ -521,17 +525,17 @@ export default function AdminDashboard() {
                 pendingUsers.map((pendingUser) => (
                   <div key={pendingUser.id} className="border rounded-lg p-4 space-y-3">
                     <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <h3 className="font-semibold text-gray-800 text-lg">{pendingUser.fullName}</h3>
+                      <div className="space-y-2 text-right flex-1">
+                        <h3 className="font-semibold text-gray-800 text-lg text-right">{pendingUser.fullName}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                          <p><strong>אימייל:</strong> {pendingUser.email}</p>
-                          <p><strong>טלפון:</strong> {pendingUser.phone}</p>
-                          <p><strong>מספר אישי:</strong> {pendingUser.personalId}</p>
-                          <p><strong>תאריך הרשמה:</strong> {new Date(pendingUser.createdAt).toLocaleDateString('he-IL')}</p>
+                          <p className="text-right"><strong>אימייל:</strong> {pendingUser.email}</p>
+                          <p className="text-right"><strong>טלפון:</strong> {pendingUser.phone}</p>
+                          <p className="text-right"><strong>מספר אישי:</strong> {pendingUser.personalId}</p>
+                          <p className="text-right"><strong>תאריך הרשמה:</strong> {new Date(pendingUser.createdAt).toLocaleDateString('he-IL')}</p>
                         </div>
                       </div>
                       <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                        <Clock className="h-3 w-3 ml-1" />
+                        <Clock className="h-3 w-3 mr-1" />
                         ממתין לאישור
                       </Badge>
                     </div>
@@ -579,9 +583,9 @@ export default function AdminDashboard() {
                   {allQuestions.map((question) => (
                     <div key={question.id} className="border rounded-lg p-4 space-y-3">
                       <div className="flex justify-between items-start">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-gray-800">
+                        <div className="space-y-2 flex-1 text-right">
+                          <div className="flex items-center gap-2 flex-row-reverse">
+                            <h3 className="font-semibold text-gray-800 text-right">
                               {question.title || "שאלה"}
                             </h3>
                             <Badge variant={question.status === "pending" ? "secondary" : question.status === "answered" ? "default" : "outline"}>
@@ -594,10 +598,10 @@ export default function AdminDashboard() {
                               <Badge variant="outline">פרטי</Badge>
                             )}
                           </div>
-                          <p className="text-gray-600">{question.content}</p>
-                          <div className="text-sm text-gray-500">
-                            <p>קטגוריה: {question.category}</p>
-                            <p>תאריך: {new Date(question.createdAt).toLocaleDateString('he-IL')}</p>
+                          <p className="text-gray-600 text-right">{question.content}</p>
+                          <div className="text-sm text-gray-500 text-right">
+                            <p className="text-right">קטגוריה: {question.category}</p>
+                            <p className="text-right">תאריך: {new Date(question.createdAt).toLocaleDateString('he-IL')}</p>
                           </div>
                         </div>
                       </div>
@@ -822,17 +826,17 @@ export default function AdminDashboard() {
                   {newsList?.map((newsItem) => (
                     <div key={newsItem.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-gray-800">{newsItem.title}</h3>
+                        <div className="flex-1 text-right">
+                          <div className="flex items-center gap-2 mb-2 flex-row-reverse">
+                            <h3 className="font-semibold text-gray-800 text-right">{newsItem.title}</h3>
                             {newsItem.isUrgent && (
                               <Badge variant="destructive">דחוף</Badge>
                             )}
                           </div>
                           {newsItem.excerpt && (
-                            <p className="text-gray-600 text-sm mb-2">{newsItem.excerpt}</p>
+                            <p className="text-gray-600 text-sm mb-2 text-right">{newsItem.excerpt}</p>
                           )}
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 text-right">
                             {new Date(newsItem.publishedAt).toLocaleDateString('he-IL')}
                           </p>
                         </div>
@@ -868,11 +872,11 @@ export default function AdminDashboard() {
                 contactMessages.map((message) => (
                   <div key={message.id} className="border rounded-lg p-4 space-y-2">
                     <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800">{message.fullName}</h3>
-                        <p className="text-sm text-gray-600">{message.phone}</p>
-                        <p className="text-gray-700 mt-2">{message.message}</p>
-                        <p className="text-xs text-gray-500 mt-2">
+                      <div className="flex-1 text-right">
+                        <h3 className="font-semibold text-gray-800 text-right">{message.fullName}</h3>
+                        <p className="text-sm text-gray-600 text-right">{message.phone}</p>
+                        <p className="text-gray-700 mt-2 text-right">{message.message}</p>
+                        <p className="text-xs text-gray-500 mt-2 text-right">
                           {new Date(message.createdAt).toLocaleDateString('he-IL')}
                         </p>
                       </div>
