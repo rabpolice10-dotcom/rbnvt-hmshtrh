@@ -180,8 +180,10 @@ export class DatabaseStorage implements IStorage {
     return {
       ...question,
       answers: questionAnswers,
-      user: { fullName: question.userFullName || "משתמש" }
-    };
+      user: { fullName: question.userFullName || "משתמש" },
+      isNew: question.isNew ?? true,
+      isVisible: question.isVisible ?? false
+    } as Question & { answers: Answer[]; user: { fullName: string } };
   }
 
   async updateQuestion(id: string, data: Partial<InsertQuestion>): Promise<Question> {

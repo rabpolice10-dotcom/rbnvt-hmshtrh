@@ -82,6 +82,7 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedTab, setSelectedTab] = useState("overview");
+  const [viewedTabs, setViewedTabs] = useState<Set<string>>(new Set());
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
 
@@ -267,7 +268,7 @@ export default function AdminDashboard() {
     }
   });
 
-  // Statistics calculations
+  // Statistics calculations with dynamic updates
   const statistics = {
     totalUsers: pendingUsers?.length || 0,
     pendingQuestions: allQuestions?.filter(q => q.status === "pending").length || 0,
@@ -277,6 +278,31 @@ export default function AdminDashboard() {
     totalVideos: videos?.length || 0,
     unreadMessages: contactMessages?.filter(m => !m.isRead).length || 0
   };
+
+  // Reset viewed tabs when new items appear or disappear
+  useEffect(() => {
+    if (statistics.totalUsers === 0 && viewedTabs.has("users")) {
+      setViewedTabs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete("users");
+        return newSet;
+      });
+    }
+    if (statistics.pendingQuestions === 0 && viewedTabs.has("questions")) {
+      setViewedTabs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete("questions");
+        return newSet;
+      });
+    }
+    if (statistics.unreadMessages === 0 && viewedTabs.has("messages")) {
+      setViewedTabs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete("messages");
+        return newSet;
+      });
+    }
+  }, [statistics.totalUsers, statistics.pendingQuestions, statistics.unreadMessages, viewedTabs]);
 
   // Loading state
   if (isCheckingAdmin) {
@@ -344,12 +370,18 @@ export default function AdminDashboard() {
       </Card>
 
       {/* Main Dashboard */}
-      <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+      <Tabs 
+        value={selectedTab} 
+        onValueChange={(tab) => {
+          setSelectedTab(tab);
+          setViewedTabs(prev => new Set([...prev, tab]));
+        }}
+      >
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">סקירה כללית</TabsTrigger>
           <TabsTrigger value="users" className="relative">
             ניהול משתמשים
-            {statistics.totalUsers > 0 && (
+            {statistics.totalUsers > 0 && !viewedTabs.has("users") && (
               <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
                 {statistics.totalUsers}
               </Badge>
@@ -357,7 +389,7 @@ export default function AdminDashboard() {
           </TabsTrigger>
           <TabsTrigger value="questions" className="relative">
             ניהול שאלות
-            {statistics.pendingQuestions > 0 && (
+            {statistics.pendingQuestions > 0 && !viewedTabs.has("questions") && (
               <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
                 {statistics.pendingQuestions}
               </Badge>
@@ -365,7 +397,7 @@ export default function AdminDashboard() {
           </TabsTrigger>
           <TabsTrigger value="content" className="relative">
             ניהול תוכן
-            {(newsList?.filter(n => (n as any).isNew).length || 0) > 0 && (
+            {(newsList?.filter(n => (n as any).isNew).length || 0) > 0 && !viewedTabs.has("content") && (
               <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
                 {newsList?.filter(n => (n as any).isNew).length || 0}
               </Badge>
@@ -373,7 +405,7 @@ export default function AdminDashboard() {
           </TabsTrigger>
           <TabsTrigger value="messages" className="relative">
             הודעות
-            {statistics.unreadMessages > 0 && (
+            {statistics.unreadMessages > 0 && !viewedTabs.has("messages") && (
               <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
                 {statistics.unreadMessages}
               </Badge>
