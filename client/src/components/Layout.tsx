@@ -25,8 +25,8 @@ export function Layout({ children }: LayoutProps) {
     );
   }
 
-  // For Replit Auth - show welcome screen for new users without police app profile
-  if (!user || (user && (!(user as any).fullName && !(user as any).personalId))) {
+  // Show pending screen for users waiting for approval
+  if (user && user.status === "pending") {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <header className="gradient-header text-white p-4 shadow-lg">
@@ -77,7 +77,7 @@ export function Layout({ children }: LayoutProps) {
     );
   }
 
-  if (user && (user as any).status === "rejected") {
+  if (user && user.status === "rejected") {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <header className="gradient-header text-white p-4 shadow-lg">
@@ -127,9 +127,12 @@ export function Layout({ children }: LayoutProps) {
             </button>
           </div>
           
-          {/* Logout button */}
+          {/* Clear device button */}
           <button
-            onClick={() => window.location.href = '/api/logout'}
+            onClick={() => {
+              localStorage.removeItem("deviceId");
+              window.location.reload();
+            }}
             className="text-sm text-white/80 hover:text-white transition-colors px-2 py-1 rounded"
           >
             התנתק

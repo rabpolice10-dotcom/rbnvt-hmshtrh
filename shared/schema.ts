@@ -3,30 +3,17 @@ import { pgTable, text, varchar, timestamp, boolean, integer, index, jsonb } fro
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Session storage table for Replit Auth
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)],
-);
-
-// Users table updated for Replit Auth
+// Users table with required Hebrew fields and admin approval system
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
-  // Keep existing police app fields
-  fullName: text("full_name"),
-  personalId: text("personal_id").unique(),
-  phone: text("phone"),
-  deviceId: text("device_id").unique(),
-  status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending"),
+  // Required Hebrew fields
+  fullName: text("full_name").notNull(),
+  personalId: text("personal_id").unique().notNull(),
+  phone: text("phone").notNull(),
+  email: text("email").unique().notNull(),
+  deviceId: text("device_id").unique().notNull(),
+  // System fields
+  status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -132,12 +119,20 @@ export const answersRelations = relations(answers, ({ one }) => ({
   }),
 }));
 
-// Insert schemas
+// Insert schemas with validation for Hebrew registration
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
   approvedAt: true,
   approvedBy: true,
+  status: true,
+  isAdmin: true,
+}).extend({
+  fullName: z.string().min(2, "שם מלא חובה").max(100, "שם ארוך מדי"),
+  personalId: z.string().regex(/^\d{9}$/, "מספר אישי חייב להכיל 9 ספרות"),
+  phone: z.string().regex(/^0[5-7]\d{8}$/, "מספר טלפון ישראלי לא תקין"),
+  email: z.string().email("כתובת אימייל לא תקינה"),
 });
 
 export const insertQuestionSchema = createInsertSchema(questions).omit({
@@ -194,5 +189,4 @@ export type InsertVideo = z.infer<typeof insertVideoSchema>;
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
 
-// Replit Auth types
-export type UpsertUser = typeof users.$inferInsert;
+

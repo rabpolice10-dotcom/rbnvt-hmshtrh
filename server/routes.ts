@@ -1,17 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertUserSchema, insertQuestionSchema, insertAnswerSchema, insertNewsSchema, insertSynagogueSchema, insertDailyHalachaSchema, insertVideoSchema, insertContactMessageSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Setup Replit Auth
-  await setupAuth(app);
-  
-  // Auth routes
-  app.post("/api/register", async (req, res) => {
+  // Auth routes with Hebrew validation
+  app.post("/api/auth/register", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
       
@@ -34,23 +30,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser(userData);
       res.json({ user });
     } catch (error) {
-      res.status(400).json({ message: "שגיאה ברישום המשתמש" });
+      const errorMessage = error instanceof z.ZodError 
+        ? error.errors.map(e => e.message).join(", ")
+        : "שגיאה ברישום המשתמש";
+      res.status(400).json({ message: errorMessage });
     }
   });
 
-  // Replit Auth user endpoint
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
-  app.post("/api/login", async (req, res) => {
+  app.post("/api/auth/login", async (req, res) => {
     try {
       const { deviceId } = req.body;
       const user = await storage.getUserByDeviceId(deviceId);
@@ -62,6 +49,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ user });
     } catch (error) {
       res.status(400).json({ message: "שגיאה בהתחברות" });
+    }
+  });
+  
+  app.get("/api/auth/user", async (req, res) => {
+    try {
+      const { deviceId } = req.query;
+      if (!deviceId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const user = await storage.getUserByDeviceId(deviceId as string);
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
