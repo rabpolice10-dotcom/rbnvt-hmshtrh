@@ -336,12 +336,16 @@ export default function AdminDashboard() {
             <p className="text-gray-600 mb-4">רק מנהלי מערכת יכולים לגשת לדף זה.</p>
             <Button 
               onClick={() => {
-                // Clear all authentication data and force reload to landing
+                // Clear all authentication data
                 localStorage.removeItem('isAdmin');
                 localStorage.removeItem('adminEmail');
                 localStorage.removeItem('user');
                 localStorage.removeItem('deviceId');
-                window.location.reload();
+                // Navigate to root and then reload to ensure clean state
+                window.location.href = "/";
+                setTimeout(() => {
+                  window.location.reload();
+                }, 100);
               }}
               className="bg-police-blue hover:bg-police-blue-dark text-white"
             >
@@ -373,12 +377,16 @@ export default function AdminDashboard() {
               </div>
               <Button 
                 onClick={() => {
-                  // Clear all authentication data and force reload to landing
+                  // Clear all authentication data 
                   localStorage.removeItem('isAdmin');
                   localStorage.removeItem('adminEmail');
                   localStorage.removeItem('user');
                   localStorage.removeItem('deviceId');
-                  window.location.reload();
+                  // Navigate to root and then reload to ensure clean state
+                  window.location.href = "/";
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 100);
                 }}
                 variant="outline"
                 className="bg-white text-police-blue border-white hover:bg-gray-100"

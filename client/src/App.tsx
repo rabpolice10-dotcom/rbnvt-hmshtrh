@@ -67,7 +67,13 @@ function AppContent() {
         <Route path="/profile" component={Profile} />
         <Route path="/contact" component={Contact} />
         <Route path="/jewish-times" component={JewishTimes} />
-        <Route component={NotFound} />
+        <Route path="*">
+          {() => {
+            // For any unmatched route when authenticated, redirect to home
+            window.location.href = "/";
+            return <div>מפנה...</div>;
+          }}
+        </Route>
       </Switch>
     </Layout>
   );

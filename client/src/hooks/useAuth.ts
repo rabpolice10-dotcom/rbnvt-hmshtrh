@@ -73,7 +73,11 @@ export function useAuth() {
     localStorage.removeItem('adminEmail');
     localStorage.removeItem('deviceId');
     queryClient.clear();
-    window.location.reload();
+    // Navigate to root and then reload
+    window.location.href = "/";
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
 
