@@ -119,8 +119,7 @@ export default function Admin() {
     mutationFn: async ({ questionId, answer, deviceId }: { questionId: string; answer: string; deviceId: string }) => {
       return apiRequest("POST", "/api/admin/answers", {
         questionId,
-        answer,
-        deviceId
+        content: answer
       });
     },
     onSuccess: () => {
@@ -129,7 +128,8 @@ export default function Admin() {
       setSelectedQuestionId("");
       queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Answer submission error:", error);
       toast({
         variant: "destructive",
         title: "שגיאה בשליחת התשובה"
