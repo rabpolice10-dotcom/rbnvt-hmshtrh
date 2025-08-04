@@ -67,17 +67,27 @@ export default function Landing() {
           </Card>
         </div>
 
-        {/* Login Button */}
-        <div className="mb-8">
-          <Button 
-            onClick={() => window.location.href = '/api/login'} 
-            size="lg"
-            className="bg-police-blue hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
-          >
-            התחבר עכשיו
-          </Button>
-          <p className="text-sm text-gray-500 mt-4">
-            התחברות מאובטחת באמצעות Replit
+        {/* Login/Register Buttons */}
+        <div className="mb-8 space-y-4">
+          <div className="flex gap-4 justify-center">
+            <Button 
+              onClick={() => window.location.href = '/login'} 
+              size="lg"
+              className="bg-police-blue hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+            >
+              התחברות
+            </Button>
+            <Button 
+              onClick={() => window.location.href = '/register'} 
+              size="lg"
+              variant="outline"
+              className="border-police-blue text-police-blue hover:bg-police-blue hover:text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+            >
+              הרשמה
+            </Button>
+          </div>
+          <p className="text-sm text-gray-600">
+            להרשמה או התחברות למערכת רבנות המשטרה
           </p>
         </div>
 

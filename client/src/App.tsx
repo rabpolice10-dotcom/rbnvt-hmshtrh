@@ -38,9 +38,9 @@ function AppContent() {
     return <Login />;
   }
 
-  // Show login page for non-authenticated users or while loading
+  // Show landing page (login/register) for non-authenticated users or while loading
   if (isLoading || !isAuthenticated) {
-    return <Login />;
+    return <Landing />;
   }
 
   // Show app for authenticated users
