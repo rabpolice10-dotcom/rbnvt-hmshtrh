@@ -711,10 +711,24 @@ export default function AdminDashboard() {
                           size="sm"
                           variant={(question as any).isVisible ? "default" : "outline"}
                           onClick={async () => {
-                            await apiRequest("POST", `/api/questions/${question.id}/set-visible`, { 
-                              isVisible: !(question as any).isVisible 
-                            });
-                            queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+                            try {
+                              await apiRequest("POST", `/api/questions/${question.id}/set-visible`, { 
+                                isVisible: !(question as any).isVisible 
+                              });
+                              // Invalidate both admin and regular question queries
+                              queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+                              queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+                              toast({
+                                title: "עודכן בהצלחה",
+                                description: (question as any).isVisible ? "השאלה הוסתרה" : "השאלה הפכה לציבורית",
+                              });
+                            } catch (error) {
+                              toast({
+                                title: "שגיאה",
+                                description: "לא ניתן לעדכן את נראות השאלה",
+                                variant: "destructive",
+                              });
+                            }
                           }}
                         >
                           <Eye className="h-4 w-4 ml-1" />
