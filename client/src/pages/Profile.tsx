@@ -119,14 +119,19 @@ export default function Profile() {
               <Settings className="h-4 w-4 ml-2" />
               אזור ניהול
             </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50"
+            <button
               onClick={logout}
+              className="w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 hover:from-red-700 hover:via-red-800 hover:to-red-900 text-white px-6 py-4 rounded-xl text-lg font-bold shadow-2xl hover:shadow-red-600/40 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 border-2 border-red-400 hover:border-red-300"
+              style={{
+                background: 'linear-gradient(135deg, #dc2626, #b91c1c, #991b1b, #7f1d1d)',
+                boxShadow: '0 12px 25px rgba(220, 38, 38, 0.4), 0 5px 10px rgba(220, 38, 38, 0.2)',
+              }}
             >
-              <LogOut className="h-4 w-4 ml-2" />
-              התנתק
-            </Button>
+              <span className="flex items-center justify-center gap-3">
+                <LogOut className="h-5 w-5" />
+                <span className="tracking-wide drop-shadow-lg">התנתק מהמערכת</span>
+              </span>
+            </button>
           </div>
         </CardContent>
       </Card>

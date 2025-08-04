@@ -60,9 +60,16 @@ export function Layout({ children }: LayoutProps) {
                   sessionStorage.clear();
                   window.location.replace('/login');
                 }}
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-lg text-sm transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 hover:from-red-700 hover:via-red-800 hover:to-red-900 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-2xl hover:shadow-red-600/40 transition-all duration-300 transform hover:scale-110 hover:-translate-y-2 border-2 border-red-400 hover:border-red-300"
+                style={{
+                  background: 'linear-gradient(135deg, #dc2626, #b91c1c, #991b1b, #7f1d1d)',
+                  boxShadow: '0 15px 35px rgba(220, 38, 38, 0.5), 0 5px 15px rgba(220, 38, 38, 0.3)',
+                }}
               >
-                🚪 התנתק מהמערכת
+                <span className="flex items-center justify-center gap-3">
+                  <span className="text-2xl animate-bounce">🚪</span>
+                  <span className="tracking-wide drop-shadow-lg">התנתק מהמערכת</span>
+                </span>
               </button>
             </div>
             
@@ -106,9 +113,16 @@ export function Layout({ children }: LayoutProps) {
                 sessionStorage.clear();
                 window.location.replace('/login');
               }}
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-lg text-sm transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="w-full bg-gradient-to-r from-red-600 via-red-700 to-red-800 hover:from-red-700 hover:via-red-800 hover:to-red-900 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-2xl hover:shadow-red-600/40 transition-all duration-300 transform hover:scale-110 hover:-translate-y-2 border-2 border-red-400 hover:border-red-300"
+              style={{
+                background: 'linear-gradient(135deg, #dc2626, #b91c1c, #991b1b, #7f1d1d)',
+                boxShadow: '0 15px 35px rgba(220, 38, 38, 0.5), 0 5px 15px rgba(220, 38, 38, 0.3)',
+              }}
             >
-              🚪 התנתק מהמערכת
+              <span className="flex items-center justify-center gap-3">
+                <span className="text-2xl animate-bounce">🚪</span>
+                <span className="tracking-wide drop-shadow-lg">התנתק מהמערכת</span>
+              </span>
             </button>
           </div>
         </div>
