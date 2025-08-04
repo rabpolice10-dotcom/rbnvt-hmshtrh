@@ -7,12 +7,16 @@ export function useAuth() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    // Clear ALL authentication data on app initialization
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('adminEmail');
+    localStorage.removeItem('user');
+    
     // Generate or get existing device ID
     let storedDeviceId = localStorage.getItem("deviceId");
     
-    // Clear admin device ID if user is not admin
-    const isAdminStored = localStorage.getItem('isAdmin') === 'true';
-    if (!isAdminStored && storedDeviceId === 'admin-device-simple') {
+    // Clear admin device ID completely
+    if (storedDeviceId === 'admin-device-simple') {
       localStorage.removeItem("deviceId");
       storedDeviceId = null;
     }
@@ -27,6 +31,8 @@ export function useAuth() {
   // Check if admin is logged in via localStorage
   const isAdminLoggedIn = localStorage.getItem('isAdmin') === 'true';
   const adminEmail = localStorage.getItem('adminEmail');
+  
+  console.log('Auth check:', { isAdminLoggedIn, adminEmail, deviceId });
 
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user", deviceId],
@@ -66,7 +72,9 @@ export function useAuth() {
     window.location.reload();
   };
 
-  // Return admin user if admin is logged in
+
+
+  // Return admin user if admin is logged in (this should rarely happen now)
   if (isAdminLoggedIn && adminEmail) {
     return {
       user: {
@@ -93,7 +101,7 @@ export function useAuth() {
     };
   }
 
-  return {
+  const result = {
     user: user ? { ...user, deviceId } : null,
     deviceId,
     isLoading,
@@ -102,4 +110,8 @@ export function useAuth() {
     register: (userData: { fullName: string; personalId: string; phone: string }) => registerMutation.mutateAsync(userData),
     logout
   };
+  
+  console.log('Auth result:', { hasUser: !!user, isLoading, isAuthenticated: !!user });
+  
+  return result;
 }
