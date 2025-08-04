@@ -618,11 +618,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contact route
   app.post("/api/contact", async (req, res) => {
     try {
+      console.log('Contact message submission attempt:', req.body);
       const messageData = insertContactMessageSchema.parse(req.body);
+      console.log('Parsed contact message data:', messageData);
       const message = await storage.createContactMessage(messageData);
+      console.log('Contact message created successfully:', message.id);
       res.json({ success: true, message: "ההודעה נשלחה בהצלחה", id: message.id });
     } catch (error) {
-      res.status(400).json({ message: "שגיאה בשליחת ההודעה" });
+      console.error('Error creating contact message:', error);
+      res.status(400).json({ message: "שגיאה בשליחת ההודעה", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 

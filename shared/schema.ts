@@ -227,6 +227,8 @@ export const insertContactMessageSchema = createInsertSchema(contactMessages).om
   id: true,
   createdAt: true,
   isRead: true,
+  isSeenByAdmin: true,
+  isNew: true,
 });
 
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
