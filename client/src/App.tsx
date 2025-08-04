@@ -43,6 +43,31 @@ function AppContent() {
     // Default to landing page (login/register) for all other routes
     return <Landing />;
   }
+  
+  // If user is authenticated (not admin), show the main app
+  if (isAuthenticated && !isAdminInStorage) {
+    return (
+      <Layout>
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/questions" component={Questions} />
+          <Route path="/questions/:id" component={QuestionDetail} />
+          <Route path="/synagogues" component={Synagogues} />
+          <Route path="/videos" component={Videos} />
+          <Route path="/profile" component={Profile} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/jewish-times" component={JewishTimes} />
+          <Route path="*">
+            {() => {
+              // For any unmatched route when authenticated, redirect to home
+              window.location.href = "/";
+              return <div>מפנה...</div>;
+            }}
+          </Route>
+        </Switch>
+      </Layout>
+    );
+  }
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -58,28 +83,8 @@ function AppContent() {
     return <AdminDashboard />;
   }
 
-  // Show app for authenticated users
-  return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/questions" component={Questions} />
-        <Route path="/questions/:id" component={QuestionDetail} />
-        <Route path="/synagogues" component={Synagogues} />
-        <Route path="/videos" component={Videos} />
-        <Route path="/profile" component={Profile} />
-        <Route path="/contact" component={Contact} />
-        <Route path="/jewish-times" component={JewishTimes} />
-        <Route path="*">
-          {() => {
-            // For any unmatched route when authenticated, redirect to home
-            window.location.href = "/";
-            return <div>מפנה...</div>;
-          }}
-        </Route>
-      </Switch>
-    </Layout>
-  );
+  // Default fallback - show landing page
+  return <Landing />;
 }
 
 function App() {
