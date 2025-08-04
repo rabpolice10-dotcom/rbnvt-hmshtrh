@@ -55,12 +55,14 @@ export function Layout({ children }: LayoutProps) {
             <div className="mt-6">
               <button
                 onClick={() => {
-                  localStorage.removeItem('device-id');
-                  window.location.href = '/login';
+                  // Clear all authentication data
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  window.location.replace('/login');
                 }}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors font-medium shadow-sm"
               >
-                התנתק
+                התנתק מהמערכת
               </button>
             </div>
             
@@ -99,10 +101,12 @@ export function Layout({ children }: LayoutProps) {
             
             <button
               onClick={() => {
-                localStorage.removeItem('device-id');
-                window.location.href = '/login';
+                // Clear all authentication data
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.replace('/login');
               }}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors font-medium shadow-sm"
             >
               התנתק
             </button>

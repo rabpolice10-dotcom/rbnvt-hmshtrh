@@ -22,7 +22,8 @@ export default function Home(): JSX.Element {
   }) as { data: DailyHalacha | undefined };
 
   const { data: recentNews } = useQuery({
-    queryKey: ["/api/news", "limit=3"],
+    queryKey: ["/api/news", { limit: 3 }],
+    queryFn: () => apiRequest("/api/news?limit=3")
   }) as { data: News[] | undefined };
 
   const { data: recentQuestions } = useQuery({
@@ -52,6 +53,7 @@ export default function Home(): JSX.Element {
   
   console.log('Home page questions:', recentQuestions);
   console.log('User notifications:', notifications);
+  console.log('Recent news data:', recentNews);
   console.log('Questions with new answers:', questionsWithNewAnswers);
 
   const { data: jewishTimes } = useQuery({
@@ -62,7 +64,7 @@ export default function Home(): JSX.Element {
   // Mark notifications as read
   const markNotificationsAsRead = useMutation({
     mutationFn: async (notificationIds: string[]) => {
-      return apiRequest("POST", "/api/notifications/mark-read", { notificationIds });
+      return apiRequest("/api/notifications/mark-read", { method: "POST", body: { notificationIds } });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
@@ -72,7 +74,7 @@ export default function Home(): JSX.Element {
   // Mark question answer as viewed
   const markQuestionAnswerViewed = useMutation({
     mutationFn: async (questionId: string) => {
-      return apiRequest("POST", `/api/questions/${questionId}/mark-answer-viewed`, {});
+      return apiRequest(`/api/questions/${questionId}/mark-answer-viewed`, { method: "POST", body: {} });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/questions/user"] });
