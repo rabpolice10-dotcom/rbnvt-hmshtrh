@@ -740,6 +740,43 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  // Notification badges functions
+  async markQuestionsAsSeen() {
+    try {
+      await db
+        .update(questions)
+        .set({ isSeenByAdmin: true })
+        .where(eq(questions.isSeenByAdmin, false));
+    } catch (error) {
+      console.error("Error marking questions as seen:", error);
+      throw error;
+    }
+  }
+
+  async markContactsAsSeen() {
+    try {
+      await db
+        .update(contactMessages)
+        .set({ isSeenByAdmin: true })
+        .where(eq(contactMessages.isSeenByAdmin, false));
+    } catch (error) {
+      console.error("Error marking contacts as seen:", error);
+      throw error;
+    }
+  }
+
+  async markNewsAsSeen() {
+    try {
+      await db
+        .update(news)
+        .set({ isSeenByAdmin: true })
+        .where(eq(news.isSeenByAdmin, false));
+    } catch (error) {
+      console.error("Error marking news as seen:", error);
+      throw error;
+    }
+  }
+
   async exportUsersData(): Promise<any[]> {
     const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
     

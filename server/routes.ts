@@ -853,6 +853,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin: Get notification badges (unseen items count)
+  app.get("/api/admin/notification-badges", async (req, res) => {
+    try {
+      const questions = await storage.getAllQuestions();
+      const contactMessages = await storage.getAllContactMessages();
+      const news = await storage.getAllNews();
+      const users = await storage.getAllUsers();
+      
+      const badges = {
+        questions: questions.filter(q => !q.isSeenByAdmin).length,
+        contacts: contactMessages.filter(c => !c.isSeenByAdmin).length,
+        news: news.filter(n => !n.isSeenByAdmin).length,
+        users: users.users.filter(u => u.status === "pending").length, // Pending users are always "new"
+      };
+      
+      res.json(badges);
+    } catch (error) {
+      console.error("Error fetching notification badges:", error);
+      res.status(500).json({ error: "Failed to fetch notification badges" });
+    }
+  });
+
+  // Admin: Mark items as seen
+  app.post("/api/admin/mark-seen/:type", async (req, res) => {
+    try {
+      const { type } = req.params;
+      
+      switch (type) {
+        case 'questions':
+          await storage.markQuestionsAsSeen();
+          break;
+        case 'contacts':
+          await storage.markContactsAsSeen();
+          break;
+        case 'news':
+          await storage.markNewsAsSeen();
+          break;
+        default:
+          return res.status(400).json({ error: "Invalid type" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking items as seen:", error);
+      res.status(500).json({ error: "Failed to mark items as seen" });
+    }
+  });
+
   // Bulk operations on users
   app.post("/api/admin/users/bulk-action", async (req, res) => {
     try {

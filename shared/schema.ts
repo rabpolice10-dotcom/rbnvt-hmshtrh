@@ -42,6 +42,7 @@ export const questions = pgTable("questions", {
   isNew: boolean("is_new").default(true).notNull(),
   hasNewAnswer: boolean("has_new_answer").default(false).notNull(),
   answerNotificationSent: boolean("answer_notification_sent").default(false).notNull(),
+  isSeenByAdmin: boolean("is_seen_by_admin").default(false).notNull(),
   approvedBy: varchar("approved_by"),
   approvedAt: timestamp("approved_at"),
   answeredAt: timestamp("answered_at"),
@@ -67,6 +68,7 @@ export const news = pgTable("news", {
   excerpt: text("excerpt"),
   isUrgent: boolean("is_urgent").default(false).notNull(),
   isNew: boolean("is_new").default(true).notNull(),
+  isSeenByAdmin: boolean("is_seen_by_admin").default(false).notNull(),
   publishedAt: timestamp("published_at").defaultNow().notNull(),
   createdBy: varchar("created_by").notNull(),
 });
@@ -115,6 +117,7 @@ export const contactMessages = pgTable("contact_messages", {
   message: text("message").notNull(),
   isRead: boolean("is_read").default(false).notNull(),
   isNew: boolean("is_new").default(true).notNull(),
+  isSeenByAdmin: boolean("is_seen_by_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

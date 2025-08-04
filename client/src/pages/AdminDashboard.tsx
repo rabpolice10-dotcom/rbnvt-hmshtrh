@@ -35,10 +35,12 @@ import {
   Activity
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNotificationBadges } from "@/hooks/useNotificationBadges";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { performLogout } from "@/lib/logout";
 import SimpleUserManagement from "@/components/SimpleUserManagement";
+import { NotificationBadge } from "@/components/NotificationBadge";
 import type { User, Question, Answer, News, Synagogue, DailyHalacha, Video as VideoType, ContactMessage } from "@shared/schema";
 
 // Form schemas
@@ -87,6 +89,7 @@ export default function AdminDashboard() {
   const [viewedTabs, setViewedTabs] = useState<Set<string>>(new Set());
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const { badges, markAsSeen } = useNotificationBadges();
 
   // Check admin access - prioritize localStorage admin flag
   useEffect(() => {
@@ -391,39 +394,48 @@ export default function AdminDashboard() {
         onValueChange={(tab) => {
           setSelectedTab(tab);
           setViewedTabs(prev => new Set([...Array.from(prev), tab]));
+          
+          // Mark items as seen when entering the tab
+          if (tab === 'questions' && badges.questions > 0) {
+            markAsSeen('questions');
+          } else if (tab === 'content' && badges.news > 0) {
+            markAsSeen('news');
+          } else if ((tab === 'contact' || tab === 'messages') && badges.contacts > 0) {
+            markAsSeen('contacts');
+          }
         }}
       >
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">סקירה כללית</TabsTrigger>
           <TabsTrigger value="users" className="relative">
             ניהול משתמשים
-            {statistics.totalUsers > 0 && !viewedTabs.has("users") && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
-                {statistics.totalUsers}
+            {badges.users > 0 && !viewedTabs.has("users") && (
+              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
+                {badges.users}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="questions" className="relative">
             ניהול שאלות
-            {statistics.pendingQuestions > 0 && !viewedTabs.has("questions") && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
-                {statistics.pendingQuestions}
+            {badges.questions > 0 && !viewedTabs.has("questions") && (
+              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
+                {badges.questions}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="content" className="relative">
             ניהול תוכן
-            {(newsList?.filter(n => (n as any).isNew).length || 0) > 0 && !viewedTabs.has("content") && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
-                {newsList?.filter(n => (n as any).isNew).length || 0}
+            {badges.news > 0 && !viewedTabs.has("content") && (
+              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
+                {badges.news}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="messages" className="relative">
             הודעות
-            {statistics.unreadMessages > 0 && !viewedTabs.has("messages") && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
-                {statistics.unreadMessages}
+            {badges.contacts > 0 && !viewedTabs.has("messages") && (
+              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
+                {badges.contacts}
               </Badge>
             )}
           </TabsTrigger>
@@ -437,9 +449,14 @@ export default function AdminDashboard() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-3 flex-row-reverse">
                   <Users className="h-8 w-8 text-blue-600" />
-                  <div className="text-right flex-1">
+                  <div className="text-right flex-1 relative">
                     <p className="text-sm text-gray-600 text-right">משתמשים ממתינים</p>
                     <p className="text-2xl font-bold text-gray-800 text-right">{statistics.totalUsers}</p>
+                    <NotificationBadge 
+                      count={badges.users} 
+                      isVisible={badges.users > 0}
+                      className="absolute -top-4 -right-4"
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -449,9 +466,14 @@ export default function AdminDashboard() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-3 flex-row-reverse">
                   <MessageCircleQuestion className="h-8 w-8 text-orange-600" />
-                  <div className="text-right flex-1">
+                  <div className="text-right flex-1 relative">
                     <p className="text-sm text-gray-600 text-right">שאלות ממתינות</p>
                     <p className="text-2xl font-bold text-gray-800 text-right">{statistics.pendingQuestions}</p>
+                    <NotificationBadge 
+                      count={badges.questions} 
+                      isVisible={badges.questions > 0}
+                      className="absolute -top-4 -right-4"
+                    />
                   </div>
                 </div>
               </CardContent>
