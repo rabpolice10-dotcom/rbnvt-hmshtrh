@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { AdminContentManager } from "@/components/AdminContentManager";
+import { AdminQuestionManager } from "@/components/AdminQuestionManager";
 import type { User, Question, Answer } from "@shared/schema";
 
 interface AdminCheckResponse {
@@ -310,83 +311,7 @@ export default function Admin() {
 
         {/* Question Management */}
         <TabsContent value="questions" className="space-y-4">
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircleQuestion className="h-5 w-5" />
-                שאלות ממתינות לתשובה
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {!allQuestions || allQuestions.filter(q => q.status === "pending").length === 0 ? (
-                <p className="text-center text-gray-600 py-8">אין שאלות ממתינות לתשובה</p>
-              ) : (
-                allQuestions
-                  .filter(q => q.status === "pending")
-                  .map((question) => (
-                    <div key={question.id} className="border rounded-lg p-4 space-y-3">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-semibold text-gray-800">{question.title || "שאלה ללא כותרת"}</h3>
-                          <div className="flex gap-2">
-                            <Badge variant="secondary">
-                              {question.category}
-                            </Badge>
-                            {question.isUrgent && (
-                              <Badge variant="destructive">דחוף</Badge>
-                            )}
-                          </div>
-                        </div>
-                        <p className="text-gray-700">{question.content}</p>
-                        <p className="text-xs text-gray-500">
-                          נשאל ב-{new Date(question.createdAt).toLocaleDateString('he-IL')}
-                        </p>
-                      </div>
-                      
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            className="bg-police-blue hover:bg-police-blue-dark text-white"
-                            onClick={() => setSelectedQuestionId(question.id)}
-                          >
-                            ענה על השאלה
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-md">
-                          <DialogHeader>
-                            <DialogTitle>מענה לשאלה</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div className="p-3 bg-gray-50 rounded-lg">
-                              <p className="font-medium text-gray-800">{question.title || "שאלה ללא כותרת"}</p>
-                              <p className="text-sm text-gray-600 mt-1">{question.content}</p>
-                            </div>
-                            <Textarea
-                              placeholder="כתוב כאן את התשובה..."
-                              value={answerText}
-                              onChange={(e) => setAnswerText(e.target.value)}
-                              className="h-32 resize-none text-right"
-                            />
-                            <Button
-                              className="w-full bg-police-blue hover:bg-police-blue-dark text-white"
-                              onClick={() => answerMutation.mutate({
-                                questionId: question.id,
-                                answer: answerText,
-                                deviceId: user?.deviceId || ""
-                              })}
-                              disabled={!answerText.trim() || answerMutation.isPending}
-                            >
-                              {answerMutation.isPending ? "שולח..." : "שלח תשובה"}
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  ))
-              )}
-            </CardContent>
-          </Card>
+          <AdminQuestionManager />
         </TabsContent>
 
         {/* Content Management */}

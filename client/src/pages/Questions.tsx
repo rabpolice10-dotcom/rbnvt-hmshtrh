@@ -1,20 +1,26 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AskRabbiModal } from "@/components/AskRabbiModal";
-import { MessageCircleQuestion, Search, Plus, CheckCircle, Clock, AlertCircle, Lock } from "lucide-react";
+import { MessageCircleQuestion, Search, Plus, CheckCircle, Clock, AlertCircle, Lock, Filter, ArrowUpDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { Question } from "@shared/schema";
 
 export default function Questions() {
   const { user } = useAuth();
+  const [, navigate] = useLocation();
   const [showAskRabbi, setShowAskRabbi] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [filterBy, setFilterBy] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const { data: questions, isLoading } = useQuery({
-    queryKey: ["/api/questions", "user", user?.id],
+    queryKey: ["/api/questions", "user", user?.id, sortBy, filterBy, categoryFilter],
     enabled: !!user,
   }) as { data: Question[] | undefined; isLoading: boolean };
 
@@ -23,7 +29,32 @@ export default function Questions() {
     enabled: searchQuery.length > 2,
   }) as { data: Question[] | undefined };
 
-  const displayQuestions = searchQuery.length > 2 ? searchResults : questions;
+  // Filter and sort questions
+  let displayQuestions = searchQuery.length > 2 ? searchResults : questions;
+  
+  if (displayQuestions) {
+    // Apply filters
+    displayQuestions = displayQuestions.filter(question => {
+      if (filterBy === "mine" && question.userId !== user?.id) return false;
+      if (filterBy === "unanswered" && question.status !== "pending") return false;
+      if (categoryFilter !== "all" && question.category !== categoryFilter) return false;
+      return true;
+    });
+
+    // Apply sorting
+    displayQuestions = [...displayQuestions].sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case "oldest":
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case "category":
+          return a.category.localeCompare(b.category, 'he');
+        default:
+          return 0;
+      }
+    });
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -52,7 +83,7 @@ export default function Questions() {
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-800">שאלות ותשובות</h1>
+        <h1 className="text-xl font-bold text-gray-800">שאל את הרב</h1>
         <Button
           onClick={() => setShowAskRabbi(true)}
           className="bg-police-blue hover:bg-police-blue-dark text-white"
@@ -63,16 +94,58 @@ export default function Questions() {
         </Button>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        <Input
-          type="text"
-          placeholder="חפש שאלות..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pr-10 text-right"
-        />
+      {/* Search and Filters */}
+      <div className="space-y-3">
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="חפש שאלות..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pr-10 text-right"
+          />
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[140px]">
+              <ArrowUpDown className="h-4 w-4 ml-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">החדשות ביותר</SelectItem>
+              <SelectItem value="oldest">הישנות ביותר</SelectItem>
+              <SelectItem value="category">לפי קטגוריה</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filterBy} onValueChange={setFilterBy}>
+            <SelectTrigger className="w-[120px]">
+              <Filter className="h-4 w-4 ml-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">הכל</SelectItem>
+              <SelectItem value="mine">רק שלי</SelectItem>
+              <SelectItem value="unanswered">לא נענו</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="קטגוריה" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">כל הקטגוריות</SelectItem>
+              <SelectItem value="שבת וחגים">שבת וחגים</SelectItem>
+              <SelectItem value="כשרות">כשרות</SelectItem>
+              <SelectItem value="שיטור ובטחון">שיטור ובטחון</SelectItem>
+              <SelectItem value="תפילה">תפילה</SelectItem>
+              <SelectItem value="אחר">אחר</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Questions List */}
@@ -84,7 +157,15 @@ export default function Questions() {
           </div>
         ) : displayQuestions && displayQuestions.length > 0 ? (
           displayQuestions.map((question) => (
-            <Card key={question.id} className="shadow-card">
+            <Card 
+              key={question.id} 
+              className="shadow-card cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => {
+                if (question.status === "answered") {
+                  navigate(`/questions/${question.id}`);
+                }
+              }}
+            >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
@@ -103,12 +184,20 @@ export default function Questions() {
                           פרטי
                         </span>
                       )}
+                      {!question.isApproved && (
+                        <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded mr-2">
+                          ממתין לאישור
+                        </span>
+                      )}
                     </div>
-                    <p className="text-gray-800 mb-3">{question.content}</p>
+                    <p className="text-gray-800 mb-3 line-clamp-3">{question.content}</p>
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <div className="flex items-center">
                         {getStatusIcon(question.status)}
                         <span className="mr-1">{getStatusText(question.status)}</span>
+                        {question.status === "answered" && (
+                          <span className="mr-2 text-blue-600 cursor-pointer">לחץ לצפייה</span>
+                        )}
                       </div>
                       <span>{new Date(question.createdAt).toLocaleDateString('he-IL')}</span>
                     </div>

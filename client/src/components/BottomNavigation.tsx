@@ -6,7 +6,7 @@ export function BottomNavigation() {
 
   const navItems = [
     { path: "/", icon: Home, label: "בית" },
-    { path: "/questions", icon: MessageCircleQuestion, label: "שאלות" },
+    { path: "/questions", icon: MessageCircleQuestion, label: "שאל את הרב" },
     { path: "/synagogues", icon: MapPin, label: "בתי כנסת" },
     { path: "/videos", icon: Play, label: "סרטונים" },
     { path: "/contact", icon: MessageSquare, label: "צור קשר" },
@@ -16,7 +16,7 @@ export function BottomNavigation() {
     <nav className="fixed bottom-0 right-0 left-0 max-w-md mx-auto bg-white border-t border-gray-200">
       <div className="grid grid-cols-5 py-2">
         {navItems.map(({ path, icon: Icon, label }) => {
-          const isActive = location === path;
+          const isActive = location === path || (path === "/questions" && location.startsWith("/questions/"));
           return (
             <button
               key={path}

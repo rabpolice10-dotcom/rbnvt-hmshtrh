@@ -221,12 +221,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single question with answers
+  app.get("/api/questions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const question = await storage.getQuestionWithAnswers(id);
+      
+      if (!question) {
+        return res.status(404).json({ message: "השאלה לא נמצאה" });
+      }
+      
+      res.json(question);
+    } catch (error) {
+      console.error('Error fetching question:', error);
+      res.status(500).json({ message: "שגיאה בטעינת השאלה" });
+    }
+  });
+
   app.get("/api/questions", async (req, res) => {
     try {
       const questions = await storage.getAllQuestions();
       res.json(questions);
     } catch (error) {
       res.status(500).json({ message: "שגיאה בטעינת השאלות" });
+    }
+  });
+
+  // Approve question (admin only)
+  app.post("/api/questions/:id/approve", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { approvedBy } = req.body;
+      const question = await storage.approveQuestion(id, approvedBy || "admin");
+      res.json({ question });
+    } catch (error) {
+      console.error('Error approving question:', error);
+      res.status(500).json({ message: "שגיאה באישור השאלה" });
+    }
+  });
+
+  // Update question (admin only)
+  app.put("/api/questions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      const question = await storage.updateQuestion(id, updateData);
+      res.json({ question });
+    } catch (error) {
+      console.error('Error updating question:', error);
+      res.status(500).json({ message: "שגיאה בעדכון השאלה" });
+    }
+  });
+
+  // Update answer (admin only)
+  app.put("/api/answers/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { content } = req.body;
+      const answer = await storage.updateAnswer(id, content);
+      res.json({ answer });
+    } catch (error) {
+      console.error('Error updating answer:', error);
+      res.status(500).json({ message: "שגיאה בעדכון התשובה" });
     }
   });
 

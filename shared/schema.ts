@@ -32,7 +32,11 @@ export const questions = pgTable("questions", {
   isUrgent: boolean("is_urgent").default(false).notNull(),
   isPrivate: boolean("is_private").default(false).notNull(),
   status: text("status", { enum: ["pending", "answered", "closed"] }).default("pending").notNull(),
+  isApproved: boolean("is_approved").default(false).notNull(),
+  approvedBy: varchar("approved_by"),
+  approvedAt: timestamp("approved_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Answers table
@@ -42,6 +46,7 @@ export const answers = pgTable("answers", {
   content: text("content").notNull(),
   answeredBy: varchar("answered_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // News table

@@ -25,11 +25,15 @@ export interface IStorage {
   getQuestionsByUser(userId: string): Promise<Question[]>;
   getAllQuestions(): Promise<Question[]>;
   getUnansweredQuestions(): Promise<Question[]>;
+  getQuestionWithAnswers(id: string): Promise<(Question & { answers: Answer[]; user?: { fullName: string } }) | undefined>;
   updateQuestionStatus(id: string, status: "pending" | "answered" | "closed"): Promise<Question>;
+  updateQuestion(id: string, data: Partial<InsertQuestion>): Promise<Question>;
+  approveQuestion(id: string, approvedBy: string): Promise<Question>;
 
   // Answer operations
   createAnswer(answer: InsertAnswer): Promise<Answer>;
   getAnswersByQuestion(questionId: string): Promise<Answer[]>;
+  updateAnswer(id: string, content: string): Promise<Answer>;
 
   // News operations
   getAllNews(): Promise<News[]>;
@@ -147,6 +151,61 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(questions).orderBy(desc(questions.createdAt));
   }
 
+  async getQuestionWithAnswers(id: string): Promise<(Question & { answers: Answer[]; user?: { fullName: string } }) | undefined> {
+    const [question] = await db.select({
+      id: questions.id,
+      userId: questions.userId,
+      title: questions.title,
+      category: questions.category,
+      content: questions.content,
+      isUrgent: questions.isUrgent,
+      isPrivate: questions.isPrivate,
+      status: questions.status,
+      isApproved: questions.isApproved,
+      approvedBy: questions.approvedBy,
+      approvedAt: questions.approvedAt,
+      createdAt: questions.createdAt,
+      updatedAt: questions.updatedAt,
+      userFullName: users.fullName,
+    })
+    .from(questions)
+    .leftJoin(users, eq(questions.userId, users.id))
+    .where(eq(questions.id, id));
+
+    if (!question) return undefined;
+
+    const questionAnswers = await db.select().from(answers).where(eq(answers.questionId, id));
+
+    return {
+      ...question,
+      answers: questionAnswers,
+      user: { fullName: question.userFullName || "משתמש" }
+    };
+  }
+
+  async updateQuestion(id: string, data: Partial<InsertQuestion>): Promise<Question> {
+    const [updated] = await db
+      .update(questions)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(questions.id, id))
+      .returning();
+    return updated;
+  }
+
+  async approveQuestion(id: string, approvedBy: string): Promise<Question> {
+    const [updated] = await db
+      .update(questions)
+      .set({ 
+        isApproved: true, 
+        approvedBy, 
+        approvedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(questions.id, id))
+      .returning();
+    return updated;
+  }
+
   async getUnansweredQuestions(): Promise<Question[]> {
     return db.select().from(questions).where(eq(questions.status, "pending")).orderBy(desc(questions.createdAt));
   }
@@ -174,6 +233,15 @@ export class DatabaseStorage implements IStorage {
 
   async getAnswersByQuestion(questionId: string): Promise<Answer[]> {
     return db.select().from(answers).where(eq(answers.questionId, questionId)).orderBy(desc(answers.createdAt));
+  }
+
+  async updateAnswer(id: string, content: string): Promise<Answer> {
+    const [updated] = await db
+      .update(answers)
+      .set({ content, updatedAt: new Date() })
+      .where(eq(answers.id, id))
+      .returning();
+    return updated;
   }
 
   async getAllNews(): Promise<News[]> {

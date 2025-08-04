@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Layout } from "@/components/Layout";
 import Home from "@/pages/Home";
 import Questions from "@/pages/Questions";
+import QuestionDetail from "@/pages/QuestionDetail";
 import Synagogues from "@/pages/Synagogues";
 import Videos from "@/pages/Videos";
 import Profile from "@/pages/Profile";
@@ -48,6 +49,7 @@ function AppContent() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/questions" component={Questions} />
+        <Route path="/questions/:id" component={QuestionDetail} />
         <Route path="/synagogues" component={Synagogues} />
         <Route path="/videos" component={Videos} />
         <Route path="/profile" component={Profile} />
