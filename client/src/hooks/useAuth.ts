@@ -24,9 +24,17 @@ export function useAuth() {
     setDeviceId(storedDeviceId);
   }, []);
 
-  // Check if admin is logged in via localStorage
-  const isAdminLoggedIn = localStorage.getItem('isAdmin') === 'true';
-  const adminEmail = localStorage.getItem('adminEmail');
+  // Check if admin is logged in via localStorage - refresh each render
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+  
+  // Update admin status on each render
+  useEffect(() => {
+    const adminStatus = localStorage.getItem('isAdmin') === 'true';
+    const email = localStorage.getItem('adminEmail');
+    setIsAdminLoggedIn(adminStatus);
+    setAdminEmail(email);
+  }, []);
   
   // console.log('Auth check:', { isAdminLoggedIn, adminEmail, deviceId });
 
@@ -69,22 +77,23 @@ export function useAuth() {
   // Logout function
   const logout = () => {
     localStorage.clear();
+    sessionStorage.clear();
+    setIsAdminLoggedIn(false);
+    setAdminEmail(null);
     queryClient.clear();
-    window.location.replace("/");
+    // Force complete page reload to clear all React state
+    window.location.href = "/";
+    setTimeout(() => window.location.reload(), 50);
   };
 
 
 
-  // Check if localStorage admin flags are still valid (not cleared)
-  const currentIsAdminLoggedIn = localStorage.getItem('isAdmin') === 'true';
-  const currentAdminEmail = localStorage.getItem('adminEmail');
-  
   // Return admin user if admin is logged in
-  if (currentIsAdminLoggedIn && currentAdminEmail) {
+  if (isAdminLoggedIn && adminEmail) {
     return {
       user: {
         id: 'admin-user',
-        email: currentAdminEmail,
+        email: adminEmail,
         fullName: 'מנהל המערכת',
         deviceId: 'admin-device-simple',
         isAdmin: true,

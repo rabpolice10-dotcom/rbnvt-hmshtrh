@@ -78,7 +78,7 @@ interface QuestionWithAnswers extends Question {
 }
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedTab, setSelectedTab] = useState("overview");
@@ -373,12 +373,8 @@ export default function AdminDashboard() {
               </div>
               <Button 
                 onClick={() => {
-                  // Clear all authentication data and force full page reload
-                  localStorage.clear();
-                  sessionStorage.clear();
-                  // Force complete page reload to clear all React state
-                  window.location.href = "/";
-                  window.location.reload();
+                  // Use the logout function from useAuth
+                  logout();
                 }}
                 variant="outline"
                 className="bg-white text-police-blue border-white hover:bg-gray-100"
