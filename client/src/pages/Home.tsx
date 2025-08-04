@@ -51,9 +51,8 @@ export default function Home(): JSX.Element {
     q.status === "answered" && (q as any).hasNewAnswer
   ).length || 0;
   
-  console.log('Home page questions:', recentQuestions);
-  console.log('User notifications:', notifications);
-  console.log('Recent news data:', recentNews);
+  // Debug logging (can be removed in production)
+  console.log('useAuth for regular user:', { user, isAuthenticated, isLoading, error, deviceId });
   console.log('Questions with new answers:', questionsWithNewAnswers);
 
   const { data: jewishTimes } = useQuery({

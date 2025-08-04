@@ -371,9 +371,9 @@ export default function AdminDashboard() {
                   onClick={performLogout}
                   variant="outline"
                   size="sm"
-                  className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:border-red-600 font-bold"
+                  className="bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500 hover:from-red-600 hover:to-red-700 hover:border-red-600 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-2"
                 >
-                  התנתק מהמערכת
+                  🚪 התנתק מהמערכת
                 </Button>
               </div>
             </div>
