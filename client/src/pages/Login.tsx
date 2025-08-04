@@ -59,8 +59,11 @@ export default function Login() {
       }
       
       const result = await response.json();
+      console.log('Login successful:', result);
       // Store the user's device ID for future requests
-      localStorage.setItem('deviceId', result.user.deviceId);
+      if (result.user && result.user.deviceId) {
+        localStorage.setItem('deviceId', result.user.deviceId);
+      }
       return result;
     },
     onSuccess: async (result) => {
@@ -83,10 +86,20 @@ export default function Login() {
         description: "ברוך הבא לרבנות המשטרה",
       });
       
+      // Clear any localStorage flags and set the correct device ID
+      localStorage.removeItem('isAdmin');
+      localStorage.removeItem('adminEmail');
+      if (result.user && result.user.deviceId) {
+        localStorage.setItem('deviceId', result.user.deviceId);
+      }
+      
       // Invalidate the auth query to refresh user data
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      // Navigate to home page
-      setLocation("/");
+      
+      // Navigate to home page after a short delay
+      setTimeout(() => {
+        setLocation("/");
+      }, 1000);
     },
     onError: (error: any) => {
       toast({
