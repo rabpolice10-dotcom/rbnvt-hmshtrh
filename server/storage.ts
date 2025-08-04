@@ -149,7 +149,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllQuestions(): Promise<Question[]> {
-    return db.select().from(questions).orderBy(desc(questions.createdAt));
+    const allQuestions = await db.select().from(questions).orderBy(desc(questions.createdAt));
+    console.log(`getAllQuestions: Found ${allQuestions.length} questions`);
+    console.log('Questions visibility:', allQuestions.map(q => ({ id: q.id, title: q.title, isVisible: q.isVisible })));
+    return allQuestions;
   }
 
   async getQuestionWithAnswers(id: string): Promise<(Question & { answers: Answer[]; user?: { fullName: string } }) | undefined> {

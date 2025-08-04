@@ -241,8 +241,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/questions", async (req, res) => {
     try {
       const questions = await storage.getAllQuestions();
-      res.json(questions);
+      // Filter only visible questions for regular users
+      const visibleQuestions = questions.filter(q => q.isVisible === true);
+      console.log(`Returning ${visibleQuestions.length} visible questions out of ${questions.length} total`);
+      res.json(visibleQuestions);
     } catch (error) {
+      console.error('Error fetching questions:', error);
       res.status(500).json({ message: "שגיאה בטעינת השאלות" });
     }
   });
