@@ -20,7 +20,7 @@ export default function Questions() {
   const [categoryFilter, setCategoryFilter] = useState("all");
 
   const { data: questions, isLoading } = useQuery({
-    queryKey: ["/api/questions", "user", user?.id, sortBy, filterBy, categoryFilter],
+    queryKey: ["/api/questions"],
     enabled: !!user,
   }) as { data: Question[] | undefined; isLoading: boolean };
 

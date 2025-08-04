@@ -24,6 +24,8 @@ export default function Home(): JSX.Element {
     queryKey: ["/api/questions"],
     retry: false,
   }) as { data: Question[] | undefined };
+  
+  console.log('Home page questions:', recentQuestions);
 
   const { data: jewishTimes } = useQuery({
     queryKey: ["/api/jewish-times"],
