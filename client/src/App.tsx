@@ -11,7 +11,7 @@ import QuestionDetail from "@/pages/QuestionDetail";
 import Synagogues from "@/pages/Synagogues";
 import Videos from "@/pages/Videos";
 import Profile from "@/pages/Profile";
-import Admin from "@/pages/Admin";
+import AdminDashboard from "@/pages/AdminDashboard";
 import Contact from "@/pages/Contact";
 import JewishTimes from "@/pages/JewishTimes";
 import Landing from "@/pages/Landing";
@@ -25,7 +25,7 @@ function AppContent() {
 
   // Allow admin access regardless of user status
   if (location === "/admin") {
-    return <Admin />;
+    return <AdminDashboard />;
   }
 
   // Show register page for non-authenticated users
