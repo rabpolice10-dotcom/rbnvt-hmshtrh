@@ -5,21 +5,21 @@ import { eq } from "drizzle-orm";
 
 // Create admin user for system management
 export async function seedAdmin() {
-  const adminPersonalId = "123456789";
+  const adminEmail = "admin@police.gov.il";
   
   try {
     // Check if admin already exists
-    const existingAdmin = await storage.getUserByPersonalId(adminPersonalId);
+    const existingAdmin = await storage.getUserByEmail(adminEmail);
     
     if (!existingAdmin) {
       console.log("Creating admin user...");
       
       const adminUser = await storage.createUser({
         fullName: "מנהל המערכת",
-        personalId: adminPersonalId,
+        personalId: "1234567",
         phone: "0500000000",
-        email: "admin@police.gov.il",
-        deviceId: "admin-device-123",
+        email: adminEmail,
+        password: "admin123",
       });
       
       // Update to admin status after creation
@@ -30,15 +30,16 @@ export async function seedAdmin() {
       
       console.log("Admin user created successfully!");
       console.log("=== פרטי כניסה למנהל ===");
-      console.log("מספר אישי: 123456789");
-      console.log("הכנס למסך התחברות ואת המספר הזה");
+      console.log("אימייל: admin@police.gov.il");
+      console.log("סיסמה: admin123");
       console.log("========================");
       
       return adminUser;
     } else {
       console.log("Admin user already exists");
       console.log("=== פרטי כניסה למנהל ===");
-      console.log("מספר אישי: 123456789");
+      console.log("אימייל: admin@police.gov.il");
+      console.log("סיסמה: admin123");
       console.log("========================");
       return existingAdmin;
     }

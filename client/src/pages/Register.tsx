@@ -25,7 +25,7 @@ export default function Register() {
       personalId: "",
       phone: "",
       email: "",
-      deviceId: crypto.randomUUID(),
+      password: "",
     },
   });
 
@@ -139,10 +139,10 @@ export default function Register() {
                     <FormControl>
                       <Input 
                         {...field} 
-                        placeholder="הכנס מספר אישי (9 ספרות)"
+                        placeholder="הכנס מספר אישי (7 ספרות)"
                         className="text-right"
                         dir="rtl"
-                        maxLength={9}
+                        maxLength={7}
                       />
                     </FormControl>
                     <FormMessage />
@@ -182,6 +182,26 @@ export default function Register() {
                         placeholder="example@email.com"
                         className="text-right"
                         dir="ltr"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-right">סיסמה *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="password"
+                        placeholder="בחר סיסמה (לפחות 6 תווים)"
+                        className="text-right"
+                        dir="rtl"
                       />
                     </FormControl>
                     <FormMessage />

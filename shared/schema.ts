@@ -11,7 +11,8 @@ export const users = pgTable("users", {
   personalId: text("personal_id").unique().notNull(),
   phone: text("phone").notNull(),
   email: text("email").unique().notNull(),
-  deviceId: text("device_id").unique().notNull(),
+  password: text("password").notNull(),
+  deviceId: text("device_id").unique(),
   // System fields
   status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
@@ -128,11 +129,19 @@ export const insertUserSchema = createInsertSchema(users).omit({
   approvedBy: true,
   status: true,
   isAdmin: true,
+  deviceId: true,
 }).extend({
   fullName: z.string().min(2, "שם מלא חובה").max(100, "שם ארוך מדי"),
-  personalId: z.string().regex(/^\d{9}$/, "מספר אישי חייב להכיל 9 ספרות"),
+  personalId: z.string().regex(/^\d{7}$/, "מספר אישי חייב להכיל 7 ספרות"),
   phone: z.string().regex(/^0[5-7]\d{8}$/, "מספר טלפון ישראלי לא תקין"),
   email: z.string().email("כתובת אימייל לא תקינה"),
+  password: z.string().min(6, "סיסמה חייבת להכיל לפחות 6 תווים"),
+});
+
+// Login schema
+export const loginSchema = z.object({
+  email: z.string().email("כתובת אימייל לא תקינה"),
+  password: z.string().min(1, "סיסמה נדרשת"),
 });
 
 export const insertQuestionSchema = createInsertSchema(questions).omit({
@@ -174,6 +183,7 @@ export const insertContactMessageSchema = createInsertSchema(contactMessages).om
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type LoginUser = z.infer<typeof loginSchema>;
 export type Question = typeof questions.$inferSelect;
 export type InsertQuestion = z.infer<typeof insertQuestionSchema>;
 export type Answer = typeof answers.$inferSelect;

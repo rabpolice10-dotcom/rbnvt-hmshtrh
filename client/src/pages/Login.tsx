@@ -9,33 +9,37 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@assets/bf4d69d1-82e0-4b41-bc8c-ecca5ca6a895_1753886576969.jpeg";
-import { z } from "zod";
+import { loginSchema, type LoginUser } from "@shared/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const loginSchema = z.object({
-  personalId: z.string().regex(/^\d{9}$/, "מספר אישי חייב להכיל 9 ספרות"),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
+// Admin credentials
+const ADMIN_EMAIL = "admin@police.gov.il";
+const ADMIN_PASSWORD = "admin123";
 
 export default function Login() {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
   const { deviceId } = useAuth();
 
-  const form = useForm<LoginForm>({
+  const form = useForm<LoginUser>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      personalId: "",
+      email: "",
+      password: "",
     },
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (data: LoginForm) => {
+    mutationFn: async (data: LoginUser) => {
+      // Check if admin login
+      if (data.email === ADMIN_EMAIL && data.password === ADMIN_PASSWORD) {
+        return { isAdmin: true };
+      }
+      
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ deviceId, personalId: data.personalId }),
+        body: JSON.stringify({ ...data, deviceId }),
       });
       
       if (!response.ok) {
@@ -45,24 +49,31 @@ export default function Login() {
       
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "התחברות הצליחה",
-        description: "ברוך הבא לרבנות המשטרה",
-      });
-      // Refresh to load user data
-      window.location.reload();
+    onSuccess: (result) => {
+      if (result.isAdmin) {
+        toast({
+          title: "התחברות מנהל הצליחה",
+          description: "עובר לממשק ניהול",
+        });
+        setLocation("/admin");
+      } else {
+        toast({
+          title: "התחברות הצליחה",
+          description: "ברוך הבא לרבנות המשטרה",
+        });
+        window.location.reload();
+      }
     },
     onError: (error: any) => {
       toast({
         title: "שגיאה בהתחברות",
-        description: error.message || "מספר אישי לא נמצא במערכת או לא אושר",
+        description: error.message || "פרטי התחברות לא נכונים או החשבון לא אושר",
         variant: "destructive",
       });
     },
   });
 
-  const onSubmit = (data: LoginForm) => {
+  const onSubmit = (data: LoginUser) => {
     loginMutation.mutate(data);
   };
 
@@ -73,7 +84,7 @@ export default function Login() {
           <img src={logo} alt="לוגו רבנות המשטרה" className="h-16 w-auto mx-auto mb-4" />
           <CardTitle className="text-xl">התחברות לרבנות המשטרה</CardTitle>
           <CardDescription className="text-gray-600">
-            הכנס את מספר האישי שלך להתחברות
+            הכנס אימייל וסיסמה להתחברות
           </CardDescription>
         </CardHeader>
         
@@ -82,17 +93,37 @@ export default function Login() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="personalId"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-right">מספר אישי *</FormLabel>
+                    <FormLabel className="text-right">אימייל *</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
-                        placeholder="הכנס מספר אישי (9 ספרות)"
+                        type="email"
+                        placeholder="example@email.com"
+                        className="text-right"
+                        dir="ltr"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-right">סיסמה *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="password"
+                        placeholder="הכנס סיסמה"
                         className="text-right"
                         dir="rtl"
-                        maxLength={9}
                       />
                     </FormControl>
                     <FormMessage />
@@ -118,12 +149,9 @@ export default function Login() {
               אין לי חשבון - הרשם למערכת
             </button>
             
-            <button
-              onClick={() => setLocation("/admin")}
-              className="text-gray-400 hover:text-gray-600 text-xs underline block w-full"
-            >
-              כניסה למנהלי מערכת
-            </button>
+            <div className="text-xs text-gray-400 mt-4 text-center">
+              מנהלי מערכת: השתמשו בפרטי הכניסה שלכם
+            </div>
           </div>
         </CardContent>
       </Card>
