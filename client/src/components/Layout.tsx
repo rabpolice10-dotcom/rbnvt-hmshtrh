@@ -61,8 +61,20 @@ export function Layout({ children }: LayoutProps) {
             <p className="text-gray-600 mb-4">הבקשה שלך נשלחה בהצלחה ומחכה לאישור מנהל המערכת.</p>
             <p className="text-sm text-gray-500">תקבל הודעה כאשר החשבון יאושר.</p>
             
+            <div className="mt-6">
+              <button
+                onClick={() => {
+                  localStorage.removeItem('device-id');
+                  window.location.href = '/login';
+                }}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+              >
+                התנתק
+              </button>
+            </div>
+            
             {/* Hidden Admin Access */}
-            <div className="mt-8">
+            <div className="mt-4">
               <button
                 onClick={() => setLocation("/admin")}
                 className="text-xs text-gray-300 hover:text-police-blue transition-colors"
@@ -101,7 +113,17 @@ export function Layout({ children }: LayoutProps) {
             <div className="text-4xl mb-4">❌</div>
             <h2 className="text-xl font-bold text-red-600 mb-2">הבקשה נדחתה</h2>
             <p className="text-gray-600 mb-4">הבקשה שלך לחברות באפליקציה נדחתה על ידי מנהל המערכת.</p>
-            <p className="text-sm text-gray-500">אם אתה חושב שמדובר בטעות, צור קשר עם מנהל המערכת.</p>
+            <p className="text-sm text-gray-500 mb-6">אם אתה חושב שמדובר בטעות, צור קשר עם מנהל המערכת.</p>
+            
+            <button
+              onClick={() => {
+                localStorage.removeItem('device-id');
+                window.location.href = '/login';
+              }}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+            >
+              התנתק
+            </button>
           </div>
         </div>
       </div>
@@ -127,11 +149,11 @@ export function Layout({ children }: LayoutProps) {
             </button>
           </div>
           
-          {/* Clear device button */}
+          {/* Logout button */}
           <button
             onClick={() => {
-              localStorage.removeItem("deviceId");
-              window.location.reload();
+              localStorage.removeItem("device-id");
+              window.location.href = '/login';
             }}
             className="text-sm text-white/80 hover:text-white transition-colors px-2 py-1 rounded"
           >

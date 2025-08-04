@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, MessageCircleQuestion, Clock, CheckCircle, XCircle, Plus, Settings, Newspaper, MapPin, Video, BookOpen, Shield, Mail } from "lucide-react";
+import { Users, MessageCircleQuestion, Clock, CheckCircle, XCircle, Plus, Settings, Newspaper, MapPin, Video, BookOpen, Shield, Mail, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -42,12 +42,26 @@ export default function Admin() {
     <div className="p-4 space-y-4">
       <Card className="shadow-card bg-gradient-to-r from-police-blue-light to-blue-50">
         <CardContent className="p-4">
-          <div className="flex items-center">
-            <Settings className="h-6 w-6 text-police-blue ml-2" />
-            <div>
-              <h1 className="text-xl font-bold text-gray-800">מנהל המערכת</h1>
-              <p className="text-sm text-gray-600">ניהול מערכת רבנות המשטרה</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Settings className="h-6 w-6 text-police-blue ml-2" />
+              <div>
+                <h1 className="text-xl font-bold text-gray-800">מנהל המערכת</h1>
+                <p className="text-sm text-gray-600">ניהול מערכת רבנות המשטרה</p>
+              </div>
             </div>
+            <Button 
+              onClick={() => {
+                localStorage.removeItem('device-id');
+                window.location.href = '/login';
+              }}
+              variant="outline"
+              size="sm"
+              className="bg-white hover:bg-gray-50"
+            >
+              <LogOut className="h-4 w-4 ml-1" />
+              התנתק
+            </Button>
           </div>
         </CardContent>
       </Card>
