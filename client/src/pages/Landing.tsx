@@ -12,7 +12,7 @@ export default function Landing() {
           <div className="w-24 h-24 bg-police-blue rounded-full flex items-center justify-center mx-auto mb-4">
             <UserCheck className="h-12 w-12 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-police-blue mb-2">רבנות המשטרה</h1>
+          <h1 className="text-4xl font-bold text-police-blue mb-2">אפליקציית רבנות המשטרה</h1>
           <p className="text-xl text-gray-600">פלטפורמה דתית לשוטרים ועובדי המשטרה</p>
         </div>
 
