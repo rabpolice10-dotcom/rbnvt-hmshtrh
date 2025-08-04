@@ -335,10 +335,17 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-bold text-gray-800 mb-2">אין הרשאת גישה</h2>
             <p className="text-gray-600 mb-4">רק מנהלי מערכת יכולים לגשת לדף זה.</p>
             <Button 
-              onClick={() => window.location.href = "/"}
+              onClick={() => {
+                // Clear all authentication data and return to login
+                localStorage.removeItem('isAdmin');
+                localStorage.removeItem('adminEmail');
+                localStorage.removeItem('user');
+                localStorage.removeItem('deviceId');
+                window.location.href = "/";
+              }}
               className="bg-police-blue hover:bg-police-blue-dark text-white"
             >
-              חזור לדף הבית
+              חזור לדף ההרשמה/התחברות
             </Button>
           </CardContent>
         </Card>
@@ -366,14 +373,18 @@ export default function AdminDashboard() {
               </div>
               <Button 
                 onClick={() => {
+                  // Clear all authentication data
+                  localStorage.removeItem('isAdmin');
+                  localStorage.removeItem('adminEmail');
                   localStorage.removeItem('user');
                   localStorage.removeItem('deviceId');
+                  // Redirect to landing page (login/register)
                   window.location.href = "/";
                 }}
                 variant="outline"
                 className="bg-white text-police-blue border-white hover:bg-gray-100"
               >
-                יציאה מהמערכת
+                יציאה לדף ההתחברות
               </Button>
             </div>
           </div>
