@@ -19,6 +19,7 @@ export interface IStorage {
   updateUserDeviceId(id: string, deviceId: string): Promise<User>;
   getPendingUsers(): Promise<User[]>;
   updateUserDeviceIdByEmail(email: string, deviceId: string): Promise<User>;
+  upsertUser(user: { id: string; email: string; firstName: string; lastName: string; profileImageUrl: string }): Promise<User>;
 
   // Question operations
   createQuestion(question: InsertQuestion): Promise<Question>;
@@ -376,6 +377,34 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(questions.createdAt));
+  }
+
+  async upsertUser(userData: { id: string; email: string; firstName: string; lastName: string; profileImageUrl: string }): Promise<User> {
+    // Check if user exists
+    const existingUser = await this.getUserByEmail(userData.email);
+    
+    if (existingUser) {
+      // Update existing user
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          fullName: `${userData.firstName} ${userData.lastName}`,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, existingUser.id))
+        .returning();
+      return updatedUser;
+    } else {
+      // Create new user
+      const newUser = await this.createUser({
+        fullName: `${userData.firstName} ${userData.lastName}`,
+        personalId: userData.id.slice(-7), // Use last 7 chars of ID as personal ID
+        phone: '0000000000', // Default phone
+        email: userData.email,
+        password: 'replit-auth' // Default password for Replit auth users
+      });
+      return newUser;
+    }
   }
 }
 

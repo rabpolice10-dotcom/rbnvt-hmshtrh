@@ -8,7 +8,7 @@ import type { News, DailyHalacha, Question } from "@shared/schema";
 import { getHebrewDate } from "@/utils/hebrewDate";
 import logo from "@assets/bf4d69d1-82e0-4b41-bc8c-ecca5ca6a895_1753886576969.jpeg";
 
-export default function Home() {
+export default function Home(): JSX.Element {
   const [showAskRabbi, setShowAskRabbi] = useState(false);
 
   const { data: dailyHalacha } = useQuery({
@@ -32,8 +32,6 @@ export default function Home() {
 
   return (
     <div className="p-4 space-y-4">
-
-
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
         <Button

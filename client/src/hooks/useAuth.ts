@@ -1,8 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 export function useAuth() {
   const [deviceId, setDeviceId] = useState<string>("");
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // Generate or get existing device ID
@@ -39,6 +41,31 @@ export function useAuth() {
     retry: false,
   });
 
+  // Registration mutation
+  const registerMutation = useMutation({
+    mutationFn: async (userData: { fullName: string; personalId: string; phone: string }) => {
+      const fullData = {
+        ...userData,
+        email: `${userData.personalId}@temp.com`, // Temporary email, can be updated later
+        password: userData.personalId, // Use personal ID as temporary password
+        deviceId
+      };
+      return apiRequest("POST", "/api/auth/register", fullData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    },
+  });
+
+  // Logout function
+  const logout = () => {
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('adminEmail');
+    localStorage.removeItem('deviceId');
+    queryClient.clear();
+    window.location.reload();
+  };
+
   // Return admin user if admin is logged in
   if (isAdminLoggedIn && adminEmail) {
     return {
@@ -60,7 +87,9 @@ export function useAuth() {
       deviceId: 'admin-device-simple',
       isLoading: false,
       isAuthenticated: true,
-      error: null
+      error: null,
+      register: (userData: { fullName: string; personalId: string; phone: string }) => registerMutation.mutateAsync(userData),
+      logout
     };
   }
 
@@ -69,6 +98,8 @@ export function useAuth() {
     deviceId,
     isLoading,
     isAuthenticated: !!user,
-    error
+    error,
+    register: (userData: { fullName: string; personalId: string; phone: string }) => registerMutation.mutateAsync(userData),
+    logout
   };
 }
