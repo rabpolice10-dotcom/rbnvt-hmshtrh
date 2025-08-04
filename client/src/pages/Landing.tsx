@@ -80,9 +80,7 @@ export default function Landing() {
               הרשמה
             </Button>
           </div>
-          <p className="text-sm text-gray-600">
-            להרשמה או התחברות למערכת רבנות המשטרה
-          </p>
+          <p className="text-sm text-gray-600">להרשמה או התחברות למערכת אפליקציית רבנות המשטרה</p>
         </div>
 
         {/* Info */}
