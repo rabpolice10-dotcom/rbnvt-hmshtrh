@@ -68,16 +68,9 @@ export function useAuth() {
 
   // Logout function
   const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('isAdmin');
-    localStorage.removeItem('adminEmail');
-    localStorage.removeItem('deviceId');
+    localStorage.clear();
     queryClient.clear();
-    // Navigate to root and then reload
-    window.location.href = "/";
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
+    window.location.replace("/");
   };
 
 
