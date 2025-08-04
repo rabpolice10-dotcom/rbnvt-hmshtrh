@@ -149,7 +149,7 @@ export default function Login() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-right">אימייל *</FormLabel>
+                    <FormLabel className="text-right">דואר אלקטרוני *</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
