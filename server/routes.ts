@@ -211,6 +211,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin-only: Get all questions for management
+  app.get("/api/admin/questions", async (req, res) => {
+    try {
+      const questions = await storage.getAllQuestions();
+      console.log(`Admin fetching all ${questions.length} questions`);
+      res.json(questions);
+    } catch (error) {
+      console.error('Error fetching admin questions:', error);
+      res.status(500).json({ message: "שגיאה בטעינת השאלות למנהל" });
+    }
+  });
+
   app.get("/api/questions/user/:userId", async (req, res) => {
     try {
       const { userId } = req.params;

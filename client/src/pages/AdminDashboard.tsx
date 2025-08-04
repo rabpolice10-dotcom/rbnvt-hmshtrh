@@ -127,7 +127,7 @@ export default function AdminDashboard() {
   }) as { data: User[] | undefined };
 
   const { data: allQuestions } = useQuery({
-    queryKey: ["/api/questions"],
+    queryKey: ["/api/admin/questions"],
     enabled: hasAdminAccess
   }) as { data: Question[] | undefined };
 
