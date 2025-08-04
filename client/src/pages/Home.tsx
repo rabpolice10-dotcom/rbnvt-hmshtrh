@@ -12,7 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import logo from "@assets/bf4d69d1-82e0-4b41-bc8c-ecca5ca6a895_1753886576969.jpeg";
 
 export default function Home(): JSX.Element {
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading, error, deviceId } = useAuth();
   const queryClient = useQueryClient();
   const [showAskRabbi, setShowAskRabbi] = useState(false);
 
