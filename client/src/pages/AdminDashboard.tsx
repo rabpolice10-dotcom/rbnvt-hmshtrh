@@ -336,12 +336,16 @@ export default function AdminDashboard() {
             <p className="text-gray-600 mb-4">רק מנהלי מערכת יכולים לגשת לדף זה.</p>
             <Button 
               onClick={() => {
-                // Clear all authentication data and force full page reload
-                localStorage.clear();
+                console.log('Second logout button clicked');
+                // Clear all auth data immediately
+                localStorage.removeItem('isAdmin');
+                localStorage.removeItem('adminEmail');
+                localStorage.removeItem('user');
+                localStorage.removeItem('deviceId');
                 sessionStorage.clear();
-                // Force complete page reload to clear all React state
-                window.location.href = "/";
-                window.location.reload();
+                
+                // Force immediate redirect without any delay
+                window.location = "/" as any;
               }}
               className="bg-police-blue hover:bg-police-blue-dark text-white"
             >
@@ -373,8 +377,16 @@ export default function AdminDashboard() {
               </div>
               <Button 
                 onClick={() => {
-                  // Use the logout function from useAuth
-                  logout();
+                  console.log('Logout button clicked');
+                  // Clear all auth data immediately
+                  localStorage.removeItem('isAdmin');
+                  localStorage.removeItem('adminEmail');
+                  localStorage.removeItem('user');
+                  localStorage.removeItem('deviceId');
+                  sessionStorage.clear();
+                  
+                  // Force immediate redirect without any delay
+                  window.location = "/" as any;
                 }}
                 variant="outline"
                 className="bg-white text-police-blue border-white hover:bg-gray-100"
