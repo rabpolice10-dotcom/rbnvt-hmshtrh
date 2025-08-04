@@ -194,7 +194,7 @@ export default function Register() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-right">סיסמה *</FormLabel>
+                    <FormLabel className="text-right">בחר סיסמה *</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
