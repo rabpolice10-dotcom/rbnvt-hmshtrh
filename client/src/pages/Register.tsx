@@ -174,7 +174,7 @@ export default function Register() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-right">דואר אלקטרוני</FormLabel>
+                    <FormLabel className="text-right">דואר אלקטרוני *</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
