@@ -22,7 +22,7 @@ export default function Landing() {
             <CardContent className="p-6 text-center">
               <MessageCircleQuestion className="h-12 w-12 text-police-blue mx-auto mb-4" />
               <h3 className="font-semibold text-lg mb-2">שאל את הרב</h3>
-              <p className="text-gray-600">שאל שאלות הלכתיות וקבל תשובות מרבנים מוסמכים</p>
+              <p className="text-gray-600">שאלו שאלות הלכתיות וקבלו תשובות מרבני המשטרה</p>
             </CardContent>
           </Card>
 

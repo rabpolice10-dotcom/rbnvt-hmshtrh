@@ -759,6 +759,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==================== COMPREHENSIVE USER MANAGEMENT SYSTEM ====================
+  
+  // Get all users with statistics and filtering
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const { 
+        status, 
+        search, 
+        sortBy = 'createdAt', 
+        sortOrder = 'desc',
+        page = '1',
+        limit = '50'
+      } = req.query;
+
+      const users = await storage.getAllUsersWithStats({
+        status: status as string,
+        search: search as string,
+        sortBy: sortBy as string,
+        sortOrder: sortOrder as 'asc' | 'desc',
+        page: parseInt(page as string),
+        limit: parseInt(limit as string)
+      });
+
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      res.status(500).json({ message: "שגיאה בטעינת המשתמשים" });
+    }
+  });
+
+  // Get user details with activity statistics
+  app.get("/api/admin/users/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userDetails = await storage.getUserDetailsWithActivity(id);
+      
+      if (!userDetails) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+
+      res.json(userDetails);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      res.status(500).json({ message: "שגיאה בטעינת פרטי המשתמש" });
+    }
+  });
+
+  // Update user status (approve/reject/revoke approval)
+  app.put("/api/admin/users/:id/status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, reason } = req.body;
+      const { deviceId } = req.body;
+
+      // Simple admin check
+      if (!deviceId || (!deviceId.includes("admin-device") && deviceId !== "admin-device-simple")) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (!['pending', 'approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: "סטטוס לא חוקי" });
+      }
+
+      const updatedUser = await storage.updateUserStatus(id, status, reason);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      res.status(500).json({ message: "שגיאה בעדכון סטטוס המשתמש" });
+    }
+  });
+
+  // Get user activity summary
+  app.get("/api/admin/users/:id/activity", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const activity = await storage.getUserActivity(id);
+      res.json(activity);
+    } catch (error) {
+      console.error("Error fetching user activity:", error);
+      res.status(500).json({ message: "שגיאה בטעינת פעילות המשתמש" });
+    }
+  });
+
+  // Get system statistics
+  app.get("/api/admin/system-stats", async (req, res) => {
+    try {
+      const stats = await storage.getSystemStatistics();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching system stats:", error);
+      res.status(500).json({ message: "שגיאה בטעינת נתוני המערכת" });
+    }
+  });
+
+  // Bulk operations on users
+  app.post("/api/admin/users/bulk-action", async (req, res) => {
+    try {
+      const { action, userIds, reason } = req.body;
+      const { deviceId } = req.body;
+
+      // Simple admin check
+      if (!deviceId || (!deviceId.includes("admin-device") && deviceId !== "admin-device-simple")) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (!['approve', 'reject', 'revoke'].includes(action)) {
+        return res.status(400).json({ message: "פעולה לא חוקית" });
+      }
+
+      const results = await storage.bulkUpdateUserStatus(userIds, action, reason);
+      res.json(results);
+    } catch (error) {
+      console.error("Error with bulk action:", error);
+      res.status(500).json({ message: "שגיאה בביצוע פעולה קבוצתית" });
+    }
+  });
+
+  // Export users data for reporting
+  app.get("/api/admin/users/export", async (req, res) => {
+    try {
+      const { format = 'json' } = req.query;
+      const userData = await storage.exportUsersData();
+      
+      if (format === 'csv') {
+        // Convert to CSV format
+        const csvData = storage.convertToCsv(userData);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=users-export.csv');
+        res.send(csvData);
+      } else {
+        res.json(userData);
+      }
+    } catch (error) {
+      console.error("Error exporting users:", error);
+      res.status(500).json({ message: "שגיאה בייצוא נתוני המשתמשים" });
+    }
+  });
+
+  // ==================== END USER MANAGEMENT SYSTEM ====================
+
   // Admin check endpoint  
   app.post("/api/admin/check", async (req, res) => {
     try {

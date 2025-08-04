@@ -21,6 +21,10 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   approvedAt: timestamp("approved_at"),
   approvedBy: varchar("approved_by"),
+  // Usage statistics
+  lastLoginAt: timestamp("last_login_at"),
+  loginCount: integer("login_count").default(0).notNull(),
+  questionsSubmitted: integer("questions_submitted").default(0).notNull(),
 });
 
 // Questions table

@@ -68,6 +68,59 @@ export interface IStorage {
 
   // Search operations
   searchQuestions(query: string): Promise<Question[]>;
+
+  // Enhanced User Management operations
+  getAllUsersWithStats(params: {
+    status?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    users: (User & { questionsCount: number; lastActivity: string })[];
+    total: number;
+    pages: number;
+  }>;
+  
+  getUserDetailsWithActivity(id: string): Promise<{
+    user: User;
+    statistics: {
+      questionsSubmitted: number;
+      questionsAnswered: number;
+      lastLogin: string | null;
+      totalLoginCount: number;
+      joinDate: string;
+      accountStatus: string;
+    };
+    recentActivity: any[];
+  } | null>;
+  
+  updateUserStatus(id: string, status: string, reason?: string): Promise<User>;
+  getUserActivity(id: string): Promise<any[]>;
+  getSystemStatistics(): Promise<{
+    totalUsers: number;
+    pendingUsers: number;
+    approvedUsers: number;
+    rejectedUsers: number;
+    totalQuestions: number;
+    answeredQuestions: number;
+    pendingQuestions: number;
+    recentRegistrations: number;
+    activeUsers: number;
+  }>;
+  
+  bulkUpdateUserStatus(userIds: string[], action: string, reason?: string): Promise<any>;
+  exportUsersData(): Promise<any[]>;
+  convertToCsv(data: any[]): string;
+
+  // Notification operations (missing methods)
+  getUserNotifications(userId: string): Promise<any[]>;
+  markNotificationsAsRead(notificationIds: string[]): Promise<void>;
+  markQuestionAnswerViewed(questionId: string): Promise<void>;
+  markQuestionAnswered(questionId: string): Promise<void>;
+  getQuestionById(id: string): Promise<Question | undefined>;
+  createNotification(notification: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -410,6 +463,344 @@ export class DatabaseStorage implements IStorage {
       });
       return newUser;
     }
+  }
+
+  // ==================== COMPREHENSIVE USER MANAGEMENT METHODS ====================
+  
+  async getAllUsersWithStats(params: {
+    status?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    users: (User & { questionsCount: number; lastActivity: string })[];
+    total: number;
+    pages: number;
+  }> {
+    const { status, search, sortBy = 'createdAt', sortOrder = 'desc', page = 1, limit = 50 } = params;
+    const offset = (page - 1) * limit;
+
+    // Build base query
+    let query = db.select().from(users);
+    
+    // Apply filters
+    const filters = [];
+    if (status && status !== 'all') {
+      filters.push(eq(users.status, status as any));
+    }
+    if (search) {
+      filters.push(
+        or(
+          ilike(users.fullName, `%${search}%`),
+          ilike(users.email, `%${search}%`),
+          ilike(users.phone, `%${search}%`),
+          ilike(users.personalId, `%${search}%`)
+        )
+      );
+    }
+
+    if (filters.length > 0) {
+      query = query.where(and(...filters));
+    }
+
+    // Apply sorting and pagination
+    const orderColumn = sortBy === 'fullName' ? users.fullName :
+                       sortBy === 'email' ? users.email :
+                       sortBy === 'status' ? users.status :
+                       sortBy === 'loginCount' ? users.loginCount :
+                       sortBy === 'lastLoginAt' ? users.lastLoginAt :
+                       users.createdAt;
+
+    query = query.orderBy(sortOrder === 'desc' ? desc(orderColumn) : orderColumn)
+                 .limit(limit)
+                 .offset(offset);
+
+    const userResults = await query;
+    
+    // Get question counts for each user
+    const usersWithStats = await Promise.all(
+      userResults.map(async (user) => {
+        const [questionCount] = await db
+          .select({ count: users.questionsSubmitted })
+          .from(users)
+          .where(eq(users.id, user.id));
+        
+        return {
+          ...user,
+          questionsCount: questionCount?.count || 0,
+          lastActivity: user.lastLoginAt?.toISOString() || user.createdAt.toISOString()
+        };
+      })
+    );
+
+    // Get total count
+    const [totalResult] = await db
+      .select({ count: users.id })
+      .from(users)
+      .where(filters.length > 0 ? and(...filters) : undefined);
+    
+    const total = totalResult?.count || 0;
+    const pages = Math.ceil(total / limit);
+
+    return {
+      users: usersWithStats,
+      total,
+      pages
+    };
+  }
+
+  async getUserDetailsWithActivity(id: string): Promise<{
+    user: User;
+    statistics: {
+      questionsSubmitted: number;
+      questionsAnswered: number;
+      lastLogin: string | null;
+      totalLoginCount: number;
+      joinDate: string;
+      accountStatus: string;
+    };
+    recentActivity: any[];
+  } | null> {
+    const user = await this.getUser(id);
+    if (!user) return null;
+
+    // Get user questions
+    const userQuestions = await db
+      .select()
+      .from(questions)
+      .where(eq(questions.userId, id));
+
+    const answeredQuestions = userQuestions.filter(q => q.status === 'answered');
+
+    // Get recent activity (questions and answers)
+    const recentQuestions = await db
+      .select()
+      .from(questions)
+      .where(eq(questions.userId, id))
+      .orderBy(desc(questions.createdAt))
+      .limit(10);
+
+    const recentActivity = recentQuestions.map(q => ({
+      type: 'question',
+      title: q.title || 'שאלה',
+      content: q.content.substring(0, 100) + '...',
+      date: q.createdAt,
+      status: q.status
+    }));
+
+    return {
+      user,
+      statistics: {
+        questionsSubmitted: userQuestions.length,
+        questionsAnswered: answeredQuestions.length,
+        lastLogin: user.lastLoginAt?.toISOString() || null,
+        totalLoginCount: user.loginCount || 0,
+        joinDate: user.createdAt.toISOString(),
+        accountStatus: user.status
+      },
+      recentActivity
+    };
+  }
+
+  async updateUserStatus(id: string, status: string, reason?: string): Promise<User> {
+    const updateData: any = {
+      status,
+      updatedAt: new Date()
+    };
+
+    if (status === 'approved') {
+      updateData.approvedAt = new Date();
+      updateData.approvedBy = 'admin-system';
+    }
+
+    const [updatedUser] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, id))
+      .returning();
+
+    return updatedUser;
+  }
+
+  async getUserActivity(id: string): Promise<any[]> {
+    const userQuestions = await db
+      .select()
+      .from(questions)
+      .where(eq(questions.userId, id))
+      .orderBy(desc(questions.createdAt));
+
+    return userQuestions.map(q => ({
+      type: 'question',
+      title: q.title || 'שאלה',
+      content: q.content.substring(0, 150) + '...',
+      date: q.createdAt,
+      status: q.status,
+      category: q.category
+    }));
+  }
+
+  async getSystemStatistics(): Promise<{
+    totalUsers: number;
+    pendingUsers: number;
+    approvedUsers: number;
+    rejectedUsers: number;
+    totalQuestions: number;
+    answeredQuestions: number;
+    pendingQuestions: number;
+    recentRegistrations: number;
+    activeUsers: number;
+  }> {
+    const [totalUsers] = await db.select({ count: users.id }).from(users);
+    const [pendingUsers] = await db.select({ count: users.id }).from(users).where(eq(users.status, 'pending'));
+    const [approvedUsers] = await db.select({ count: users.id }).from(users).where(eq(users.status, 'approved'));
+    const [rejectedUsers] = await db.select({ count: users.id }).from(users).where(eq(users.status, 'rejected'));
+    
+    const [totalQuestions] = await db.select({ count: questions.id }).from(questions);
+    const [answeredQuestions] = await db.select({ count: questions.id }).from(questions).where(eq(questions.status, 'answered'));
+    const [pendingQuestions] = await db.select({ count: questions.id }).from(questions).where(eq(questions.status, 'pending'));
+    
+    // Recent registrations (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const [recentRegistrations] = await db
+      .select({ count: users.id })
+      .from(users)
+      .where(users.createdAt >= sevenDaysAgo);
+    
+    // Active users (logged in last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const [activeUsers] = await db
+      .select({ count: users.id })
+      .from(users)
+      .where(users.lastLoginAt >= thirtyDaysAgo);
+
+    return {
+      totalUsers: totalUsers?.count || 0,
+      pendingUsers: pendingUsers?.count || 0,
+      approvedUsers: approvedUsers?.count || 0,
+      rejectedUsers: rejectedUsers?.count || 0,
+      totalQuestions: totalQuestions?.count || 0,
+      answeredQuestions: answeredQuestions?.count || 0,
+      pendingQuestions: pendingQuestions?.count || 0,
+      recentRegistrations: recentRegistrations?.count || 0,
+      activeUsers: activeUsers?.count || 0
+    };
+  }
+
+  async bulkUpdateUserStatus(userIds: string[], action: string, reason?: string): Promise<any> {
+    const status = action === 'approve' ? 'approved' : 
+                  action === 'reject' ? 'rejected' : 
+                  action === 'revoke' ? 'pending' : 'pending';
+
+    const updateData: any = {
+      status,
+      updatedAt: new Date()
+    };
+
+    if (action === 'approve') {
+      updateData.approvedAt = new Date();
+      updateData.approvedBy = 'admin-system';
+    }
+
+    const results = await Promise.all(
+      userIds.map(async (id) => {
+        try {
+          const [updatedUser] = await db
+            .update(users)
+            .set(updateData)
+            .where(eq(users.id, id))
+            .returning();
+          return { id, success: true, user: updatedUser };
+        } catch (error) {
+          return { id, success: false, error: error.message };
+        }
+      })
+    );
+
+    return {
+      successful: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length,
+      results
+    };
+  }
+
+  async exportUsersData(): Promise<any[]> {
+    const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
+    
+    return allUsers.map(user => ({
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      status: user.status,
+      isAdmin: user.isAdmin,
+      createdAt: user.createdAt.toISOString(),
+      approvedAt: user.approvedAt?.toISOString() || null,
+      lastLoginAt: user.lastLoginAt?.toISOString() || null,
+      loginCount: user.loginCount || 0,
+      questionsSubmitted: user.questionsSubmitted || 0
+    }));
+  }
+
+  convertToCsv(data: any[]): string {
+    if (data.length === 0) return '';
+    
+    const headers = Object.keys(data[0]);
+    const csvRows = [headers.join(',')];
+    
+    for (const row of data) {
+      const values = headers.map(header => {
+        const value = row[header];
+        return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
+      });
+      csvRows.push(values.join(','));
+    }
+    
+    return csvRows.join('\n');
+  }
+
+  // ==================== NOTIFICATION METHODS ====================
+  
+  async getUserNotifications(userId: string): Promise<any[]> {
+    // For now, return empty array since notifications table might not exist
+    // This should be implemented with proper notifications table
+    return [];
+  }
+
+  async markNotificationsAsRead(notificationIds: string[]): Promise<void> {
+    // Placeholder implementation
+    return;
+  }
+
+  async markQuestionAnswerViewed(questionId: string): Promise<void> {
+    await db
+      .update(questions)
+      .set({ hasNewAnswer: false })
+      .where(eq(questions.id, questionId));
+  }
+
+  async markQuestionAnswered(questionId: string): Promise<void> {
+    await db
+      .update(questions)
+      .set({ 
+        status: 'answered',
+        answeredAt: new Date(),
+        hasNewAnswer: true
+      })
+      .where(eq(questions.id, questionId));
+  }
+
+  async getQuestionById(id: string): Promise<Question | undefined> {
+    const [question] = await db.select().from(questions).where(eq(questions.id, id));
+    return question;
+  }
+
+  async createNotification(notification: any): Promise<any> {
+    // Placeholder implementation - should create notification in notifications table
+    return notification;
   }
 }
 
