@@ -1,0 +1,94 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { MessageCircleQuestion, MapPin, Video, BookOpen, Clock, UserCheck } from "lucide-react";
+// import rabbinateLogoUrl from "@assets/rabbinate-logo.png";
+
+export default function Landing() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center p-4" dir="rtl">
+      <div className="max-w-4xl w-full text-center">
+        {/* Logo and Title */}
+        <div className="mb-8">
+          <div className="w-24 h-24 bg-police-blue rounded-full flex items-center justify-center mx-auto mb-4">
+            <UserCheck className="h-12 w-12 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold text-police-blue mb-2">רבנות המשטרה</h1>
+          <p className="text-xl text-gray-600">פלטפורמה דתית לשוטרים ועובדי המשטרה</p>
+        </div>
+
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <Card className="shadow-card hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <MessageCircleQuestion className="h-12 w-12 text-police-blue mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">שאל את הרב</h3>
+              <p className="text-gray-600">שאל שאלות הלכתיות וקבל תשובות מרבנים מוסמכים</p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <MapPin className="h-12 w-12 text-police-blue mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">בתי כנסת</h3>
+              <p className="text-gray-600">מציאת בתי כנסת בקרבת מקום עם זמני תפילה</p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <Video className="h-12 w-12 text-police-blue mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">סרטונים</h3>
+              <p className="text-gray-600">צפה בסרטונים דתיים והרצאות מרבנים</p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <BookOpen className="h-12 w-12 text-police-blue mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">הלכה יומית</h3>
+              <p className="text-gray-600">הלכות יומיות רלוונטיות לחיי השוטר</p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <Clock className="h-12 w-12 text-police-blue mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">זמנים יהודיים</h3>
+              <p className="text-gray-600">זמני זריחה, שקיעה ושבת לפי מיקומך</p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <UserCheck className="h-12 w-12 text-police-blue mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">קהילה</h3>
+              <p className="text-gray-600">הצטרפות לקהילה דתית של שוטרים</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Login Button */}
+        <div className="mb-8">
+          <Button 
+            onClick={() => window.location.href = '/api/login'} 
+            size="lg"
+            className="bg-police-blue hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+          >
+            התחבר עכשיו
+          </Button>
+          <p className="text-sm text-gray-500 mt-4">
+            התחברות מאובטחת באמצעות Replit
+          </p>
+        </div>
+
+        {/* Info */}
+        <div className="text-center">
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            רבנות המשטרה מספקת שירותים דתיים מותאמים לצרכים הייחודיים של שוטרים ועובדי המשטרה. 
+            האפליקציה כוללת פתרונות הלכתיים, מידע על בתי כנסת, תוכן דתי ועוד.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,6 +1,6 @@
 import { 
   users, questions, answers, news, synagogues, dailyHalacha, videos, contactMessages,
-  type User, type InsertUser, type Question, type InsertQuestion,
+  type User, type InsertUser, type UpsertUser, type Question, type InsertQuestion,
   type Answer, type InsertAnswer, type News, type InsertNews,
   type Synagogue, type InsertSynagogue, type DailyHalacha, type InsertDailyHalacha,
   type Video, type InsertVideo, type ContactMessage, type InsertContactMessage
@@ -9,8 +9,9 @@ import { db } from "./db";
 import { eq, desc, and, ilike, or } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations
+  // User operations (including Replit Auth)
   getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
   getUserByDeviceId(deviceId: string): Promise<User | undefined>;
   getUserByPersonalId(personalId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
@@ -68,6 +69,21 @@ export class DatabaseStorage implements IStorage {
   async getUserByPersonalId(personalId: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.personalId, personalId));
     return user || undefined;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

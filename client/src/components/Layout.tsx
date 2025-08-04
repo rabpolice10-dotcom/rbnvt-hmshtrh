@@ -25,31 +25,8 @@ export function Layout({ children }: LayoutProps) {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="max-w-md mx-auto bg-white min-h-screen">
-        <header className="gradient-header text-white p-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <button 
-              onClick={() => setLocation("/")}
-              className="text-xl font-bold hover:opacity-80 transition-opacity"
-            >
-              רבנות המשטרה
-            </button>
-            <button 
-              onClick={() => setLocation("/")}
-              className="hover:opacity-80 transition-opacity"
-            >
-              <img src={logo} alt="לוגו רבנות המשטרה" className="h-8 w-auto" />
-            </button>
-          </div>
-        </header>
-        <RegistrationForm />
-      </div>
-    );
-  }
-
-  if (user.status === "pending") {
+  // For Replit Auth - show welcome screen for new users without police app profile
+  if (!user || (user && (!(user as any).fullName && !(user as any).personalId))) {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <header className="gradient-header text-white p-4 shadow-lg">
@@ -100,7 +77,7 @@ export function Layout({ children }: LayoutProps) {
     );
   }
 
-  if (user.status === "rejected") {
+  if (user && (user as any).status === "rejected") {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <header className="gradient-header text-white p-4 shadow-lg">
@@ -149,6 +126,14 @@ export function Layout({ children }: LayoutProps) {
               <img src={logo} alt="לוגו רבנות המשטרה" className="h-8 w-auto" />
             </button>
           </div>
+          
+          {/* Logout button */}
+          <button
+            onClick={() => window.location.href = '/api/logout'}
+            className="text-sm text-white/80 hover:text-white transition-colors px-2 py-1 rounded"
+          >
+            התנתק
+          </button>
         </div>
       </header>
       

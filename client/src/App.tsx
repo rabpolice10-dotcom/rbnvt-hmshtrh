@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { Layout } from "@/components/Layout";
 import Home from "@/pages/Home";
 import Questions from "@/pages/Questions";
@@ -13,10 +13,11 @@ import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
 import Contact from "@/pages/Contact";
 import JewishTimes from "@/pages/JewishTimes";
+import Landing from "@/pages/Landing";
 import NotFound from "@/pages/not-found";
 
 function AppContent() {
-  const { user } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
 
   // Allow admin access regardless of user status
@@ -24,6 +25,12 @@ function AppContent() {
     return <Admin />;
   }
 
+  // Show landing page for non-authenticated users or while loading
+  if (isLoading || !isAuthenticated) {
+    return <Landing />;
+  }
+
+  // Show app for authenticated users
   return (
     <Layout>
       <Switch>
@@ -44,10 +51,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <AppContent />
-        </AuthProvider>
+        <Toaster />
+        <AppContent />
       </TooltipProvider>
     </QueryClientProvider>
   );

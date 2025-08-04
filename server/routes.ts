@@ -1,10 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertUserSchema, insertQuestionSchema, insertAnswerSchema, insertNewsSchema, insertSynagogueSchema, insertDailyHalachaSchema, insertVideoSchema, insertContactMessageSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Setup Replit Auth
+  await setupAuth(app);
   
   // Auth routes
   app.post("/api/register", async (req, res) => {
@@ -12,21 +16,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = insertUserSchema.parse(req.body);
       
       // Check if device already registered
-      const existingUser = await storage.getUserByDeviceId(userData.deviceId);
-      if (existingUser) {
-        return res.json({ user: existingUser });
+      if (userData.deviceId) {
+        const existingUser = await storage.getUserByDeviceId(userData.deviceId);
+        if (existingUser) {
+          return res.json({ user: existingUser });
+        }
       }
 
       // Check if personal ID already exists
-      const existingPersonalId = await storage.getUserByPersonalId(userData.personalId);
-      if (existingPersonalId) {
-        return res.status(400).json({ message: "מספר אישי זה כבר רשום במערכת" });
+      if (userData.personalId) {
+        const existingPersonalId = await storage.getUserByPersonalId(userData.personalId);
+        if (existingPersonalId) {
+          return res.status(400).json({ message: "מספר אישי זה כבר רשום במערכת" });
+        }
       }
 
       const user = await storage.createUser(userData);
       res.json({ user });
     } catch (error) {
       res.status(400).json({ message: "שגיאה ברישום המשתמש" });
+    }
+  });
+
+  // Replit Auth user endpoint
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 

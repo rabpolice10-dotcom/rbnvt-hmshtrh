@@ -1,18 +1,35 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, integer, index, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Users table
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// Users table updated for Replit Auth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  fullName: text("full_name").notNull(),
-  personalId: text("personal_id").notNull().unique(),
-  phone: text("phone").notNull(),
-  deviceId: text("device_id").notNull().unique(),
-  status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  // Keep existing police app fields
+  fullName: text("full_name"),
+  personalId: text("personal_id").unique(),
+  phone: text("phone"),
+  deviceId: text("device_id").unique(),
+  status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending"),
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
   approvedAt: timestamp("approved_at"),
   approvedBy: varchar("approved_by"),
 });
@@ -176,3 +193,6 @@ export type Video = typeof videos.$inferSelect;
 export type InsertVideo = z.infer<typeof insertVideoSchema>;
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
+
+// Replit Auth types
+export type UpsertUser = typeof users.$inferInsert;
