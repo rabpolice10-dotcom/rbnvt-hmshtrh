@@ -30,7 +30,7 @@ export default function Landing() {
             <CardContent className="p-6 text-center">
               <MapPin className="h-12 w-12 text-police-blue mx-auto mb-4" />
               <h3 className="font-semibold text-lg mb-2">בתי כנסת</h3>
-              <p className="text-gray-600">מציאת בתי כנסת בקרבת מקום עם זמני תפילה</p>
+              <p className="text-gray-600">מצאו בתי כנסת בתחנות משטרה ובבסיסי מג"ב עם זמני תפילה עדכניים</p>
             </CardContent>
           </Card>
 
