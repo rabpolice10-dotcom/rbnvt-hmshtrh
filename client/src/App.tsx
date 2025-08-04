@@ -14,6 +14,7 @@ import Profile from "@/pages/Profile";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Contact from "@/pages/Contact";
 import JewishTimes from "@/pages/JewishTimes";
+import News from "@/pages/News";
 import Landing from "@/pages/Landing";
 import Register from "@/pages/Register";
 import Login from "@/pages/Login";
@@ -57,6 +58,7 @@ function AppContent() {
           <Route path="/profile" component={Profile} />
           <Route path="/contact" component={Contact} />
           <Route path="/jewish-times" component={JewishTimes} />
+          <Route path="/news" component={News} />
           <Route path="*">
             {() => {
               // For any unmatched route when authenticated, redirect to home
