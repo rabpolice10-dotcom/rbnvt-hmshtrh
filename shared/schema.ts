@@ -16,6 +16,7 @@ export const users = pgTable("users", {
   // System fields
   status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
+  isNew: boolean("is_new").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   approvedAt: timestamp("approved_at"),
@@ -31,8 +32,10 @@ export const questions = pgTable("questions", {
   content: text("content").notNull(),
   isUrgent: boolean("is_urgent").default(false).notNull(),
   isPrivate: boolean("is_private").default(false).notNull(),
+  isVisible: boolean("is_visible").default(false).notNull(),
   status: text("status", { enum: ["pending", "answered", "closed"] }).default("pending").notNull(),
   isApproved: boolean("is_approved").default(false).notNull(),
+  isNew: boolean("is_new").default(true).notNull(),
   approvedBy: varchar("approved_by"),
   approvedAt: timestamp("approved_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -56,6 +59,7 @@ export const news = pgTable("news", {
   content: text("content").notNull(),
   excerpt: text("excerpt"),
   isUrgent: boolean("is_urgent").default(false).notNull(),
+  isNew: boolean("is_new").default(true).notNull(),
   publishedAt: timestamp("published_at").defaultNow().notNull(),
   createdBy: varchar("created_by").notNull(),
 });
@@ -103,6 +107,7 @@ export const contactMessages = pgTable("contact_messages", {
   phone: text("phone").notNull(),
   message: text("message").notNull(),
   isRead: boolean("is_read").default(false).notNull(),
+  isNew: boolean("is_new").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

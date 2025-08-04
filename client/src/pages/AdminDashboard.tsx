@@ -190,10 +190,14 @@ export default function AdminDashboard() {
         content: answer
       });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({ title: "התשובה נשלחה בהצלחה" });
       setAnswerText("");
       setSelectedQuestionId("");
+      // Mark question as visible when answered
+      if (selectedQuestionId) {
+        await apiRequest("POST", `/api/questions/${selectedQuestionId}/set-visible`, { isVisible: true });
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
     },
     onError: () => {
@@ -235,14 +239,17 @@ export default function AdminDashboard() {
 
   const createNewsMutation = useMutation({
     mutationFn: async (data: z.infer<typeof newsSchema>) => {
-      return apiRequest("POST", "/api/admin/news", data);
+      // Add deviceId for admin authentication
+      const payload = { ...data, deviceId: user?.deviceId };
+      return apiRequest("POST", "/api/admin/news", payload);
     },
     onSuccess: () => {
       toast({ title: "החדשה נוצרה בהצלחה" });
       newsForm.reset();
       queryClient.invalidateQueries({ queryKey: ["/api/news"] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("News creation error:", error);
       toast({ variant: "destructive", title: "שגיאה ביצירת החדשה" });
     }
   });
@@ -319,9 +326,18 @@ export default function AdminDashboard() {
                 <p className="text-blue-100">ברוך הבא, {user?.fullName || "מנהל המערכת"}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              <span className="text-sm">מערכת פעילה</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                <span className="text-sm">מערכת פעילה</span>
+              </div>
+              <Button 
+                onClick={() => window.location.href = "/"}
+                variant="outline"
+                className="bg-white text-police-blue border-white hover:bg-gray-100"
+              >
+                דף הבית
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -331,10 +347,38 @@ export default function AdminDashboard() {
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">סקירה כללית</TabsTrigger>
-          <TabsTrigger value="users">ניהול משתמשים</TabsTrigger>
-          <TabsTrigger value="questions">ניהול שאלות</TabsTrigger>
-          <TabsTrigger value="content">ניהול תוכן</TabsTrigger>
-          <TabsTrigger value="messages">הודעות</TabsTrigger>
+          <TabsTrigger value="users" className="relative">
+            ניהול משתמשים
+            {statistics.totalUsers > 0 && (
+              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
+                {statistics.totalUsers}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="questions" className="relative">
+            ניהול שאלות
+            {statistics.pendingQuestions > 0 && (
+              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
+                {statistics.pendingQuestions}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="content" className="relative">
+            ניהול תוכן
+            {(newsList?.filter(n => (n as any).isNew).length || 0) > 0 && (
+              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
+                {newsList?.filter(n => (n as any).isNew).length || 0}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="messages" className="relative">
+            הודעות
+            {statistics.unreadMessages > 0 && (
+              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
+                {statistics.unreadMessages}
+              </Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -584,6 +628,56 @@ export default function AdminDashboard() {
                             </Dialog>
                           </>
                         )}
+                        
+                        {/* Always show edit and visibility toggle buttons */}
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline">
+                              <Edit className="h-4 w-4 ml-1" />
+                              ערוך שאלה
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>עריכת שאלה</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div>
+                                <Label>כותרת השאלה:</Label>
+                                <Input 
+                                  defaultValue={question.title} 
+                                  className="mt-1"
+                                />
+                              </div>
+                              <div>
+                                <Label>תוכן השאלה:</Label>
+                                <Textarea 
+                                  defaultValue={question.content} 
+                                  rows={3}
+                                  className="mt-1"
+                                />
+                              </div>
+                              <Button className="w-full">
+                                שמור שינויים
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+
+                        <Button
+                          size="sm"
+                          variant={(question as any).isVisible ? "default" : "outline"}
+                          onClick={async () => {
+                            await apiRequest("POST", `/api/questions/${question.id}/set-visible`, { 
+                              isVisible: !(question as any).isVisible 
+                            });
+                            queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+                          }}
+                        >
+                          <Eye className="h-4 w-4 ml-1" />
+                          {(question as any).isVisible ? "הסתר" : "הפוך לציבורי"}
+                        </Button>
+
                         {question.status === "answered" && (
                           <Badge className="bg-green-100 text-green-800">
                             <CheckCircle className="h-3 w-3 ml-1" />
