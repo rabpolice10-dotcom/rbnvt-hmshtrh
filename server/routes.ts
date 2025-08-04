@@ -12,8 +12,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = insertUserSchema.parse(req.body);
       
       // Check if device already registered
-      if (userData.deviceId) {
-        const existingUser = await storage.getUserByDeviceId(userData.deviceId);
+      const deviceId = req.body.deviceId;
+      if (deviceId) {
+        const existingUser = await storage.getUserByDeviceId(deviceId);
         if (existingUser) {
           return res.json({ user: existingUser });
         }

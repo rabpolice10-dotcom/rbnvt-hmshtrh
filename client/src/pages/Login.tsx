@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ export default function Login() {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
   const { deviceId } = useAuth();
+  const queryClient = useQueryClient();
 
   const form = useForm<LoginUser>({
     resolver: zodResolver(loginSchema),
@@ -49,7 +50,7 @@ export default function Login() {
       
       return response.json();
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       if (result.isAdmin) {
         toast({
           title: "התחברות מנהל הצליחה",
@@ -61,7 +62,10 @@ export default function Login() {
           title: "התחברות הצליחה",
           description: "ברוך הבא לרבנות המשטרה",
         });
-        window.location.reload();
+        // Invalidate the auth query to refresh user data
+        await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        // Navigate to home page
+        setLocation("/");
       }
     },
     onError: (error: any) => {

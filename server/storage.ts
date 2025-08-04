@@ -103,7 +103,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserDeviceId(id: string, deviceId: string): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ deviceId })
+      .set({ deviceId, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
     return user;

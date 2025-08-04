@@ -3,10 +3,10 @@ import { User } from "@shared/schema";
 
 // Get device ID from localStorage
 const getDeviceId = () => {
-  const deviceId = localStorage.getItem("deviceId");
+  const deviceId = localStorage.getItem("device-id");
   if (!deviceId) {
     const newDeviceId = crypto.randomUUID();
-    localStorage.setItem("deviceId", newDeviceId);
+    localStorage.setItem("device-id", newDeviceId);
     return newDeviceId;
   }
   return deviceId;
