@@ -51,10 +51,9 @@ export default function Home(): JSX.Element {
           variant="ghost"
         >
           <Clock className="h-8 w-8 text-green-600" />
-          <span className="text-sm font-medium">זמני הלכה</span>
+          <span className="text-sm font-medium">זמני היום</span>
         </Button>
       </div>
-
       {/* Jewish Times Quick View */}
       {jewishTimes && (
         <Card 
@@ -95,7 +94,6 @@ export default function Home(): JSX.Element {
           </CardContent>
         </Card>
       )}
-
       {/* Daily Halacha Card */}
       <Card className="shadow-card">
         <CardContent className="p-4">
@@ -119,7 +117,6 @@ export default function Home(): JSX.Element {
           )}
         </CardContent>
       </Card>
-
       {/* Recent Q&A */}
       <Card className="shadow-card">
         <CardContent className="p-4">
@@ -168,7 +165,6 @@ export default function Home(): JSX.Element {
           )}
         </CardContent>
       </Card>
-
       {/* News Feed */}
       <Card className="shadow-card">
         <CardContent className="p-4">
@@ -214,9 +210,6 @@ export default function Home(): JSX.Element {
           )}
         </CardContent>
       </Card>
-
-
-
       <AskRabbiModal open={showAskRabbi} onOpenChange={setShowAskRabbi} />
     </div>
   );
