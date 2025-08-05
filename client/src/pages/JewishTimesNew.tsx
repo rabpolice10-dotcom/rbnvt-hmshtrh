@@ -82,9 +82,11 @@ export default function JewishTimesNew() {
   const { toast } = useToast();
 
   // Fetch available cities
-  const { data: cities } = useQuery<City[]>({
+  const { data: citiesResponse } = useQuery<{ cities: City[] }>({
     queryKey: ["/api/jewish-times/cities"],
   });
+  
+  const cities = citiesResponse?.cities || [];
 
   // Fetch Jewish times for selected city with real-time refresh
   const { data: jewishTimes, isLoading, isError, refetch } = useQuery<JewishTimes>({
@@ -101,7 +103,7 @@ export default function JewishTimesNew() {
   // Load saved city preference on component mount
   useEffect(() => {
     const savedCity = localStorage.getItem('preferredCity');
-    if (savedCity && cities && Array.isArray(cities) && cities.some(city => city.id === savedCity)) {
+    if (savedCity && cities.length > 0 && cities.some(city => city.id === savedCity)) {
       setSelectedCity(savedCity);
     }
   }, [cities]);
@@ -110,7 +112,7 @@ export default function JewishTimesNew() {
     setSelectedCity(cityId);
     toast({
       title: "מיקום עודכן",
-      description: `הזמנים מוצגים עבור ${cities && Array.isArray(cities) ? cities.find(c => c.id === cityId)?.name : cityId}`,
+      description: `הזמנים מוצגים עבור ${cities.find(c => c.id === cityId)?.name || cityId}`,
     });
   };
 
@@ -200,7 +202,7 @@ export default function JewishTimesNew() {
                 <SelectValue placeholder="בחר עיר" />
               </SelectTrigger>
               <SelectContent>
-                {cities && Array.isArray(cities) ? cities.map((city) => (
+                {cities.length > 0 ? cities.map((city) => (
                   <SelectItem key={city.id} value={city.id}>
                     <div className="flex items-center gap-2">
                       <span>{city.name}</span>
