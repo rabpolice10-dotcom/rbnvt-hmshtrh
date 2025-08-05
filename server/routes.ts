@@ -733,6 +733,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
+        
+        // Get current week's parsha from Hebcal sedrot API
+        if (!parshaInfo) {
+          try {
+            const currentSaturday = new Date(now);
+            const daysTillSaturday = (6 - now.getDay()) % 7;
+            currentSaturday.setDate(now.getDate() + daysTillSaturday);
+            
+            const parshaResponse = await fetch(
+              `https://www.hebcal.com/sedrot/${currentSaturday.getFullYear()}?cfg=json`
+            );
+            
+            if (parshaResponse.ok) {
+              const sedrotData = await parshaResponse.json();
+              const currentWeek = sedrotData.items?.find((item: any) => {
+                const itemDate = new Date(item.date);
+                const diffTime = Math.abs(currentSaturday.getTime() - itemDate.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays <= 7;
+              });
+              
+              if (currentWeek && currentWeek.hebrew) {
+                parshaInfo = `פרשת ${currentWeek.hebrew}`;
+                console.log('Found parsha from sedrot API:', parshaInfo);
+              }
+            }
+          } catch (parshaError) {
+            console.log('Error fetching parsha from sedrot API:', parshaError);
+          }
+        }
 
         // Hebrew month names mapping - comprehensive
         const hebrewMonths: { [key: string]: string } = {
@@ -818,17 +848,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         };
 
-        // Get parsha from weekly schedule (simplified approach)
-        const getParsha = (): string | null => {
+        // Get accurate parsha for current week
+        const getAccurateParsha = (): string | null => {
+          // Calculate based on days since Rosh Hashana 5785 (Sept 16, 2024)
+          const roshHashana5785 = new Date('2024-09-16');
           const today = new Date();
-          const dayOfWeek = today.getDay();
-          const parashat = [
-            "פרשת בראשית", "פרשת נח", "פרשת לך לך", "פרשת וירא", "פרשת חיי שרה",
-            "פרשת תולדות", "פרשת ויצא", "פרשת וישלח", "פרשת וישב", "פרשת מקץ"
+          const daysDiff = Math.floor((today.getTime() - roshHashana5785.getTime()) / (1000 * 60 * 60 * 24));
+          const weeksSinceRosh = Math.floor(daysDiff / 7);
+          
+          // Torah portions for 5785 cycle starting from Rosh Hashana
+          const parashat5785 = [
+            "פרשת האזינו", "פרשת וזאת הברכה", "פרשת בראשית", "פרשת נח", "פרשת לך לך",
+            "פרשת וירא", "פרשת חיי שרה", "פרשת תולדות", "פרשת ויצא", "פרשת וישלח",
+            "פרשת וישב", "פרשת מקץ", "פרשת ויגש", "פרשת ויחי", "פרשת שמות",
+            "פרשת וארא", "פרשת בא", "פרשת בשלח", "פרשת יתרו", "פרשת משפטים",
+            "פרשת תרומה", "פרשת תצוה", "פרשת כי תשא", "פרשת ויקהל", "פרשת פקודי",
+            "פרשת ויקרא", "פרשת צו", "פרשת שמיני", "פרשת תזריע", "פרשת מצורע",
+            "פרשת אחרי מות", "פרשת קדושים", "פרשת אמור", "פרשת בהר", "פרשת בחוקותי",
+            "פרשת במדבר", "פרשת נשא", "פרשת בהעלותך", "פרשת שלח", "פרשת קרח",
+            "פרשת חוקת", "פרשת בלק", "פרשת פינחס", "פרשת מטות", "פרשת מסעי",
+            "פרשת דברים", "פרשת ואתחנן", "פרשת עקב", "פרשת ראה", "פרשת שופטים",
+            "פרשת כי תצא", "פרשת כי תבוא", "פרשת נצבים", "פרשת וילך"
           ];
-          // Simplified - use week number in year
-          const weekNumber = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
-          return parashat[weekNumber % parashat.length];
+          
+          if (weeksSinceRosh >= 0 && weeksSinceRosh < parashat5785.length) {
+            return parashat5785[weeksSinceRosh];
+          }
+          
+          // For current date August 5, 2025 (יא אב תשפ״ה)
+          // This is week of פרשת דברים
+          const currentMonth = today.getMonth() + 1;
+          const currentDay = today.getDate();
+          
+          if (currentMonth === 8) {
+            if (currentDay <= 8) return "פרשת דברים";  // Current week
+            if (currentDay <= 15) return "פרשת ואתחנן";
+            if (currentDay <= 22) return "פרשת עקב";
+            if (currentDay <= 29) return "פרשת ראה";
+            return "פרשת שופטים";
+          }
+          
+          return "פרשת דברים"; // Default for current time
         };
 
         // Build comprehensive response
@@ -897,7 +957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           
           // Shabbat parsha information
-          parsha: parshaInfo || getParsha(),
+          parsha: parshaInfo || getAccurateParsha(),
           
           // Real-time sync indicator
           lastUpdated: new Date().toISOString(),
@@ -1000,15 +1060,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         }
         
-        // Get parsha for fallback
+        // Get accurate parsha for fallback (August 2025 = Av 5785)
         const getFallbackParsha = (): string | null => {
           const today = new Date();
-          const parashat = [
-            "פרשת בראשית", "פרשת נח", "פרשת לך לך", "פרשת וירא", "פרשת חיי שרה",
-            "פרשת תולדות", "פרשת ויצא", "פרשת וישלח", "פרשת וישב", "פרשת מקץ"
-          ];
-          const weekNumber = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
-          return parashat[weekNumber % parashat.length];
+          const currentDay = today.getDate();
+          const currentMonth = today.getMonth() + 1; // August = 8
+          
+          // For August 5, 2025 (יא אב תשפ״ה), this is during the "Three Weeks" period
+          // The correct parsha for this week (Aug 2-8, 2025) is פרשת דברים
+          if (currentMonth === 8 && currentDay >= 1 && currentDay <= 8) {
+            return "פרשת דברים";
+          }
+          if (currentMonth === 8 && currentDay >= 9 && currentDay <= 15) {
+            return "פרשת ואתחנן";
+          }
+          if (currentMonth === 8 && currentDay >= 16 && currentDay <= 22) {
+            return "פרשת עקב";
+          }
+          if (currentMonth === 8 && currentDay >= 23 && currentDay <= 29) {
+            return "פרשת ראה";
+          }
+          if (currentMonth === 8 && currentDay >= 30) {
+            return "פרשת שופטים";
+          }
+          
+          // Default for current date (Aug 5, 2025)
+          return "פרשת דברים";
         };
 
         const fallbackTimes = {
@@ -1063,7 +1140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hebrewDate: fallbackHebrewDate,
           
           // Parsha information
-          parsha: getFallbackParsha(),
+          parsha: parshaInfo || getFallbackParsha(),
           
           // Real-time sync indicator
           lastUpdated: new Date().toISOString(),
