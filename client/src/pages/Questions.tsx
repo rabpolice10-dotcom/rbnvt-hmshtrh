@@ -100,10 +100,13 @@ export default function Questions() {
   // Mark question answer as viewed
   const markQuestionAnswerViewed = useMutation({
     mutationFn: async (questionId: string) => {
-      return apiRequest("POST", `/api/questions/${questionId}/mark-answer-viewed`, {});
+      return apiRequest(`/api/questions/${questionId}/mark-answer-viewed`, {
+        method: "POST"
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/questions/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
     }
   });
 

@@ -1,9 +1,11 @@
 import { useParams, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock, CheckCircle, AlertCircle, Lock, User, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
 import type { Question, Answer } from "@shared/schema";
 
 interface QuestionWithAnswer extends Question {
@@ -15,11 +17,32 @@ export default function QuestionDetail() {
   const { id } = useParams();
   const [, navigate] = useLocation();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: question, isLoading } = useQuery({
     queryKey: ["/api/questions", id],
     enabled: !!id,
   }) as { data: QuestionWithAnswer | undefined; isLoading: boolean };
+
+  // Mark question answer as viewed
+  const markQuestionAnswerViewed = useMutation({
+    mutationFn: async (questionId: string) => {
+      return apiRequest(`/api/questions/${questionId}/mark-answer-viewed`, {
+        method: "POST"
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questions/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+    }
+  });
+
+  // Mark as viewed if it has new answer and belongs to current user
+  useEffect(() => {
+    if (question && (question as any).hasNewAnswer && question.userId === user?.id) {
+      markQuestionAnswerViewed.mutate(question.id);
+    }
+  }, [question, user?.id, markQuestionAnswerViewed]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
