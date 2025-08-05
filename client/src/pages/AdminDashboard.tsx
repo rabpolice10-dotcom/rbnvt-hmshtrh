@@ -310,6 +310,9 @@ export default function AdminDashboard() {
       toast({ title: "התשובה נשלחה בהצלחה" });
       setAnswerText("");
       setSelectedQuestionId("");
+      // Clear any edit state to prevent auto-opening edit mode
+      setEditingAnswerId("");
+      setEditAnswerText("");
       // Refresh all questions to show updated status
       queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
