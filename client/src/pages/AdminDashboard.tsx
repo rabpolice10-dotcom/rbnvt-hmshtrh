@@ -310,13 +310,8 @@ export default function AdminDashboard() {
       toast({ title: "התשובה נשלחה בהצלחה" });
       setAnswerText("");
       setSelectedQuestionId("");
-      // Mark question as visible when answered
-      if (selectedQuestionId) {
-        await apiRequest(`/api/questions/${selectedQuestionId}/set-visible`, { 
-          method: "POST",
-          body: { isVisible: true }
-        });
-      }
+      // Refresh all questions to show updated status
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
     },
     onError: () => {
