@@ -693,43 +693,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const location = cityCoordinates[city] || cityCoordinates["ירושלים"];
       
       try {
+        console.log(`Fetching Jewish times for ${location.heb} (${location.lat}, ${location.lng})`);
+        
         // Use Hebcal API for accurate Jewish times with location coordinates
         const hebcalResponse = await fetch(
           `https://www.hebcal.com/zmanim?cfg=json&latitude=${location.lat}&longitude=${location.lng}&M=on&lg=h&maj=on&min=on&mod=on&nx=on&tzeit=on&c=on&s=on&b=18&zip=off&d=on`
         );
         
+        console.log('Hebcal zmanim response status:', hebcalResponse.status);
+        
         if (!hebcalResponse.ok) {
-          throw new Error('Hebcal API error');
+          throw new Error(`Hebcal API error: ${hebcalResponse.status}`);
         }
         
         const hebcalData = await hebcalResponse.json();
         
-        // Get Hebrew date from Hebcal
+        // Get Hebrew date from Hebcal API
+        console.log(`Fetching Hebrew date for: ${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`);
         const hebrewDateResponse = await fetch(
           `https://www.hebcal.com/converter?cfg=json&gy=${now.getFullYear()}&gm=${now.getMonth() + 1}&gd=${now.getDate()}&g2h=1`
         );
         
+        console.log('Hebrew date response status:', hebrewDateResponse.status);
+        
         let hebrewDateInfo = null;
         if (hebrewDateResponse.ok) {
           hebrewDateInfo = await hebrewDateResponse.json();
+          console.log('Hebrew date info:', hebrewDateInfo);
         }
 
-        // Hebrew month names mapping
+        // Hebrew month names mapping - comprehensive
         const hebrewMonths: { [key: string]: string } = {
-          "Tishrei": "תשרי", "Cheshvan": "חשון", "Kislev": "כסלו", "Tevet": "טבת",
+          "Tishrei": "תשרי", "Cheshvan": "מרחשון", "Kislev": "כסלו", "Tevet": "טבת",
           "Shvat": "שבט", "Adar": "אדר", "Adar I": "אדר א׳", "Adar II": "אדר ב׳",
           "Nisan": "ניסן", "Iyar": "אייר", "Sivan": "סיון", "Tamuz": "תמוז",
           "Av": "אב", "Elul": "אלול"
         };
 
-        // Number to Hebrew conversion
+        // Hebrew day names mapping - full day names
+        const hebrewDayNames: { [key: number]: string } = {
+          0: "יום ראשון",    // Sunday
+          1: "יום שני",      // Monday  
+          2: "יום שלישי",    // Tuesday
+          3: "יום רביעי",    // Wednesday
+          4: "יום חמישי",    // Thursday
+          5: "יום שישי",     // Friday
+          6: "יום שבת קודש" // Saturday
+        };
+
+        // Number to Hebrew letters conversion (accurate gematria)
         const numberToHebrew = (num: number): string => {
+          if (num <= 0) return "";
+          
           const hebrewNums: { [key: number]: string } = {
-            1: "א׳", 2: "ב׳", 3: "ג׳", 4: "ד׳", 5: "ה׳", 6: "ו׳", 7: "ז׳", 8: "ח׳", 9: "ט׳", 10: "י׳",
-            11: "יא׳", 12: "יב׳", 13: "יג׳", 14: "יד׳", 15: "טו׳", 16: "טז׳", 17: "יז׳", 18: "יח׳", 19: "יט׳", 20: "כ׳",
-            21: "כא׳", 22: "כב׳", 23: "כג׳", 24: "כד׳", 25: "כה׳", 26: "כו׳", 27: "כז׳", 28: "כח׳", 29: "כט׳", 30: "ל׳"
+            1: "א", 2: "ב", 3: "ג", 4: "ד", 5: "ה", 6: "ו", 7: "ז", 8: "ח", 9: "ט", 10: "י",
+            11: "יא", 12: "יב", 13: "יג", 14: "יד", 15: "טו", 16: "טז", 17: "יז", 18: "יח", 19: "יט", 20: "כ",
+            21: "כא", 22: "כב", 23: "כג", 24: "כד", 25: "כה", 26: "כו", 27: "כז", 28: "כח", 29: "כט", 30: "ל"
           };
-          return hebrewNums[num] || num.toString();
+          
+          if (num <= 30) {
+            return hebrewNums[num] || num.toString();
+          }
+          
+          // For numbers above 30, use standard Hebrew numbering
+          if (num < 100) {
+            const tens = Math.floor(num / 10) * 10;
+            const ones = num % 10;
+            const tensMap: { [key: number]: string } = {
+              30: "ל", 40: "מ", 50: "נ", 60: "ס", 70: "ע", 80: "פ", 90: "צ"
+            };
+            return (tensMap[tens] || "") + (ones > 0 ? hebrewNums[ones] || "" : "");
+          }
+          
+          return num.toString(); // Fallback for very large numbers
         };
 
         const formatTime = (timeStr: string): string => {
@@ -779,17 +815,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             day: now.getDate(),
             month: now.getMonth() + 1,
             year: now.getFullYear(),
-            dayOfWeek: now.toLocaleDateString('he-IL', { weekday: 'long' })
+            dayOfWeek: hebrewDayNames[now.getDay()] || now.toLocaleDateString('he-IL', { weekday: 'long' })
           },
           
           hebrewDate: hebrewDateInfo ? {
             day: numberToHebrew(hebrewDateInfo.hd),
             month: hebrewMonths[hebrewDateInfo.hm] || hebrewDateInfo.hm,
-            year: hebrewDateInfo.hy ? `${hebrewDateInfo.hy}` : "",
-            formatted: hebrewDateInfo ? 
-              `${numberToHebrew(hebrewDateInfo.hd)} ${hebrewMonths[hebrewDateInfo.hm] || hebrewDateInfo.hm} ${hebrewDateInfo.hy}` : 
-              "לא זמין"
-          } : null,
+            year: numberToHebrew(hebrewDateInfo.hy) || `${hebrewDateInfo.hy}`,
+            formatted: `${numberToHebrew(hebrewDateInfo.hd)} ${hebrewMonths[hebrewDateInfo.hm] || hebrewDateInfo.hm} ${numberToHebrew(hebrewDateInfo.hy)}`
+          } : {
+            day: "",
+            month: "",
+            year: "",
+            formatted: "לא זמין"
+          },
           
           // Real-time sync indicator
           lastUpdated: new Date().toISOString(),
@@ -810,7 +849,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
         };
         
-        const hebrewDate = toHebrewDate(now);
+        // Fallback: Try to get Hebrew date from alternative API or calculation
+        const hebrewDayNames: { [key: number]: string } = {
+          0: "יום ראשון", 1: "יום שני", 2: "יום שלישי", 3: "יום רביעי",
+          4: "יום חמישי", 5: "יום שישי", 6: "יום שבת קודש"
+        };
+        
+        let fallbackHebrewDate = null;
+        try {
+          // Try direct Hebcal converter API one more time
+          const fallbackHebrewResponse = await fetch(
+            `https://www.hebcal.com/converter?cfg=json&gy=${now.getFullYear()}&gm=${now.getMonth() + 1}&gd=${now.getDate()}&g2h=1`
+          );
+          
+          if (fallbackHebrewResponse.ok) {
+            const fallbackHebrewInfo = await fallbackHebrewResponse.json();
+            const numberToHebrewFallback = (num: number): string => {
+              const hebrewNums: { [key: number]: string } = {
+                1: "א", 2: "ב", 3: "ג", 4: "ד", 5: "ה", 6: "ו", 7: "ז", 8: "ח", 9: "ט", 10: "י",
+                11: "יא", 12: "יב", 13: "יג", 14: "יד", 15: "טו", 16: "טז", 17: "יז", 18: "יח", 19: "יט", 20: "כ",
+                21: "כא", 22: "כב", 23: "כג", 24: "כד", 25: "כה", 26: "כו", 27: "כז", 28: "כח", 29: "כט", 30: "ל"
+              };
+              return hebrewNums[num] || num.toString();
+            };
+            
+            const hebrewMonthsFallback: { [key: string]: string } = {
+              "Tishrei": "תשרי", "Cheshvan": "מרחשון", "Kislev": "כסלו", "Tevet": "טבת",
+              "Shvat": "שבט", "Adar": "אדר", "Adar I": "אדר א׳", "Adar II": "אדר ב׳",
+              "Nisan": "ניסן", "Iyar": "אייר", "Sivan": "סיון", "Tamuz": "תמוז",
+              "Av": "אב", "Elul": "אלול"
+            };
+            
+            fallbackHebrewDate = {
+              day: numberToHebrewFallback(fallbackHebrewInfo.hd),
+              month: hebrewMonthsFallback[fallbackHebrewInfo.hm] || fallbackHebrewInfo.hm,
+              year: numberToHebrewFallback(fallbackHebrewInfo.hy),
+              formatted: `${numberToHebrewFallback(fallbackHebrewInfo.hd)} ${hebrewMonthsFallback[fallbackHebrewInfo.hm] || fallbackHebrewInfo.hm} ${numberToHebrewFallback(fallbackHebrewInfo.hy)}`
+            };
+            console.log('Successfully got Hebrew date in fallback:', fallbackHebrewDate);
+          }
+        } catch (error) {
+          console.log('Fallback Hebrew date also failed:', error);
+        }
+        
+        // Use built-in Hebrew date calculation if API fails
+        if (!fallbackHebrewDate) {
+          const hebrewDate = toHebrewDate(now);
+          fallbackHebrewDate = {
+            formatted: `${hebrewDate.day} ${hebrewDate.month} ${hebrewDate.year}`
+          };
+        }
         
         const fallbackTimes = {
           location: location.heb,
@@ -821,9 +909,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           shabbatStart: formatTime(sunTimes.sunset - 0.67), // 40 minutes
           shabbatEnd: formatTime(sunTimes.sunset + 0.7), // 42 minutes
           date: now.toLocaleDateString('he-IL'),
-          hebrewDate: {
-            formatted: `${hebrewDate.day} ${hebrewDate.month} ${hebrewDate.year}`
+          gregorianDate: {
+            day: now.getDate(),
+            month: now.getMonth() + 1,
+            year: now.getFullYear(),
+            dayOfWeek: hebrewDayNames[now.getDay()]
           },
+          hebrewDate: fallbackHebrewDate,
           lastUpdated: new Date().toISOString(),
           fallback: true
         };
