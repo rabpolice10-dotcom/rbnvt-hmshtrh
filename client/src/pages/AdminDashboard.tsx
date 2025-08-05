@@ -841,13 +841,27 @@ export default function AdminDashboard() {
                           </Dialog>
                         ) : null}
 
-                        {/* כפתור 2: אשר שאלה / הסר מהמאגר */}
-                        {!(question as any).isApproved ? (
+                        {/* כפתור 2: אשר שאלה / הסר מהמאגר (מתחלף) */}
+                        {!(question as any).isVisible ? (
                           <Button
                             size="sm"
                             className="bg-blue-600 hover:bg-blue-700 text-white"
-                            onClick={() => approveQuestionMutation.mutate(question.id)}
-                            disabled={approveQuestionMutation.isPending}
+                            onClick={async () => {
+                              try {
+                                await apiRequest(`/api/questions/${question.id}/set-visible`, { 
+                                  method: "POST",
+                                  body: { isVisible: true }
+                                });
+                                queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+                                queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+                                toast({ title: "השאלה אושרה לפרסום ציבורי" });
+                              } catch (error) {
+                                toast({
+                                  title: "שגיאה באישור השאלה",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
                           >
                             <CheckCircle className="h-4 w-4 ml-1" />
                             אשר שאלה
@@ -865,7 +879,7 @@ export default function AdminDashboard() {
                                 });
                                 queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
                                 queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
-                                toast({ title: "השאלה הוסרה מהמאגר" });
+                                toast({ title: "השאלה הוסרה מהמאגר הציבורי" });
                               } catch (error) {
                                 toast({
                                   title: "שגיאה בהסרת השאלה",
