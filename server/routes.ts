@@ -982,6 +982,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(cities);
     } catch (error) {
+      console.error('Error fetching cities:', error);
       res.status(500).json({ message: "שגיאה בטעינת רשימת הערים" });
     }
   });

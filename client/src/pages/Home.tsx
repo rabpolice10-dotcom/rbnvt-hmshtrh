@@ -58,7 +58,13 @@ export default function Home(): JSX.Element {
   const { data: jewishTimes } = useQuery({
     queryKey: ["/api/jewish-times"],
     retry: false,
-  });
+  }) as { data: { 
+    location: string; 
+    hebrewDate?: { formatted?: string }; 
+    gregorianDate?: { dayOfWeek?: string }; 
+    sunrise?: string; 
+    sunset?: string; 
+  } | undefined };
 
   // Mark notifications as read
   const markNotificationsAsRead = useMutation({
@@ -136,7 +142,7 @@ export default function Home(): JSX.Element {
         </Button>
         
         <Button
-          onClick={() => window.location.pathname = "/jewish-times"}
+          onClick={() => window.location.href = "/jewish-times"}
           className="bg-green-50 hover:bg-green-100 text-gray-800 p-4 rounded-lg h-auto flex-col space-y-2"
           variant="ghost"
         >
@@ -148,7 +154,7 @@ export default function Home(): JSX.Element {
       {jewishTimes && (
         <Card 
           className="shadow-card cursor-pointer hover:shadow-lg transition-shadow" 
-          onClick={() => window.location.pathname = "/jewish-times"}
+          onClick={() => window.location.href = "/jewish-times"}
         >
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
@@ -160,7 +166,14 @@ export default function Home(): JSX.Element {
             </div>
             
             <div className="mb-3 text-center">
-              <div className="text-sm font-medium text-gray-700">{getHebrewDate()}</div>
+              <div className="text-sm font-medium text-gray-700">
+                {jewishTimes?.hebrewDate?.formatted || getHebrewDate()}
+              </div>
+              {jewishTimes?.gregorianDate?.dayOfWeek && (
+                <div className="text-xs text-gray-500">
+                  {jewishTimes.gregorianDate.dayOfWeek}
+                </div>
+              )}
             </div>
             
             <div className="grid grid-cols-2 gap-3 text-sm">

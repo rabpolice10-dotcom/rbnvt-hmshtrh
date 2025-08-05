@@ -84,7 +84,7 @@ export default function JewishTimesNew() {
   // Load saved city preference on component mount
   useEffect(() => {
     const savedCity = localStorage.getItem('preferredCity');
-    if (savedCity && cities?.some(city => city.id === savedCity)) {
+    if (savedCity && cities && Array.isArray(cities) && cities.some(city => city.id === savedCity)) {
       setSelectedCity(savedCity);
     }
   }, [cities]);
@@ -93,7 +93,7 @@ export default function JewishTimesNew() {
     setSelectedCity(cityId);
     toast({
       title: "מיקום עודכן",
-      description: `הזמנים מוצגים עבור ${cities?.find(c => c.id === cityId)?.name}`,
+      description: `הזמנים מוצגים עבור ${cities && Array.isArray(cities) ? cities.find(c => c.id === cityId)?.name : cityId}`,
     });
   };
 
@@ -183,14 +183,16 @@ export default function JewishTimesNew() {
                 <SelectValue placeholder="בחר עיר" />
               </SelectTrigger>
               <SelectContent>
-                {cities?.map((city) => (
+                {cities && Array.isArray(cities) ? cities.map((city) => (
                   <SelectItem key={city.id} value={city.id}>
                     <div className="flex items-center gap-2">
                       <span>{city.name}</span>
                       <span className="text-xs text-gray-500">({city.english})</span>
                     </div>
                   </SelectItem>
-                ))}
+                )) : (
+                  <SelectItem value="ירושלים">ירושלים (Jerusalem)</SelectItem>
+                )}
               </SelectContent>
             </Select>
             
