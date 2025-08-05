@@ -17,6 +17,7 @@ export const users = pgTable("users", {
   status: text("status", { enum: ["pending", "approved", "rejected"] }).default("pending").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   isNew: boolean("is_new").default(true).notNull(),
+  isSeenByAdmin: boolean("is_seen_by_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   approvedAt: timestamp("approved_at"),

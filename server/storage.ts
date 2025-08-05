@@ -6,7 +6,7 @@ import {
   type Video, type InsertVideo, type ContactMessage, type InsertContactMessage
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ilike, or } from "drizzle-orm";
+import { eq, desc, and, ilike, or, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -121,6 +121,18 @@ export interface IStorage {
   markQuestionAnswered(questionId: string): Promise<void>;
   getQuestionById(id: string): Promise<Question | undefined>;
   createNotification(notification: any): Promise<any>;
+  
+  // Admin badge/notification operations
+  markAllUsersAsSeenByAdmin(): Promise<void>;
+  markAllQuestionsAsSeenByAdmin(): Promise<void>;
+  markAllContactMessagesAsSeenByAdmin(): Promise<void>;
+  markAllNewsAsSeenByAdmin(): Promise<void>;
+  getAdminNotificationCounts(): Promise<{
+    users: number;
+    questions: number;
+    contacts: number;
+    news: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -859,6 +871,75 @@ export class DatabaseStorage implements IStorage {
   async createNotification(notification: any): Promise<any> {
     // Placeholder implementation - should create notification in notifications table
     return notification;
+  }
+
+  // Admin badge/notification operations
+  async markAllUsersAsSeenByAdmin(): Promise<void> {
+    await db
+      .update(users)
+      .set({ isSeenByAdmin: true })
+      .where(eq(users.isSeenByAdmin, false));
+  }
+
+  async markAllQuestionsAsSeenByAdmin(): Promise<void> {
+    await db
+      .update(questions)
+      .set({ isSeenByAdmin: true })
+      .where(eq(questions.isSeenByAdmin, false));
+  }
+
+  async markAllContactMessagesAsSeenByAdmin(): Promise<void> {
+    await db
+      .update(contactMessages)
+      .set({ isSeenByAdmin: true })
+      .where(eq(contactMessages.isSeenByAdmin, false));
+  }
+
+  async markAllNewsAsSeenByAdmin(): Promise<void> {
+    await db
+      .update(news)
+      .set({ isSeenByAdmin: true })
+      .where(eq(news.isSeenByAdmin, false));
+  }
+
+  async getAdminNotificationCounts(): Promise<{
+    users: number;
+    questions: number;
+    contacts: number;
+    news: number;
+  }> {
+    const [userCount] = await db
+      .select({ count: sql`count(*)`.as('count') })
+      .from(users)
+      .where(and(
+        eq(users.status, "pending"),
+        eq(users.isSeenByAdmin, false)
+      ));
+
+    const [questionCount] = await db
+      .select({ count: sql`count(*)`.as('count') })
+      .from(questions)
+      .where(and(
+        eq(questions.status, "pending"),
+        eq(questions.isSeenByAdmin, false)
+      ));
+
+    const [contactCount] = await db
+      .select({ count: sql`count(*)`.as('count') })
+      .from(contactMessages)
+      .where(eq(contactMessages.isSeenByAdmin, false));
+
+    const [newsCount] = await db
+      .select({ count: sql`count(*)`.as('count') })
+      .from(news)
+      .where(eq(news.isSeenByAdmin, false));
+
+    return {
+      users: Number(userCount?.count || 0),
+      questions: Number(questionCount?.count || 0),
+      contacts: Number(contactCount?.count || 0),
+      news: Number(newsCount?.count || 0),
+    };
   }
 }
 

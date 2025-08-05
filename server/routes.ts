@@ -1127,6 +1127,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin notification badge endpoints
+  app.get("/api/admin/notification-counts", async (req, res) => {
+    try {
+      const counts = await storage.getAdminNotificationCounts();
+      res.json(counts);
+    } catch (error) {
+      console.error("Error getting notification counts:", error);
+      res.status(500).json({ message: "שגיאה בטעינת מספרי ההתראות" });
+    }
+  });
+
+  app.post("/api/admin/mark-users-seen", async (req, res) => {
+    try {
+      await storage.markAllUsersAsSeenByAdmin();
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking users as seen:", error);
+      res.status(500).json({ message: "שגיאה בעדכון המשתמשים" });
+    }
+  });
+
+  app.post("/api/admin/mark-questions-seen", async (req, res) => {
+    try {
+      await storage.markAllQuestionsAsSeenByAdmin();
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking questions as seen:", error);
+      res.status(500).json({ message: "שגיאה בעדכון השאלות" });
+    }
+  });
+
+  app.post("/api/admin/mark-contacts-seen", async (req, res) => {
+    try {
+      await storage.markAllContactMessagesAsSeenByAdmin();
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking contacts as seen:", error);
+      res.status(500).json({ message: "שגיאה בעדכון הפניות" });
+    }
+  });
+
+  app.post("/api/admin/mark-news-seen", async (req, res) => {
+    try {
+      await storage.markAllNewsAsSeenByAdmin();
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking news as seen:", error);
+      res.status(500).json({ message: "שגיאה בעדכון החדשות" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -39,6 +39,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useNotificationBadges } from "@/hooks/useNotificationBadges";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import { apiRequest } from "@/lib/queryClient";
 import { performLogout } from "@/lib/logout";
 import SimpleUserManagement from "@/components/SimpleUserManagement";
@@ -186,6 +187,7 @@ export default function AdminDashboard() {
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const { badges, markAsSeen } = useNotificationBadges();
+  const { counts, isLoading: notificationsLoading, markUsersSeen, markQuestionsSeen, markContactsSeen, markNewsSeen } = useAdminNotifications();
 
   // Check admin access - prioritize localStorage admin flag
   useEffect(() => {
@@ -575,7 +577,18 @@ export default function AdminDashboard() {
           setSelectedTab(tab);
           setViewedTabs(prev => new Set([...Array.from(prev), tab]));
           
-          // Mark items as seen when entering the tab
+          // Mark items as seen by admin when entering tabs
+          if (tab === "users" && counts.users > 0) {
+            markUsersSeen.mutate();
+          } else if (tab === "questions" && counts.questions > 0) {
+            markQuestionsSeen.mutate();
+          } else if (tab === "content" && counts.news > 0) {
+            markNewsSeen.mutate();
+          } else if (tab === "messages" && counts.contacts > 0) {
+            markContactsSeen.mutate();
+          }
+          
+          // Old notification badge logic for compatibility
           if (tab === 'questions' && badges.questions > 0) {
             markAsSeen('questions');
           } else if (tab === 'content' && badges.news > 0) {
@@ -589,33 +602,33 @@ export default function AdminDashboard() {
           <TabsTrigger value="overview">סקירה כללית</TabsTrigger>
           <TabsTrigger value="users" className="relative">
             ניהול משתמשים
-            {badges.users > 0 && !viewedTabs.has("users") && (
+            {counts.users > 0 && (
               <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
-                {badges.users}
+                {counts.users}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="questions" className="relative">
             ניהול שאלות
-            {badges.questions > 0 && !viewedTabs.has("questions") && (
+            {counts.questions > 0 && (
               <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
-                {badges.questions}
+                {counts.questions}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="content" className="relative">
             ניהול תוכן
-            {badges.news > 0 && !viewedTabs.has("content") && (
+            {counts.news > 0 && (
               <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
-                {badges.news}
+                {counts.news}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="messages" className="relative">
             הודעות
-            {badges.contacts > 0 && !viewedTabs.has("messages") && (
+            {counts.contacts > 0 && (
               <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
-                {badges.contacts}
+                {counts.contacts}
               </Badge>
             )}
           </TabsTrigger>
