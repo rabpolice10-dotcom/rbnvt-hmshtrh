@@ -16,12 +16,25 @@ export default function Contact() {
 
   const submitMessage = useMutation({
     mutationFn: async (messageText: string) => {
-      return apiRequest("POST", "/api/contact", {
-        userId: user?.id,
-        fullName: user?.fullName,
-        phone: user?.phone,
-        message: messageText
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          fullName: user?.fullName,
+          phone: user?.phone,
+          message: messageText
+        }),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "שגיאה בשליחת ההודעה");  
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({

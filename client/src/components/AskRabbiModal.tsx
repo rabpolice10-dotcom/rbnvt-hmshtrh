@@ -22,6 +22,7 @@ export function AskRabbiModal({ open, onOpenChange }: AskRabbiModalProps) {
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
+    title: "",
     category: "",
     content: "",
     isUrgent: false,
@@ -32,10 +33,23 @@ export function AskRabbiModal({ open, onOpenChange }: AskRabbiModalProps) {
     mutationFn: async (data: typeof formData) => {
       if (!user) throw new Error("User not authenticated");
       
-      return apiRequest("POST", "/api/questions", {
-        ...data,
-        userId: user.id
+      const response = await fetch("/api/questions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          userId: user.id
+        }),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "שגיאה בשליחת השאלה");
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -43,7 +57,7 @@ export function AskRabbiModal({ open, onOpenChange }: AskRabbiModalProps) {
         description: "תקבל הודעה כאשר התשובה תהיה מוכנה",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
-      setFormData({ category: "", content: "", isUrgent: false, isPrivate: false });
+      setFormData({ title: "", category: "", content: "", isUrgent: false, isPrivate: false });
       onOpenChange(false);
     },
     onError: () => {
@@ -76,6 +90,17 @@ export function AskRabbiModal({ open, onOpenChange }: AskRabbiModalProps) {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label className="block text-sm font-medium text-gray-700 mb-1">כותרת השאלה</Label>
+            <Input
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="כותרת קצרה לשאלה"
+              className="text-right"
+              required
+            />
+          </div>
+
           <div>
             <Label className="block text-sm font-medium text-gray-700 mb-1">קטגוריה</Label>
             <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>

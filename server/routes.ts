@@ -604,51 +604,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   const toHebrewDate = (date: Date) => {
-    // More accurate Hebrew date conversion using known constants
-    // August 4, 2025 = 10 Av 5785
-    const knownGregorian = new Date('2025-08-04');
-    const knownHebrewDay = 10;
+    // More accurate Hebrew date conversion
+    // Today's actual Hebrew date: 5 August 2025 = 11 Av 5785
+    const knownGregorian = new Date('2025-08-05');
+    const knownHebrewDay = 11;
     const knownHebrewMonth = 'אב';
     const knownHebrewYear = 5785;
     
     const daysDiff = Math.floor((date.getTime() - knownGregorian.getTime()) / (24 * 60 * 60 * 1000));
     
-    // Simple calculation from known date (for current time period)
+    // Hebrew months in order (starting from Tishrei)
     const hebrewMonths = [
       'תשרי', 'חשון', 'כסלו', 'טבת', 'שבט', 'אדר',
-      'ניסן', 'אייר', 'סיו', 'תמוז', 'אב', 'אלול'
+      'ניסן', 'אייר', 'סיון', 'תמוז', 'אב', 'אלול'
     ];
     
+    // Month lengths (approximate)
+    const monthLengths = [30, 29, 29, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+    
     let day = knownHebrewDay + daysDiff;
-    let month = knownHebrewMonth;
+    let monthIndex = hebrewMonths.indexOf(knownHebrewMonth);
     let year = knownHebrewYear;
     
-    // Handle day overflow (simplified)
-    if (day > 29) {
-      const monthIndex = hebrewMonths.indexOf(month);
-      if (monthIndex === 11) { // Elul -> Tishrei
-        month = hebrewMonths[0];
+    // Handle month transitions
+    while (day > monthLengths[monthIndex]) {
+      day -= monthLengths[monthIndex];
+      monthIndex++;
+      if (monthIndex >= 12) {
+        monthIndex = 0;
         year++;
-        day = day - 29;
-      } else {
-        month = hebrewMonths[monthIndex + 1];
-        day = day - 29;
       }
-    } else if (day < 1) {
-      const monthIndex = hebrewMonths.indexOf(month);
-      if (monthIndex === 0) { // Tishrei -> Elul
-        month = hebrewMonths[11];
+    }
+    
+    while (day < 1) {
+      monthIndex--;
+      if (monthIndex < 0) {
+        monthIndex = 11;
         year--;
-        day = day + 29;
-      } else {
-        month = hebrewMonths[monthIndex - 1];
-        day = day + 29;
       }
+      day += monthLengths[monthIndex];
     }
     
     return {
       day: Math.max(1, Math.min(30, day)),
-      month,
+      month: hebrewMonths[monthIndex],
       year
     };
   };
