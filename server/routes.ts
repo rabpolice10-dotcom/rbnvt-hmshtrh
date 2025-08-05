@@ -670,53 +670,170 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
   };
 
-  // Jewish times API with accurate astronomical calculation
-  app.get("/api/jewish-times", async (req, res) => {
+  // Comprehensive Hebrew Times API with reliable Hebcal data
+  app.get("/api/jewish-times/:city?", async (req, res) => {
     try {
+      const city = req.params.city || "ירושלים";
       const now = new Date();
-      const jerusalemTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Jerusalem"}));
-      const todayStr = jerusalemTime.toISOString().split('T')[0];
       
-      // Jerusalem coordinates
-      const latitude = 31.7683;
-      const longitude = 35.2137;
-      
-      const formatTime = (hours: number) => {
-        const h = Math.floor(hours);
-        const m = Math.round((hours - h) * 60);
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      // City coordinates database for accurate calculations
+      const cityCoordinates: { [key: string]: { lat: number; lng: number; heb: string; eng: string } } = {
+        "ירושלים": { lat: 31.7683, lng: 35.2137, heb: "ירושלים", eng: "Jerusalem" },
+        "תל-אביב": { lat: 32.0853, lng: 34.7818, heb: "תל אביב", eng: "Tel Aviv" },
+        "חיפה": { lat: 32.7940, lng: 34.9896, heb: "חיפה", eng: "Haifa" },
+        "באר-שבע": { lat: 31.2518, lng: 34.7915, heb: "באר שבע", eng: "Beersheba" },
+        "אשדוד": { lat: 31.7940, lng: 34.6553, heb: "אשדוד", eng: "Ashdod" },
+        "נתניה": { lat: 32.3215, lng: 34.8532, heb: "נתניה", eng: "Netanya" },
+        "פתח-תקווה": { lat: 32.0878, lng: 34.8878, heb: "פתח תקווה", eng: "Petah Tikva" },
+        "אשקלון": { lat: 31.6688, lng: 34.5742, heb: "אשקלון", eng: "Ashkelon" },
+        "רחובות": { lat: 31.8947, lng: 34.8106, heb: "רחובות", eng: "Rehovot" },
+        "בת-ים": { lat: 32.0167, lng: 34.7500, heb: "בת ים", eng: "Bat Yam" }
       };
+
+      const location = cityCoordinates[city] || cityCoordinates["ירושלים"];
       
-      const sunTimes = calculateSunTimes(jerusalemTime, latitude, longitude);
+      try {
+        // Use Hebcal API for accurate Jewish times with location coordinates
+        const hebcalResponse = await fetch(
+          `https://www.hebcal.com/zmanim?cfg=json&latitude=${location.lat}&longitude=${location.lng}&M=on&lg=h&maj=on&min=on&mod=on&nx=on&tzeit=on&c=on&s=on&b=18&zip=off&d=on`
+        );
+        
+        if (!hebcalResponse.ok) {
+          throw new Error('Hebcal API error');
+        }
+        
+        const hebcalData = await hebcalResponse.json();
+        
+        // Get Hebrew date from Hebcal
+        const hebrewDateResponse = await fetch(
+          `https://www.hebcal.com/converter?cfg=json&gy=${now.getFullYear()}&gm=${now.getMonth() + 1}&gd=${now.getDate()}&g2h=1`
+        );
+        
+        let hebrewDateInfo = null;
+        if (hebrewDateResponse.ok) {
+          hebrewDateInfo = await hebrewDateResponse.json();
+        }
+
+        // Hebrew month names mapping
+        const hebrewMonths: { [key: string]: string } = {
+          "Tishrei": "תשרי", "Cheshvan": "חשון", "Kislev": "כסלו", "Tevet": "טבת",
+          "Shvat": "שבט", "Adar": "אדר", "Adar I": "אדר א׳", "Adar II": "אדר ב׳",
+          "Nisan": "ניסן", "Iyar": "אייר", "Sivan": "סיון", "Tamuz": "תמוז",
+          "Av": "אב", "Elul": "אלול"
+        };
+
+        // Number to Hebrew conversion
+        const numberToHebrew = (num: number): string => {
+          const hebrewNums: { [key: number]: string } = {
+            1: "א׳", 2: "ב׳", 3: "ג׳", 4: "ד׳", 5: "ה׳", 6: "ו׳", 7: "ז׳", 8: "ח׳", 9: "ט׳", 10: "י׳",
+            11: "יא׳", 12: "יב׳", 13: "יג׳", 14: "יד׳", 15: "טו׳", 16: "טז׳", 17: "יז׳", 18: "יח׳", 19: "יט׳", 20: "כ׳",
+            21: "כא׳", 22: "כב׳", 23: "כג׳", 24: "כד׳", 25: "כה׳", 26: "כו׳", 27: "כז׳", 28: "כח׳", 29: "כט׳", 30: "ל׳"
+          };
+          return hebrewNums[num] || num.toString();
+        };
+
+        const formatTime = (timeStr: string): string => {
+          if (!timeStr) return "לא זמין";
+          const time = new Date(timeStr);
+          return time.toLocaleTimeString('he-IL', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            timeZone: 'Asia/Jerusalem',
+            hour12: false 
+          });
+        };
+
+        // Build comprehensive response
+        const times = {
+          location: location.heb,
+          englishLocation: location.eng,
+          coordinates: { latitude: location.lat, longitude: location.lng },
+          
+          // Basic times
+          sunrise: formatTime(hebcalData.times?.sunrise),
+          sunset: formatTime(hebcalData.times?.sunset),
+          
+          // Prayer times
+          shacharit: formatTime(hebcalData.times?.sunrise), // Best time for Shacharit
+          mincha: formatTime(hebcalData.times?.mincha_gedola || hebcalData.times?.mincha_ketana),
+          maariv: formatTime(hebcalData.times?.tzeit),
+          
+          // Shema and Tefilla times
+          shemaLatest: formatTime(hebcalData.times?.sof_zman_shma_gra || hebcalData.times?.sof_zman_shma_mga),
+          tefillaLatest: formatTime(hebcalData.times?.sof_zman_tfila_gra || hebcalData.times?.sof_zman_tfila_mga),
+          
+          // Shabbat times (using appropriate times for Friday/Saturday)
+          shabbatStart: formatTime(hebcalData.times?.sunset ? 
+            new Date(new Date(hebcalData.times.sunset).getTime() - 18 * 60000).toISOString() : 
+            undefined),
+          shabbatEnd: formatTime(hebcalData.times?.tzeit42min || hebcalData.times?.tzeit),
+          
+          // Additional times
+          dawn: formatTime(hebcalData.times?.alot_hashachar),
+          dusk: formatTime(hebcalData.times?.tzeit),
+          midday: formatTime(hebcalData.times?.chatzot),
+          
+          // Date information
+          date: now.toLocaleDateString('he-IL'),
+          gregorianDate: {
+            day: now.getDate(),
+            month: now.getMonth() + 1,
+            year: now.getFullYear(),
+            dayOfWeek: now.toLocaleDateString('he-IL', { weekday: 'long' })
+          },
+          
+          hebrewDate: hebrewDateInfo ? {
+            day: numberToHebrew(hebrewDateInfo.hd),
+            month: hebrewMonths[hebrewDateInfo.hm] || hebrewDateInfo.hm,
+            year: hebrewDateInfo.hy ? `${hebrewDateInfo.hy}` : "",
+            formatted: hebrewDateInfo ? 
+              `${numberToHebrew(hebrewDateInfo.hd)} ${hebrewMonths[hebrewDateInfo.hm] || hebrewDateInfo.hm} ${hebrewDateInfo.hy}` : 
+              "לא זמין"
+          } : null,
+          
+          // Real-time sync indicator
+          lastUpdated: new Date().toISOString(),
+          timezone: "Asia/Jerusalem"
+        };
+
+        res.json(times);
+        
+      } catch (apiError) {
+        console.warn('Hebcal API failed, using fallback calculation:', apiError);
+        
+        // Fallback to local calculation if API fails
+        const sunTimes = calculateSunTimes(now, location.lat, location.lng);
+        
+        const formatTime = (hours: number) => {
+          const h = Math.floor(hours);
+          const m = Math.round((hours - h) * 60);
+          return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        };
+        
+        const hebrewDate = toHebrewDate(now);
+        
+        const fallbackTimes = {
+          location: location.heb,
+          sunrise: formatTime(sunTimes.sunrise),
+          sunset: formatTime(sunTimes.sunset),
+          shemaLatest: formatTime(sunTimes.sunrise + 3),
+          tefillaLatest: formatTime(sunTimes.sunrise + 4),
+          shabbatStart: formatTime(sunTimes.sunset - 0.67), // 40 minutes
+          shabbatEnd: formatTime(sunTimes.sunset + 0.7), // 42 minutes
+          date: now.toLocaleDateString('he-IL'),
+          hebrewDate: {
+            formatted: `${hebrewDate.day} ${hebrewDate.month} ${hebrewDate.year}`
+          },
+          lastUpdated: new Date().toISOString(),
+          fallback: true
+        };
+        
+        res.json(fallbackTimes);
+      }
       
-      const sunrise = formatTime(sunTimes.sunrise);
-      const sunset = formatTime(sunTimes.sunset);
-      
-      // Calculate Jewish times based on sunrise/sunset
-      const shemaLatest = formatTime(sunTimes.sunrise + 3); // 3 hours after sunrise
-      const tefillaLatest = formatTime(sunTimes.sunrise + 4); // 4 hours after sunrise
-      const shabbatStart = formatTime(sunTimes.sunset - 40/60); // 40 minutes before sunset (Jerusalem)
-      const shabbatEnd = formatTime(sunTimes.sunset + 42/60); // 42 minutes after sunset
-      
-      const hebrewDate = toHebrewDate(jerusalemTime);
-      
-      const times = {
-        sunrise,
-        sunset,
-        shabbatStart,
-        shabbatEnd,
-        shemaLatest,
-        tefillaLatest,
-        location: "ירושלים",
-        date: todayStr,
-        hebrewDate: `${hebrewDate.day} ${hebrewDate.month} ${hebrewDate.year}`
-      };
-      
-      console.log('Calculated Jewish times:', times);
-      res.json(times);
     } catch (error) {
-      console.error('Error calculating Jewish times:', error);
-      res.status(500).json({ message: "שגיאה בטעינת הזמנים" });
+      console.error('Error in Jewish times API:', error);
+      res.status(500).json({ message: "שגיאה בטעינת הזמנים היהודיים" });
     }
   });
 
@@ -755,28 +872,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced Jewish Times API
-  app.get("/api/jewish-times/detailed", async (req, res) => {
+  // Available cities endpoint for location selection
+  app.get("/api/jewish-times/cities", async (req, res) => {
     try {
-      // This is a placeholder for real Jewish times API integration
-      const now = new Date();
-      const location = "ירושלים, ישראל";
+      const cities = [
+        { id: "ירושלים", name: "ירושלים", english: "Jerusalem" },
+        { id: "תל-אביב", name: "תל אביב", english: "Tel Aviv" },
+        { id: "חיפה", name: "חיפה", english: "Haifa" },
+        { id: "באר-שבע", name: "באר שבע", english: "Beersheba" },
+        { id: "אשדוד", name: "אשדוד", english: "Ashdod" },
+        { id: "נתניה", name: "נתניה", english: "Netanya" },
+        { id: "פתח-תקווה", name: "פתח תקווה", english: "Petah Tikva" },
+        { id: "אשקלון", name: "אשקלון", english: "Ashkelon" },
+        { id: "רחובות", name: "רחובות", english: "Rehovot" },
+        { id: "בת-ים", name: "בת ים", english: "Bat Yam" }
+      ];
       
-      res.json({
-        location,
-        date: now.toISOString().split('T')[0],
-        dayOfWeek: now.toLocaleDateString('he-IL', { weekday: 'long' }),
-        sunrise: "06:42",
-        sunset: "17:30", 
-        shacharit: "07:00",
-        mincha: "13:15",
-        maariv: "18:15",
-        shabbatStart: now.getDay() === 5 ? "17:15" : undefined,
-        shabbatEnd: now.getDay() === 6 ? "18:30" : undefined,
-        candleLighting: now.getDay() === 5 ? "17:15" : undefined
-      });
+      res.json(cities);
     } catch (error) {
-      res.status(500).json({ message: "שגיאה בטעינת זמנים יהודיים" });
+      res.status(500).json({ message: "שגיאה בטעינת רשימת הערים" });
     }
   });
 

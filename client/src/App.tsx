@@ -13,7 +13,7 @@ import Videos from "@/pages/Videos";
 import Profile from "@/pages/Profile";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Contact from "@/pages/Contact";
-import JewishTimes from "@/pages/JewishTimes";
+import JewishTimesNew from "@/pages/JewishTimesNew";
 import News from "@/pages/News";
 import Landing from "@/pages/Landing";
 import Register from "@/pages/Register";
@@ -57,7 +57,7 @@ function AppContent() {
           <Route path="/videos" component={Videos} />
           <Route path="/profile" component={Profile} />
           <Route path="/contact" component={Contact} />
-          <Route path="/jewish-times" component={JewishTimes} />
+          <Route path="/jewish-times" component={JewishTimesNew} />
           <Route path="/news" component={News} />
           <Route path="*">
             {() => {
