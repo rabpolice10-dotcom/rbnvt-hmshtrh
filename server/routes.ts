@@ -811,6 +811,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin-only: Delete question completely
+  app.delete("/api/admin/questions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Delete all related answers first
+      await storage.deleteAnswersByQuestionId(id);
+      
+      // Delete the question
+      await storage.deleteQuestion(id);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting question:", error);
+      res.status(500).json({ error: "Failed to delete question" });
+    }
+  });
+
+  // Admin-only: Update question content
+  app.put("/api/admin/questions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { title, content } = req.body;
+      
+      const question = await storage.updateQuestion(id, {
+        title,
+        content,
+        updatedAt: new Date()
+      });
+      
+      res.json({ question });
+    } catch (error) {
+      console.error("Error updating question:", error);
+      res.status(500).json({ error: "Failed to update question" });
+    }
+  });
+
   // Mark items as viewed (remove isNew flag)
   app.post("/api/admin/mark-viewed", async (req, res) => {
     try {

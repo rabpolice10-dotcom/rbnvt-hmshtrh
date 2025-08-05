@@ -32,7 +32,9 @@ import {
   Plus,
   BarChart3,
   TrendingUp,
-  Activity
+  Activity,
+  MessageCircle,
+  X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNotificationBadges } from "@/hooks/useNotificationBadges";
@@ -362,6 +364,54 @@ export default function AdminDashboard() {
       toast({
         variant: "destructive",
         title: "שגיאה בעדכון התשובה"
+      });
+    }
+  });
+
+  // Delete question mutation
+  const deleteQuestionMutation = useMutation({
+    mutationFn: async (questionId: string) => {
+      return apiRequest(`/api/admin/questions/${questionId}`, {
+        method: "DELETE"
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "השאלה נמחקה בהצלחה" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "שגיאה במחיקת השאלה"
+      });
+    }
+  });
+
+  // Update question mutation
+  const [editingQuestionId, setEditingQuestionId] = useState<string>("");
+  const [editQuestionTitle, setEditQuestionTitle] = useState("");
+  const [editQuestionContent, setEditQuestionContent] = useState("");
+
+  const updateQuestionMutation = useMutation({
+    mutationFn: async ({ questionId, title, content }: { questionId: string; title: string; content: string }) => {
+      return apiRequest(`/api/admin/questions/${questionId}`, {
+        method: "PUT",
+        body: { title, content }
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "השאלה עודכנה בהצלחה" });
+      setEditingQuestionId("");
+      setEditQuestionTitle("");
+      setEditQuestionContent("");
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "שגיאה בעדכון השאלה"
       });
     }
   });
@@ -720,66 +770,132 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       
-                      <div className="flex gap-2 pt-2">
-                        {question.status === "pending" && (
-                          <>
-                            <Button
-                              size="sm"
-                              className="bg-blue-600 hover:bg-blue-700 text-white"
-                              onClick={() => approveQuestionMutation.mutate(question.id)}
-                              disabled={approveQuestionMutation.isPending}
-                            >
-                              <CheckCircle className="h-4 w-4 ml-1" />
-                              אשר שאלה
-                            </Button>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-700 text-white"
-                                  onClick={() => setSelectedQuestionId(question.id)}
-                                >
-                                  <Edit className="h-4 w-4 ml-1" />
-                                  ענה על השאלה
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-2xl">
-                                <DialogHeader>
-                                  <DialogTitle>מענה לשאלה</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                  <div className="p-3 bg-gray-50 rounded-lg">
-                                    <p className="font-medium mb-2">השאלה:</p>
-                                    <p className="text-gray-700">{question.content}</p>
-                                  </div>
-                                  <div>
-                                    <Label htmlFor="answer">התשובה:</Label>
-                                    <Textarea
-                                      id="answer"
-                                      value={answerText}
-                                      onChange={(e) => setAnswerText(e.target.value)}
-                                      placeholder="הכנס את התשובה כאן..."
-                                      rows={5}
-                                      className="mt-1"
-                                    />
-                                  </div>
-                                  <Button
-                                    onClick={() => answerQuestionMutation.mutate({ 
-                                      questionId: selectedQuestionId, 
-                                      answer: answerText 
-                                    })}
-                                    disabled={answerQuestionMutation.isPending || !answerText.trim()}
-                                    className="w-full"
-                                  >
-                                    שלח תשובה
-                                  </Button>
+                      <div className="flex gap-2 pt-2 flex-wrap">
+                        {/* כפתור 1: ענה על השאלה / ערוך תשובה */}
+                        {question.status === "pending" ? (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                                onClick={() => setSelectedQuestionId(question.id)}
+                              >
+                                <MessageCircle className="h-4 w-4 ml-1" />
+                                ענה על השאלה
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>מענה לשאלה</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div className="p-3 bg-gray-50 rounded-lg">
+                                  <p className="font-medium mb-2">השאלה:</p>
+                                  <p className="text-gray-700">{question.content}</p>
                                 </div>
-                              </DialogContent>
-                            </Dialog>
-                          </>
+                                <div>
+                                  <Label htmlFor="answer">התשובה:</Label>
+                                  <Textarea
+                                    id="answer"
+                                    value={answerText}
+                                    onChange={(e) => setAnswerText(e.target.value)}
+                                    placeholder="הכנס את התשובה כאן..."
+                                    rows={5}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <Button
+                                  onClick={() => answerQuestionMutation.mutate({ 
+                                    questionId: selectedQuestionId, 
+                                    answer: answerText 
+                                  })}
+                                  disabled={answerQuestionMutation.isPending || !answerText.trim()}
+                                  className="w-full"
+                                >
+                                  שלח תשובה
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        ) : question.status === "answered" ? (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
+                                <Edit className="h-4 w-4 ml-1" />
+                                ערוך תשובה
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>עריכת תשובה לשאלה</DialogTitle>
+                              </DialogHeader>
+                              <EditAnswerContent 
+                                questionId={question.id}
+                                editingAnswerId={editingAnswerId}
+                                setEditingAnswerId={setEditingAnswerId}
+                                editAnswerText={editAnswerText}
+                                setEditAnswerText={setEditAnswerText}
+                                editAnswerMutation={editAnswerMutation}
+                              />
+                            </DialogContent>
+                          </Dialog>
+                        ) : null}
+
+                        {/* כפתור 2: אשר שאלה / הסר מהמאגר */}
+                        {!(question as any).isApproved ? (
+                          <Button
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            onClick={() => approveQuestionMutation.mutate(question.id)}
+                            disabled={approveQuestionMutation.isPending}
+                          >
+                            <CheckCircle className="h-4 w-4 ml-1" />
+                            אשר שאלה
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                            onClick={async () => {
+                              try {
+                                await apiRequest(`/api/questions/${question.id}/set-visible`, { 
+                                  method: "POST",
+                                  body: { isVisible: false }
+                                });
+                                queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+                                queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+                                toast({ title: "השאלה הוסרה מהמאגר" });
+                              } catch (error) {
+                                toast({
+                                  title: "שגיאה בהסרת השאלה",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 ml-1" />
+                            הסר מהמאגר
+                          </Button>
                         )}
-                        
-                        {/* Always show edit and visibility toggle buttons */}
+
+                        {/* כפתור 3: מחק שאלה (אדום בוהק) */}
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="bg-red-700 hover:bg-red-800 text-white border-2 border-red-500"
+                          onClick={() => {
+                            if (confirm("האם אתה בטוח שברצונך למחוק שאלה זו לצמיתות? פעולה זו לא ניתנת לביטול!")) {
+                              deleteQuestionMutation.mutate(question.id);
+                            }
+                          }}
+                          disabled={deleteQuestionMutation.isPending}
+                        >
+                          <X className="h-4 w-4 ml-1" />
+                          מחק שאלה
+                        </Button>
+
+                        {/* כפתור 4: ערוך שאלה (תמיד מופיע) */}
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button size="sm" variant="outline">
@@ -795,87 +911,62 @@ export default function AdminDashboard() {
                               <div>
                                 <Label>כותרת השאלה:</Label>
                                 <Input 
-                                  defaultValue={question.title} 
+                                  value={editingQuestionId === question.id ? editQuestionTitle : question.title || ""}
+                                  onChange={(e) => {
+                                    if (editingQuestionId !== question.id) {
+                                      setEditingQuestionId(question.id);
+                                      setEditQuestionTitle(question.title || "");
+                                      setEditQuestionContent(question.content);
+                                    }
+                                    setEditQuestionTitle(e.target.value);
+                                  }}
                                   className="mt-1"
                                 />
                               </div>
                               <div>
                                 <Label>תוכן השאלה:</Label>
                                 <Textarea 
-                                  defaultValue={question.content} 
+                                  value={editingQuestionId === question.id ? editQuestionContent : question.content}
+                                  onChange={(e) => {
+                                    if (editingQuestionId !== question.id) {
+                                      setEditingQuestionId(question.id);
+                                      setEditQuestionTitle(question.title || "");
+                                      setEditQuestionContent(question.content);
+                                    }
+                                    setEditQuestionContent(e.target.value);
+                                  }}
                                   rows={3}
                                   className="mt-1"
                                 />
                               </div>
-                              <Button className="w-full">
+                              <Button 
+                                className="w-full"
+                                onClick={() => {
+                                  updateQuestionMutation.mutate({
+                                    questionId: question.id,
+                                    title: editQuestionTitle,
+                                    content: editQuestionContent
+                                  });
+                                }}
+                                disabled={updateQuestionMutation.isPending}
+                              >
                                 שמור שינויים
                               </Button>
                             </div>
                           </DialogContent>
                         </Dialog>
 
-                        <Button
-                          size="sm"
-                          variant={(question as any).isVisible ? "default" : "outline"}
-                          onClick={async () => {
-                            try {
-                              await apiRequest(`/api/questions/${question.id}/set-visible`, { 
-                                method: "POST",
-                                body: { isVisible: !(question as any).isVisible }
-                              });
-                              // Invalidate both admin and regular question queries
-                              queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
-                              queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
-                              toast({
-                                title: "עודכן בהצלחה",
-                                description: (question as any).isVisible ? "השאלה הוסתרה" : "השאלה הפכה לציבורית",
-                              });
-                            } catch (error) {
-                              toast({
-                                title: "שגיאה",
-                                description: "לא ניתן לעדכן את נראות השאלה",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                        >
-                          <Eye className="h-4 w-4 ml-1" />
-                          {(question as any).isVisible ? "הסתר" : "הפוך לציבורי"}
-                        </Button>
-
+                        {/* תגיות סטטוס */}
                         {question.status === "answered" && (
-                          <div className="flex gap-2 flex-wrap">
-                            <Badge className="bg-green-100 text-green-800">
-                              <CheckCircle className="h-3 w-3 ml-1" />
-                              נענה
-                            </Badge>
-                            {(question as any).hasNewAnswer && (
-                              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                                התראה נשלחה למשתמש
-                              </Badge>
-                            )}
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button size="sm" variant="outline" className="text-orange-600 border-orange-600 hover:bg-orange-50">
-                                  <Edit className="h-4 w-4 ml-1" />
-                                  ערוך תשובה
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-2xl">
-                                <DialogHeader>
-                                  <DialogTitle>עריכת תשובה לשאלה</DialogTitle>
-                                </DialogHeader>
-                                <EditAnswerContent 
-                                  questionId={question.id}
-                                  editingAnswerId={editingAnswerId}
-                                  setEditingAnswerId={setEditingAnswerId}
-                                  editAnswerText={editAnswerText}
-                                  setEditAnswerText={setEditAnswerText}
-                                  editAnswerMutation={editAnswerMutation}
-                                />
-                              </DialogContent>
-                            </Dialog>
-                          </div>
+                          <Badge className="bg-green-100 text-green-800">
+                            <CheckCircle className="h-3 w-3 ml-1" />
+                            נענה
+                          </Badge>
+                        )}
+                        {(question as any).hasNewAnswer && (
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                            התראה נשלחה למשתמש
+                          </Badge>
                         )}
                       </div>
                     </div>

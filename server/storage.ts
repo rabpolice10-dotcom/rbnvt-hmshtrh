@@ -303,6 +303,14 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async deleteAnswersByQuestionId(questionId: string): Promise<void> {
+    await db.delete(answers).where(eq(answers.questionId, questionId));
+  }
+
+  async deleteQuestion(id: string): Promise<void> {
+    await db.delete(questions).where(eq(questions.id, id));
+  }
+
   async getAllNews(): Promise<News[]> {
     return db.select().from(news).orderBy(desc(news.publishedAt));
   }
