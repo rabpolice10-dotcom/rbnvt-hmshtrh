@@ -723,13 +723,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hebrewDateInfo = await hebrewDateResponse.json();
           console.log('Hebrew date info:', hebrewDateInfo);
           
-          // Extract parsha from events if available
+          // Extract parsha from events if available and convert to Hebrew
           if (hebrewDateInfo.events && Array.isArray(hebrewDateInfo.events)) {
             const parshaEvent = hebrewDateInfo.events.find((event: string) => 
               event.startsWith('Parashat ') || event.includes('פרשת')
             );
             if (parshaEvent) {
-              parshaInfo = parshaEvent.replace('Parashat ', 'פרשת ');
+              // Convert English parsha names to Hebrew
+              const parshaHebrewMap: { [key: string]: string } = {
+                'Parashat Vaetchanan': 'פרשת ואתחנן',
+                'Parashat Devarim': 'פרשת דברים', 
+                'Parashat Eikev': 'פרשת עקב',
+                'Parashat Re\'eh': 'פרשת ראה',
+                'Parashat Shoftim': 'פרשת שופטים',
+                'Parashat Ki Teitzei': 'פרשת כי תצא',
+                'Parashat Ki Tavo': 'פרשת כי תבוא',
+                'Parashat Nitzavim': 'פרשת נצבים'
+              };
+              parshaInfo = parshaHebrewMap[parshaEvent] || parshaEvent.replace('Parashat ', 'פרשת ').replace('Vaetchanan', 'ואתחנן').replace('Devarim', 'דברים').replace('Eikev', 'עקב');
             }
           }
         }
@@ -755,7 +766,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
               });
               
               if (currentWeek && currentWeek.hebrew) {
-                parshaInfo = `פרשת ${currentWeek.hebrew}`;
+                // Convert Hebrew transliteration to proper Hebrew
+                const hebrewParshaMap: { [key: string]: string } = {
+                  'Vaetchanan': 'ואתחנן',
+                  'Devarim': 'דברים',
+                  'Eikev': 'עקב', 
+                  'Re\'eh': 'ראה',
+                  'Shoftim': 'שופטים',
+                  'Ki Teitzei': 'כי תצא',
+                  'Ki Tavo': 'כי תבוא',
+                  'Nitzavim': 'נצבים'
+                };
+                const hebrewName = hebrewParshaMap[currentWeek.hebrew] || currentWeek.hebrew;
+                parshaInfo = `פרשת ${hebrewName}`;
                 console.log('Found parsha from sedrot API:', parshaInfo);
               }
             }
@@ -876,19 +899,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           // For current date August 5, 2025 (יא אב תשפ״ה)
-          // This is week of פרשת דברים
+          // This is week of פרשת ואתחנן (corrected)
           const currentMonth = today.getMonth() + 1;
           const currentDay = today.getDate();
           
           if (currentMonth === 8) {
-            if (currentDay <= 8) return "פרשת דברים";  // Current week
-            if (currentDay <= 15) return "פרשת ואתחנן";
-            if (currentDay <= 22) return "פרשת עקב";
-            if (currentDay <= 29) return "פרשת ראה";
-            return "פרשת שופטים";
+            if (currentDay <= 8) return "פרשת ואתחנן";  // Current week - corrected
+            if (currentDay <= 15) return "פרשת עקב";
+            if (currentDay <= 22) return "פרשת ראה";
+            if (currentDay <= 29) return "פרשת שופטים";
+            return "פרשת כי תצא";
           }
           
-          return "פרשת דברים"; // Default for current time
+          return "פרשת ואתחנן"; // Default for current time
         };
 
         // Build comprehensive response
@@ -1049,13 +1072,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
             console.log('Successfully got Hebrew date in fallback:', fallbackHebrewDate);
             
-            // Try to get parsha from fallback Hebrew date
+            // Try to get parsha from fallback Hebrew date and convert to Hebrew
             if (fallbackHebrewInfo.events && Array.isArray(fallbackHebrewInfo.events)) {
               const parshaEvent = fallbackHebrewInfo.events.find((event: string) => 
                 event.startsWith('Parashat ') || event.includes('פרשת')
               );
               if (parshaEvent) {
-                fallbackParshaInfo = parshaEvent.replace('Parashat ', 'פרשת ');
+                // Convert English parsha names to Hebrew
+                const parshaHebrewMap: { [key: string]: string } = {
+                  'Parashat Vaetchanan': 'פרשת ואתחנן',
+                  'Parashat Devarim': 'פרשת דברים',
+                  'Parashat Eikev': 'פרשת עקב',
+                  'Parashat Re\'eh': 'פרשת ראה',
+                  'Parashat Shoftim': 'פרשת שופטים',
+                  'Parashat Ki Teitzei': 'פרשת כי תצא',
+                  'Parashat Ki Tavo': 'פרשת כי תבוא',
+                  'Parashat Nitzavim': 'פרשת נצבים'
+                };
+                fallbackParshaInfo = parshaHebrewMap[parshaEvent] || parshaEvent.replace('Parashat ', 'פרשת ').replace('Vaetchanan', 'ואתחנן').replace('Devarim', 'דברים').replace('Eikev', 'עקב');
               }
             }
           }
@@ -1077,26 +1111,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const currentDay = today.getDate();
           const currentMonth = today.getMonth() + 1; // August = 8
           
-          // For August 5, 2025 (יא אב תשפ״ה), this is during the "Three Weeks" period
-          // The correct parsha for this week (Aug 2-8, 2025) is פרשת דברים
+          // For August 5, 2025 (יא אב תשפ״ה), the current week is actually ואתחנן
+          // Corrected dates for summer 5785:
           if (currentMonth === 8 && currentDay >= 1 && currentDay <= 8) {
-            return "פרשת דברים";
+            return "פרשת ואתחנן"; // Current week - ואתחנן
           }
           if (currentMonth === 8 && currentDay >= 9 && currentDay <= 15) {
-            return "פרשת ואתחנן";
-          }
-          if (currentMonth === 8 && currentDay >= 16 && currentDay <= 22) {
             return "פרשת עקב";
           }
-          if (currentMonth === 8 && currentDay >= 23 && currentDay <= 29) {
+          if (currentMonth === 8 && currentDay >= 16 && currentDay <= 22) {
             return "פרשת ראה";
           }
-          if (currentMonth === 8 && currentDay >= 30) {
+          if (currentMonth === 8 && currentDay >= 23 && currentDay <= 29) {
             return "פרשת שופטים";
           }
+          if (currentMonth === 8 && currentDay >= 30) {
+            return "פרשת כי תצא";
+          }
           
-          // Default for current date (Aug 5, 2025)
-          return "פרשת דברים";
+          // Default for current date (Aug 5, 2025) = ואתחנן
+          return "פרשת ואתחנן";
         };
 
         const fallbackTimes = {
