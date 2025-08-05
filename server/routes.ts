@@ -676,18 +676,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const city = req.params.city || "ירושלים";
       const now = new Date();
       
-      // City coordinates database for accurate calculations
+      // City coordinates database for accurate calculations - All major Israeli cities
       const cityCoordinates: { [key: string]: { lat: number; lng: number; heb: string; eng: string } } = {
         "ירושלים": { lat: 31.7683, lng: 35.2137, heb: "ירושלים", eng: "Jerusalem" },
+        "תל אביב": { lat: 32.0853, lng: 34.7818, heb: "תל אביב", eng: "Tel Aviv" },
         "תל-אביב": { lat: 32.0853, lng: 34.7818, heb: "תל אביב", eng: "Tel Aviv" },
         "חיפה": { lat: 32.7940, lng: 34.9896, heb: "חיפה", eng: "Haifa" },
-        "באר-שבע": { lat: 31.2518, lng: 34.7915, heb: "באר שבע", eng: "Beersheba" },
-        "אשדוד": { lat: 31.7940, lng: 34.6553, heb: "אשדוד", eng: "Ashdod" },
+        "באר שבע": { lat: 31.2518, lng: 34.7915, heb: "באר שבע", eng: "Beer Sheva" },
+        "באר-שבע": { lat: 31.2518, lng: 34.7915, heb: "באר שבע", eng: "Beer Sheva" },
         "נתניה": { lat: 32.3215, lng: 34.8532, heb: "נתניה", eng: "Netanya" },
-        "פתח-תקווה": { lat: 32.0878, lng: 34.8878, heb: "פתח תקווה", eng: "Petah Tikva" },
+        "אשדוד": { lat: 31.7940, lng: 34.6496, heb: "אשדוד", eng: "Ashdod" },
+        "פתח תקווה": { lat: 32.0878, lng: 34.8880, heb: "פתח תקווה", eng: "Petah Tikva" },
+        "פתח-תקווה": { lat: 32.0878, lng: 34.8880, heb: "פתח תקווה", eng: "Petah Tikva" },
+        "חולון": { lat: 32.0178, lng: 34.7804, heb: "חולון", eng: "Holon" },
+        "בני ברק": { lat: 32.0809, lng: 34.8338, heb: "בני ברק", eng: "Bnei Brak" },
+        "רמת גן": { lat: 32.0719, lng: 34.8242, heb: "רמת גן", eng: "Ramat Gan" },
+        "אילת": { lat: 29.5581, lng: 34.9482, heb: "אילת", eng: "Eilat" },
+        "טבריה": { lat: 32.7922, lng: 35.5311, heb: "טבריה", eng: "Tiberias" },
+        "צפת": { lat: 32.9648, lng: 35.4953, heb: "צפת", eng: "Safed" },
+        "הרצליה": { lat: 32.1624, lng: 34.8441, heb: "הרצליה", eng: "Herzliya" },
+        "כפר סבא": { lat: 32.1743, lng: 34.9070, heb: "כפר סבא", eng: "Kfar Saba" },
+        "רעננה": { lat: 32.1845, lng: 34.8708, heb: "רעננה", eng: "Ra'anana" },
+        "מודיעין": { lat: 31.8969, lng: 35.0095, heb: "מודיעין", eng: "Modi'in" },
+        "ראשון לציון": { lat: 31.9730, lng: 34.8066, heb: "ראשון לציון", eng: "Rishon LeZion" },
         "אשקלון": { lat: 31.6688, lng: 34.5742, heb: "אשקלון", eng: "Ashkelon" },
         "רחובות": { lat: 31.8947, lng: 34.8106, heb: "רחובות", eng: "Rehovot" },
-        "בת-ים": { lat: 32.0167, lng: 34.7500, heb: "בת ים", eng: "Bat Yam" }
+        "בת ים": { lat: 32.0167, lng: 34.7500, heb: "בת ים", eng: "Bat Yam" },
+        "גבעתיים": { lat: 32.0694, lng: 34.8106, heb: "גבעתיים", eng: "Givatayim" },
+        "קריית גת": { lat: 31.6103, lng: 34.7642, heb: "קריית גת", eng: "Kiryat Gat" },
+        "קריית שמונה": { lat: 33.2074, lng: 35.5692, heb: "קריית שמונה", eng: "Kiryat Shmona" },
+        "נהריה": { lat: 33.0056, lng: 35.0944, heb: "נהריה", eng: "Nahariya" },
+        "עכו": { lat: 32.9258, lng: 35.0831, heb: "עכו", eng: "Acre" },
+        "לוד": { lat: 31.9494, lng: 34.8961, heb: "לוד", eng: "Lod" },
+        "רמלה": { lat: 31.9297, lng: 34.8706, heb: "רמלה", eng: "Ramla" }
       };
 
       const location = cityCoordinates[city] || cityCoordinates["ירושלים"];
@@ -1237,20 +1258,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Available cities endpoint for location selection
+  // Available cities endpoint for location selection - All major Israeli cities
   app.get("/api/jewish-times/cities", async (req, res) => {
     try {
       const cities = [
         { id: "ירושלים", name: "ירושלים", english: "Jerusalem" },
-        { id: "תל-אביב", name: "תל אביב", english: "Tel Aviv" },
+        { id: "תל אביב", name: "תל אביב", english: "Tel Aviv" },
         { id: "חיפה", name: "חיפה", english: "Haifa" },
-        { id: "באר-שבע", name: "באר שבע", english: "Beersheba" },
-        { id: "אשדוד", name: "אשדוד", english: "Ashdod" },
+        { id: "באר שבע", name: "באר שבע", english: "Beer Sheva" },
         { id: "נתניה", name: "נתניה", english: "Netanya" },
-        { id: "פתח-תקווה", name: "פתח תקווה", english: "Petah Tikva" },
+        { id: "אשדוד", name: "אשדוד", english: "Ashdod" },
+        { id: "פתח תקווה", name: "פתח תקווה", english: "Petah Tikva" },
+        { id: "חולון", name: "חולון", english: "Holon" },
+        { id: "בני ברק", name: "בני ברק", english: "Bnei Brak" },
+        { id: "רמת גן", name: "רמת גן", english: "Ramat Gan" },
+        { id: "אילת", name: "אילת", english: "Eilat" },
+        { id: "טבריה", name: "טבריה", english: "Tiberias" },
+        { id: "צפת", name: "צפת", english: "Safed" },
+        { id: "הרצליה", name: "הרצליה", english: "Herzliya" },
+        { id: "כפר סבא", name: "כפר סבא", english: "Kfar Saba" },
+        { id: "רעננה", name: "רעננה", english: "Ra'anana" },
+        { id: "מודיעין", name: "מודיעין", english: "Modi'in" },
+        { id: "ראשון לציון", name: "ראשון לציון", english: "Rishon LeZion" },
         { id: "אשקלון", name: "אשקלון", english: "Ashkelon" },
         { id: "רחובות", name: "רחובות", english: "Rehovot" },
-        { id: "בת-ים", name: "בת ים", english: "Bat Yam" }
+        { id: "בת ים", name: "בת ים", english: "Bat Yam" },
+        { id: "גבעתיים", name: "גבעתיים", english: "Givatayim" },
+        { id: "קריית גת", name: "קריית גת", english: "Kiryat Gat" },
+        { id: "קריית שמונה", name: "קריית שמונה", english: "Kiryat Shmona" },
+        { id: "נהריה", name: "נהריה", english: "Nahariya" },
+        { id: "עכו", name: "עכו", english: "Acre" },
+        { id: "לוד", name: "לוד", english: "Lod" },
+        { id: "רמלה", name: "רמלה", english: "Ramla" }
       ];
       
       res.json(cities);
