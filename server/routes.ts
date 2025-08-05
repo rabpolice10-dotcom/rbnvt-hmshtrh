@@ -708,7 +708,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const hebcalData = await hebcalResponse.json();
         
-        // Get Hebrew date from Hebcal API
+        // Get Hebrew date and parsha info from Hebcal API
         console.log(`Fetching Hebrew date for: ${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`);
         const hebrewDateResponse = await fetch(
           `https://www.hebcal.com/converter?cfg=json&gy=${now.getFullYear()}&gm=${now.getMonth() + 1}&gd=${now.getDate()}&g2h=1`
@@ -717,9 +717,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Hebrew date response status:', hebrewDateResponse.status);
         
         let hebrewDateInfo = null;
+        let parshaInfo = null;
+        
         if (hebrewDateResponse.ok) {
           hebrewDateInfo = await hebrewDateResponse.json();
           console.log('Hebrew date info:', hebrewDateInfo);
+          
+          // Extract parsha from events if available
+          if (hebrewDateInfo.events && Array.isArray(hebrewDateInfo.events)) {
+            const parshaEvent = hebrewDateInfo.events.find((event: string) => 
+              event.startsWith('Parashat ') || event.includes('פרשת')
+            );
+            if (parshaEvent) {
+              parshaInfo = parshaEvent.replace('Parashat ', 'פרשת ');
+            }
+          }
         }
 
         // Hebrew month names mapping - comprehensive
@@ -741,7 +753,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
           6: "יום שבת קודש" // Saturday
         };
 
-        // Number to Hebrew letters conversion (accurate gematria)
+        // Convert Hebrew year to proper Hebrew letters format (e.g. תשפ"ה)
+        const hebrewYearToLetters = (year: number): string => {
+          // Hebrew years are typically 5000+ so we work with the last few digits
+          const yearStr = year.toString();
+          const lastDigits = parseInt(yearStr.slice(-3)); // Get last 3 digits for conversion
+          
+          const hundreds = Math.floor(lastDigits / 100);
+          const tens = Math.floor((lastDigits % 100) / 10);
+          const ones = lastDigits % 10;
+          
+          const hebrewHundreds: { [key: number]: string } = {
+            1: "ק", 2: "ר", 3: "ש", 4: "ת", 5: "תק", 6: "תר", 7: "תש", 8: "תת", 9: "תתק"
+          };
+          
+          const hebrewTens: { [key: number]: string } = {
+            1: "י", 2: "כ", 3: "ל", 4: "מ", 5: "נ", 6: "ס", 7: "ע", 8: "פ", 9: "צ"
+          };
+          
+          const hebrewOnes: { [key: number]: string } = {
+            1: "א", 2: "ב", 3: "ג", 4: "ד", 5: "ה", 6: "ו", 7: "ז", 8: "ח", 9: "ט"
+          };
+          
+          let result = "";
+          if (hundreds > 0) result += hebrewHundreds[hundreds] || "";
+          if (tens > 0) result += hebrewTens[tens] || "";
+          if (ones > 0) result += hebrewOnes[ones] || "";
+          
+          // Add geresh (״) before last letter for Hebrew year format
+          if (result.length > 1) {
+            result = result.slice(0, -1) + '״' + result.slice(-1);
+          } else if (result.length === 1) {
+            result += '׳';
+          }
+          
+          return result || year.toString();
+        };
+
+        // Number to Hebrew letters conversion for days
         const numberToHebrew = (num: number): string => {
           if (num <= 0) return "";
           
@@ -753,16 +802,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           if (num <= 30) {
             return hebrewNums[num] || num.toString();
-          }
-          
-          // For numbers above 30, use standard Hebrew numbering
-          if (num < 100) {
-            const tens = Math.floor(num / 10) * 10;
-            const ones = num % 10;
-            const tensMap: { [key: number]: string } = {
-              30: "ל", 40: "מ", 50: "נ", 60: "ס", 70: "ע", 80: "פ", 90: "צ"
-            };
-            return (tensMap[tens] || "") + (ones > 0 ? hebrewNums[ones] || "" : "");
           }
           
           return num.toString(); // Fallback for very large numbers
@@ -804,7 +843,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             undefined),
           shabbatEnd: formatTime(hebcalData.times?.tzeit42min || hebcalData.times?.tzeit),
           
-          // Additional times
+          // Extended comprehensive times for detailed view
+          mincha: formatTime(hebcalData.times?.mincha_gedola),
+          minchaKetana: formatTime(hebcalData.times?.mincha_ketana),
+          plagHamincha: formatTime(hebcalData.times?.plag_hamincha),
+          beinHashmashot: formatTime(hebcalData.times?.bein_hashmashos),
+          fastEnds: formatTime(hebcalData.times?.fast_ends),
+          kiddushLevana: formatTime(hebcalData.times?.kiddush_levana_3),
+          chatzot: formatTime(hebcalData.times?.chatzot),
+          chatzotNight: formatTime(hebcalData.times?.chatzot_layla),
+          alotHashachar: formatTime(hebcalData.times?.alot_hashachar),
+          misheyakir: formatTime(hebcalData.times?.misheyakir),
+          misheyakirMachmir: formatTime(hebcalData.times?.misheyakir_machmir),
+          sofZmanShema: formatTime(hebcalData.times?.sof_zman_shma_ma),
+          sofZmanTefilla: formatTime(hebcalData.times?.sof_zman_tfilla_ma),
+          
+          // Basic times for quick reference
           dawn: formatTime(hebcalData.times?.alot_hashachar),
           dusk: formatTime(hebcalData.times?.tzeit),
           midday: formatTime(hebcalData.times?.chatzot),
@@ -821,14 +875,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hebrewDate: hebrewDateInfo ? {
             day: numberToHebrew(hebrewDateInfo.hd),
             month: hebrewMonths[hebrewDateInfo.hm] || hebrewDateInfo.hm,
-            year: numberToHebrew(hebrewDateInfo.hy) || `${hebrewDateInfo.hy}`,
-            formatted: `${numberToHebrew(hebrewDateInfo.hd)} ${hebrewMonths[hebrewDateInfo.hm] || hebrewDateInfo.hm} ${numberToHebrew(hebrewDateInfo.hy)}`
+            year: hebrewYearToLetters(hebrewDateInfo.hy),
+            formatted: `${numberToHebrew(hebrewDateInfo.hd)} ${hebrewMonths[hebrewDateInfo.hm] || hebrewDateInfo.hm} ${hebrewYearToLetters(hebrewDateInfo.hy)}`
           } : {
             day: "",
             month: "",
             year: "",
             formatted: "לא זמין"
           },
+          
+          // Shabbat parsha information
+          parsha: parshaInfo || null,
           
           // Real-time sync indicator
           lastUpdated: new Date().toISOString(),
@@ -880,11 +937,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
               "Av": "אב", "Elul": "אלול"
             };
             
+            const hebrewYearToLettersFallback = (year: number): string => {
+              const yearStr = year.toString();
+              const lastDigits = parseInt(yearStr.slice(-3));
+              const hundreds = Math.floor(lastDigits / 100);
+              const tens = Math.floor((lastDigits % 100) / 10);
+              const ones = lastDigits % 10;
+              
+              const hebrewHundreds: { [key: number]: string } = {
+                1: "ק", 2: "ר", 3: "ש", 4: "ת", 5: "תק", 6: "תר", 7: "תש", 8: "תת", 9: "תתק"
+              };
+              const hebrewTens: { [key: number]: string } = {
+                1: "י", 2: "כ", 3: "ל", 4: "מ", 5: "נ", 6: "ס", 7: "ע", 8: "פ", 9: "צ"
+              };
+              const hebrewOnes: { [key: number]: string } = {
+                1: "א", 2: "ב", 3: "ג", 4: "ד", 5: "ה", 6: "ו", 7: "ז", 8: "ח", 9: "ט"
+              };
+              
+              let result = "";
+              if (hundreds > 0) result += hebrewHundreds[hundreds] || "";
+              if (tens > 0) result += hebrewTens[tens] || "";
+              if (ones > 0) result += hebrewOnes[ones] || "";
+              
+              if (result.length > 1) {
+                result = result.slice(0, -1) + '״' + result.slice(-1);
+              } else if (result.length === 1) {
+                result += '׳';
+              }
+              
+              return result || year.toString();
+            };
+            
             fallbackHebrewDate = {
               day: numberToHebrewFallback(fallbackHebrewInfo.hd),
               month: hebrewMonthsFallback[fallbackHebrewInfo.hm] || fallbackHebrewInfo.hm,
-              year: numberToHebrewFallback(fallbackHebrewInfo.hy),
-              formatted: `${numberToHebrewFallback(fallbackHebrewInfo.hd)} ${hebrewMonthsFallback[fallbackHebrewInfo.hm] || fallbackHebrewInfo.hm} ${numberToHebrewFallback(fallbackHebrewInfo.hy)}`
+              year: hebrewYearToLettersFallback(fallbackHebrewInfo.hy),
+              formatted: `${numberToHebrewFallback(fallbackHebrewInfo.hd)} ${hebrewMonthsFallback[fallbackHebrewInfo.hm] || fallbackHebrewInfo.hm} ${hebrewYearToLettersFallback(fallbackHebrewInfo.hy)}`
             };
             console.log('Successfully got Hebrew date in fallback:', fallbackHebrewDate);
           }

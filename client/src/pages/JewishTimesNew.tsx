@@ -29,6 +29,21 @@ interface JewishTimes {
   shabbatStart: string;
   shabbatEnd: string;
   
+  // Extended times for comprehensive view
+  mincha?: string;
+  minchaKetana?: string;
+  plagHamincha?: string;
+  beinHashmashot?: string;
+  fastEnds?: string;
+  kiddushLevana?: string;
+  chatzot?: string;
+  chatzotNight?: string;
+  alotHashachar?: string;
+  misheyakir?: string;
+  misheyakirMachmir?: string;
+  sofZmanShema?: string;
+  sofZmanTefilla?: string;
+  
   // Additional times
   dawn?: string;
   dusk?: string;
@@ -48,6 +63,9 @@ interface JewishTimes {
     year: string;
     formatted: string;
   };
+  
+  // Shabbat information
+  parsha?: string;
   
   lastUpdated?: string;
   timezone?: string;
@@ -249,14 +267,19 @@ export default function JewishTimesNew() {
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            {formatTimeLabel(jewishTimes.dawn, "עלות השחר")}
+            {formatTimeLabel(jewishTimes.dawn || jewishTimes.alotHashachar, "עלות השחר")}
+            {formatTimeLabel(jewishTimes.misheyakir, "משיכיר")}
             {formatTimeLabel(jewishTimes.sunrise, "זריחה")}
-            {formatTimeLabel(jewishTimes.shemaLatest, "סוף זמן קריאת שמע")}
-            {formatTimeLabel(jewishTimes.tefillaLatest, "סוף זמן תפילה")}
-            {formatTimeLabel(jewishTimes.midday, "חצות היום")}
+            {formatTimeLabel(jewishTimes.shemaLatest || jewishTimes.sofZmanShema, "סוף זמן קריאת שמע")}
+            {formatTimeLabel(jewishTimes.tefillaLatest || jewishTimes.sofZmanTefilla, "סוף זמן תפילה")}
+            {formatTimeLabel(jewishTimes.midday || jewishTimes.chatzot, "חצות היום")}
             {formatTimeLabel(jewishTimes.mincha, "מנחה גדולה")}
+            {formatTimeLabel(jewishTimes.minchaKetana, "מנחה קטנה")}
+            {formatTimeLabel(jewishTimes.plagHamincha, "פלג המנחה")}
             {formatTimeLabel(jewishTimes.sunset, "שקיעה")}
-            {formatTimeLabel(jewishTimes.maariv, "צאת הכוכבים")}
+            {formatTimeLabel(jewishTimes.beinHashmashot, "בין השמשות")}
+            {formatTimeLabel(jewishTimes.maariv || jewishTimes.dusk, "צאת הכוכבים")}
+            {formatTimeLabel(jewishTimes.chatzotNight, "חצות הלילה")}
           </div>
         </CardContent>
       </Card>
@@ -275,9 +298,20 @@ export default function JewishTimesNew() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-1">
-            {formatTimeLabel(jewishTimes.shabbatStart, "הדלקת נרות")}
-            {formatTimeLabel(jewishTimes.shabbatEnd, "צאת השבת")}
+          <div className="space-y-3">
+            {jewishTimes.parsha && (
+              <div className="text-center bg-purple-50 p-3 rounded-lg mb-3">
+                <div className="text-lg font-bold text-purple-800">
+                  {jewishTimes.parsha}
+                </div>
+                <div className="text-xs text-gray-500">פרשת השבוע</div>
+              </div>
+            )}
+            
+            <div className="space-y-1">
+              {formatTimeLabel(jewishTimes.shabbatStart, "הדלקת נרות")}
+              {formatTimeLabel(jewishTimes.shabbatEnd, "צאת השבת")}
+            </div>
           </div>
         </CardContent>
       </Card>
