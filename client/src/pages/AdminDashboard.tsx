@@ -81,6 +81,100 @@ interface QuestionWithAnswers extends Question {
   user?: { fullName: string };
 }
 
+// Edit Answer Component
+function EditAnswerContent({ 
+  questionId, 
+  editingAnswerId, 
+  setEditingAnswerId, 
+  editAnswerText, 
+  setEditAnswerText, 
+  editAnswerMutation 
+}: {
+  questionId: string;
+  editingAnswerId: string;
+  setEditingAnswerId: (id: string) => void;
+  editAnswerText: string;
+  setEditAnswerText: (text: string) => void;
+  editAnswerMutation: any;
+}) {
+  const { data: answers } = useQuery({
+    queryKey: ["/api/answers/question", questionId],
+    queryFn: () => fetch(`/api/answers/question/${questionId}`).then(res => res.json())
+  }) as { data: Answer[] | undefined };
+
+  if (!answers || answers.length === 0) {
+    return <p className="text-gray-600 text-center py-4">אין תשובות לשאלה זו</p>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-gray-600">בחר תשובה לעריכה:</p>
+      {answers.map((answer) => (
+        <div key={answer.id} className="border rounded-lg p-4 space-y-3">
+          <div className="text-right">
+            <p className="text-gray-700 mb-2">{answer.content}</p>
+            <p className="text-xs text-gray-500">
+              נכתב ב-{new Date(answer.createdAt).toLocaleDateString('he-IL')} על ידי {answer.answeredBy}
+            </p>
+          </div>
+          
+          {editingAnswerId === answer.id ? (
+            <div className="space-y-3">
+              <Textarea
+                value={editAnswerText}
+                onChange={(e) => setEditAnswerText(e.target.value)}
+                placeholder="ערוך את התשובה..."
+                rows={4}
+                className="text-right"
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (editAnswerText.trim()) {
+                      editAnswerMutation.mutate({ 
+                        answerId: answer.id, 
+                        content: editAnswerText 
+                      });
+                    }
+                  }}
+                  disabled={!editAnswerText.trim() || editAnswerMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  שמור שינויים
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setEditingAnswerId("");
+                    setEditAnswerText("");
+                  }}
+                >
+                  ביטול
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setEditingAnswerId(answer.id);
+                setEditAnswerText(answer.content);
+              }}
+              className="text-blue-600 border-blue-600 hover:bg-blue-50"
+            >
+              <Edit className="h-4 w-4 ml-1" />
+              ערוך תשובה זו
+            </Button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -158,8 +252,9 @@ export default function AdminDashboard() {
   // User management mutations
   const approveUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      return apiRequest("POST", `/api/admin/approve-user/${userId}`, { 
-        approvedBy: "admin" 
+      return apiRequest(`/api/admin/approve-user/${userId}`, { 
+        method: "POST",
+        body: { approvedBy: "admin" }
       });
     },
     onSuccess: () => {
@@ -176,8 +271,9 @@ export default function AdminDashboard() {
 
   const rejectUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      return apiRequest("POST", `/api/admin/reject-user/${userId}`, { 
-        approvedBy: "admin" 
+      return apiRequest(`/api/admin/reject-user/${userId}`, { 
+        method: "POST",
+        body: { approvedBy: "admin" }
       });
     },
     onSuccess: () => {
@@ -195,12 +291,17 @@ export default function AdminDashboard() {
   // Question management
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>("");
   const [answerText, setAnswerText] = useState("");
+  const [editingAnswerId, setEditingAnswerId] = useState<string>("");
+  const [editAnswerText, setEditAnswerText] = useState("");
 
   const answerQuestionMutation = useMutation({
     mutationFn: async ({ questionId, answer }: { questionId: string; answer: string }) => {
-      return apiRequest("POST", "/api/admin/answers", {
-        questionId,
-        content: answer
+      return apiRequest("/api/admin/answers", {
+        method: "POST",
+        body: {
+          questionId,
+          content: answer
+        }
       });
     },
     onSuccess: async () => {
@@ -209,7 +310,10 @@ export default function AdminDashboard() {
       setSelectedQuestionId("");
       // Mark question as visible when answered
       if (selectedQuestionId) {
-        await apiRequest("POST", `/api/questions/${selectedQuestionId}/set-visible`, { isVisible: true });
+        await apiRequest(`/api/questions/${selectedQuestionId}/set-visible`, { 
+          method: "POST",
+          body: { isVisible: true }
+        });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
     },
@@ -223,8 +327,9 @@ export default function AdminDashboard() {
 
   const approveQuestionMutation = useMutation({
     mutationFn: async (questionId: string) => {
-      return apiRequest("POST", `/api/questions/${questionId}/approve`, {
-        approvedBy: "admin"
+      return apiRequest(`/api/questions/${questionId}/approve`, {
+        method: "POST",
+        body: { approvedBy: "admin" }
       });
     },
     onSuccess: () => {
@@ -235,6 +340,28 @@ export default function AdminDashboard() {
       toast({
         variant: "destructive",
         title: "שגיאה באישור השאלה"
+      });
+    }
+  });
+
+  // Edit answer mutation
+  const editAnswerMutation = useMutation({
+    mutationFn: async ({ answerId, content }: { answerId: string; content: string }) => {
+      return apiRequest(`/api/admin/answers/${answerId}`, {
+        method: "PUT",
+        body: { content }
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "התשובה עודכנה בהצלחה" });
+      setEditAnswerText("");
+      setEditingAnswerId("");
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "שגיאה בעדכון התשובה"
       });
     }
   });
@@ -254,7 +381,10 @@ export default function AdminDashboard() {
     mutationFn: async (data: z.infer<typeof newsSchema>) => {
       // Add deviceId for admin authentication
       const payload = { ...data, deviceId: user?.deviceId };
-      return apiRequest("POST", "/api/admin/news", payload);
+      return apiRequest("/api/admin/news", { 
+        method: "POST",
+        body: payload
+      });
     },
     onSuccess: () => {
       toast({ title: "החדשה נוצרה בהצלחה" });
@@ -269,7 +399,9 @@ export default function AdminDashboard() {
 
   const deleteNewsMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest("DELETE", `/api/admin/news/${id}`, {});
+      return apiRequest(`/api/admin/news/${id}`, { 
+        method: "DELETE"
+      });
     },
     onSuccess: () => {
       toast({ title: "החדשה נמחקה" });
@@ -687,8 +819,9 @@ export default function AdminDashboard() {
                           variant={(question as any).isVisible ? "default" : "outline"}
                           onClick={async () => {
                             try {
-                              await apiRequest("POST", `/api/questions/${question.id}/set-visible`, { 
-                                isVisible: !(question as any).isVisible 
+                              await apiRequest(`/api/questions/${question.id}/set-visible`, { 
+                                method: "POST",
+                                body: { isVisible: !(question as any).isVisible }
                               });
                               // Invalidate both admin and regular question queries
                               queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
@@ -711,7 +844,7 @@ export default function AdminDashboard() {
                         </Button>
 
                         {question.status === "answered" && (
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <Badge className="bg-green-100 text-green-800">
                               <CheckCircle className="h-3 w-3 ml-1" />
                               נענה
@@ -721,6 +854,27 @@ export default function AdminDashboard() {
                                 התראה נשלחה למשתמש
                               </Badge>
                             )}
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button size="sm" variant="outline" className="text-orange-600 border-orange-600 hover:bg-orange-50">
+                                  <Edit className="h-4 w-4 ml-1" />
+                                  ערוך תשובה
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                  <DialogTitle>עריכת תשובה לשאלה</DialogTitle>
+                                </DialogHeader>
+                                <EditAnswerContent 
+                                  questionId={question.id}
+                                  editingAnswerId={editingAnswerId}
+                                  setEditingAnswerId={setEditingAnswerId}
+                                  editAnswerText={editAnswerText}
+                                  setEditAnswerText={setEditAnswerText}
+                                  editAnswerMutation={editAnswerMutation}
+                                />
+                              </DialogContent>
+                            </Dialog>
                           </div>
                         )}
                       </div>

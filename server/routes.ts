@@ -373,6 +373,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin-only: Update answer
+  app.put("/api/admin/answers/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { content } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ error: "Missing content field" });
+      }
+
+      const answer = await storage.updateAnswer(id, { content });
+      res.json({ answer });
+    } catch (error) {
+      console.error("Error updating answer:", error);
+      res.status(500).json({ error: "Failed to update answer" });
+    }
+  });
+
   // News routes
   app.get("/api/news", async (req, res) => {
     try {
