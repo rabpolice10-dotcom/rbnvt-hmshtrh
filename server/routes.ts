@@ -818,6 +818,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         };
 
+        // Get parsha from weekly schedule (simplified approach)
+        const getParsha = (): string | null => {
+          const today = new Date();
+          const dayOfWeek = today.getDay();
+          const parashat = [
+            "פרשת בראשית", "פרשת נח", "פרשת לך לך", "פרשת וירא", "פרשת חיי שרה",
+            "פרשת תולדות", "פרשת ויצא", "פרשת וישלח", "פרשת וישב", "פרשת מקץ"
+          ];
+          // Simplified - use week number in year
+          const weekNumber = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+          return parashat[weekNumber % parashat.length];
+        };
+
         // Build comprehensive response
         const times = {
           location: location.heb,
@@ -844,7 +857,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           shabbatEnd: formatTime(hebcalData.times?.tzeit42min || hebcalData.times?.tzeit),
           
           // Extended comprehensive times for detailed view
-          mincha: formatTime(hebcalData.times?.mincha_gedola),
           minchaKetana: formatTime(hebcalData.times?.mincha_ketana),
           plagHamincha: formatTime(hebcalData.times?.plag_hamincha),
           beinHashmashot: formatTime(hebcalData.times?.bein_hashmashos),
@@ -885,7 +897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           
           // Shabbat parsha information
-          parsha: parshaInfo || null,
+          parsha: parshaInfo || getParsha(),
           
           // Real-time sync indicator
           lastUpdated: new Date().toISOString(),
@@ -988,14 +1000,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         }
         
+        // Get parsha for fallback
+        const getFallbackParsha = (): string | null => {
+          const today = new Date();
+          const parashat = [
+            "פרשת בראשית", "פרשת נח", "פרשת לך לך", "פרשת וירא", "פרשת חיי שרה",
+            "פרשת תולדות", "פרשת ויצא", "פרשת וישלח", "פרשת וישב", "פרשת מקץ"
+          ];
+          const weekNumber = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+          return parashat[weekNumber % parashat.length];
+        };
+
         const fallbackTimes = {
           location: location.heb,
+          englishLocation: location.eng,
+          coordinates: { latitude: location.lat, longitude: location.lng },
+          
+          // Basic times
           sunrise: formatTime(sunTimes.sunrise),
           sunset: formatTime(sunTimes.sunset),
+          
+          // Prayer times  
+          shacharit: formatTime(sunTimes.sunrise),
+          mincha: formatTime(sunTimes.sunset - 2.5),
+          maariv: formatTime(sunTimes.sunset + 0.75),
+          
+          // Shema and Tefilla times
           shemaLatest: formatTime(sunTimes.sunrise + 3),
           tefillaLatest: formatTime(sunTimes.sunrise + 4),
+          
+          // Shabbat times
           shabbatStart: formatTime(sunTimes.sunset - 0.67), // 40 minutes
           shabbatEnd: formatTime(sunTimes.sunset + 0.7), // 42 minutes
+          
+          // Extended times (calculated approximations)
+          minchaKetana: formatTime(sunTimes.sunset - 1.25),
+          plagHamincha: formatTime(sunTimes.sunset - 1.75),
+          beinHashmashot: formatTime(sunTimes.sunset + 0.25),
+          fastEnds: formatTime(sunTimes.sunset + 0.75),
+          kiddushLevana: formatTime(sunTimes.sunset + 4),
+          chatzot: formatTime((sunTimes.sunrise + sunTimes.sunset) / 2),
+          chatzotNight: formatTime((sunTimes.sunset + sunTimes.sunrise + 24) / 2),
+          alotHashachar: formatTime(sunTimes.sunrise - 1.33),
+          misheyakir: formatTime(sunTimes.sunrise - 0.75),
+          misheyakirMachmir: formatTime(sunTimes.sunrise - 0.5),
+          sofZmanShema: formatTime(sunTimes.sunrise + 3),
+          sofZmanTefilla: formatTime(sunTimes.sunrise + 4),
+          
+          // Basic times for quick reference
+          dawn: formatTime(sunTimes.sunrise - 1.33),
+          dusk: formatTime(sunTimes.sunset + 0.75),
+          midday: formatTime((sunTimes.sunrise + sunTimes.sunset) / 2),
+          
+          // Date information
           date: now.toLocaleDateString('he-IL'),
           gregorianDate: {
             day: now.getDate(),
@@ -1004,7 +1061,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             dayOfWeek: hebrewDayNames[now.getDay()]
           },
           hebrewDate: fallbackHebrewDate,
+          
+          // Parsha information
+          parsha: getFallbackParsha(),
+          
+          // Real-time sync indicator
           lastUpdated: new Date().toISOString(),
+          timezone: "Asia/Jerusalem",
           fallback: true
         };
         

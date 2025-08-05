@@ -30,7 +30,6 @@ interface JewishTimes {
   shabbatEnd: string;
   
   // Extended times for comprehensive view
-  mincha?: string;
   minchaKetana?: string;
   plagHamincha?: string;
   beinHashmashot?: string;
@@ -115,7 +114,7 @@ export default function JewishTimesNew() {
     });
   };
 
-  const formatTimeLabel = (time: string, label: string) => {
+  const formatTimeLabel = (time: string | undefined, label: string) => {
     if (!time || time === "לא זמין") return null;
     return (
       <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
