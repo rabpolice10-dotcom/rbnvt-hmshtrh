@@ -985,6 +985,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         
         let fallbackHebrewDate = null;
+        let fallbackParshaInfo = null;
         try {
           // Try direct Hebcal converter API one more time
           const fallbackHebrewResponse = await fetch(
@@ -1047,6 +1048,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
               formatted: `${numberToHebrewFallback(fallbackHebrewInfo.hd)} ${hebrewMonthsFallback[fallbackHebrewInfo.hm] || fallbackHebrewInfo.hm} ${hebrewYearToLettersFallback(fallbackHebrewInfo.hy)}`
             };
             console.log('Successfully got Hebrew date in fallback:', fallbackHebrewDate);
+            
+            // Try to get parsha from fallback Hebrew date
+            if (fallbackHebrewInfo.events && Array.isArray(fallbackHebrewInfo.events)) {
+              const parshaEvent = fallbackHebrewInfo.events.find((event: string) => 
+                event.startsWith('Parashat ') || event.includes('פרשת')
+              );
+              if (parshaEvent) {
+                fallbackParshaInfo = parshaEvent.replace('Parashat ', 'פרשת ');
+              }
+            }
           }
         } catch (error) {
           console.log('Fallback Hebrew date also failed:', error);
@@ -1140,7 +1151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hebrewDate: fallbackHebrewDate,
           
           // Parsha information
-          parsha: parshaInfo || getFallbackParsha(),
+          parsha: fallbackParshaInfo || getFallbackParsha(),
           
           // Real-time sync indicator
           lastUpdated: new Date().toISOString(),
