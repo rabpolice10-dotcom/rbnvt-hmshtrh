@@ -670,6 +670,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
   };
 
+  // Available cities endpoint for location selection - All major Israeli cities
+  app.get("/api/jewish-times/cities", async (req, res) => {
+    try {
+      const cities = [
+        { id: "ירושלים", name: "ירושלים", english: "Jerusalem" },
+        { id: "תל אביב", name: "תל אביב", english: "Tel Aviv" },
+        { id: "חיפה", name: "חיפה", english: "Haifa" },
+        { id: "באר שבע", name: "באר שבע", english: "Beer Sheva" },
+        { id: "נתניה", name: "נתניה", english: "Netanya" },
+        { id: "אשדוד", name: "אשדוד", english: "Ashdod" },
+        { id: "פתח תקווה", name: "פתח תקווה", english: "Petah Tikva" },
+        { id: "חולון", name: "חולון", english: "Holon" },
+        { id: "בני ברק", name: "בני ברק", english: "Bnei Brak" },
+        { id: "רמת גן", name: "רמת גן", english: "Ramat Gan" },
+        { id: "אילת", name: "אילת", english: "Eilat" },
+        { id: "טבריה", name: "טבריה", english: "Tiberias" },
+        { id: "צפת", name: "צפת", english: "Safed" },
+        { id: "הרצליה", name: "הרצליה", english: "Herzliya" },
+        { id: "כפר סבא", name: "כפר סבא", english: "Kfar Saba" },
+        { id: "רעננה", name: "רעננה", english: "Ra'anana" },
+        { id: "מודיעין", name: "מודיעין", english: "Modi'in" },
+        { id: "ראשון לציון", name: "ראשון לציון", english: "Rishon LeZion" },
+        { id: "אשקלון", name: "אשקלון", english: "Ashkelon" },
+        { id: "רחובות", name: "רחובות", english: "Rehovot" },
+        { id: "בת ים", name: "בת ים", english: "Bat Yam" },
+        { id: "גבעתיים", name: "גבעתיים", english: "Givatayim" },
+        { id: "קריית גת", name: "קריית גת", english: "Kiryat Gat" },
+        { id: "קריית שמונה", name: "קריית שמונה", english: "Kiryat Shmona" },
+        { id: "נהריה", name: "נהריה", english: "Nahariya" },
+        { id: "עכו", name: "עכו", english: "Acre" },
+        { id: "לוד", name: "לוד", english: "Lod" },
+        { id: "רמלה", name: "רמלה", english: "Ramla" }
+      ];
+      
+      res.json({ cities: cities });
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      res.status(500).json({ message: "שגיאה בטעינת רשימת הערים" });
+    }
+  });
+
   // Comprehensive Hebrew Times API with reliable Hebcal data
   app.get("/api/jewish-times/:city?", async (req, res) => {
     try {
@@ -1255,47 +1296,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message });
     } catch (error) {
       res.status(500).json({ message: "שגיאה בעדכון הודעה" });
-    }
-  });
-
-  // Available cities endpoint for location selection - All major Israeli cities
-  app.get("/api/jewish-times/cities", async (req, res) => {
-    try {
-      const cities = [
-        { id: "ירושלים", name: "ירושלים", english: "Jerusalem" },
-        { id: "תל אביב", name: "תל אביב", english: "Tel Aviv" },
-        { id: "חיפה", name: "חיפה", english: "Haifa" },
-        { id: "באר שבע", name: "באר שבע", english: "Beer Sheva" },
-        { id: "נתניה", name: "נתניה", english: "Netanya" },
-        { id: "אשדוד", name: "אשדוד", english: "Ashdod" },
-        { id: "פתח תקווה", name: "פתח תקווה", english: "Petah Tikva" },
-        { id: "חולון", name: "חולון", english: "Holon" },
-        { id: "בני ברק", name: "בני ברק", english: "Bnei Brak" },
-        { id: "רמת גן", name: "רמת גן", english: "Ramat Gan" },
-        { id: "אילת", name: "אילת", english: "Eilat" },
-        { id: "טבריה", name: "טבריה", english: "Tiberias" },
-        { id: "צפת", name: "צפת", english: "Safed" },
-        { id: "הרצליה", name: "הרצליה", english: "Herzliya" },
-        { id: "כפר סבא", name: "כפר סבא", english: "Kfar Saba" },
-        { id: "רעננה", name: "רעננה", english: "Ra'anana" },
-        { id: "מודיעין", name: "מודיעין", english: "Modi'in" },
-        { id: "ראשון לציון", name: "ראשון לציון", english: "Rishon LeZion" },
-        { id: "אשקלון", name: "אשקלון", english: "Ashkelon" },
-        { id: "רחובות", name: "רחובות", english: "Rehovot" },
-        { id: "בת ים", name: "בת ים", english: "Bat Yam" },
-        { id: "גבעתיים", name: "גבעתיים", english: "Givatayim" },
-        { id: "קריית גת", name: "קריית גת", english: "Kiryat Gat" },
-        { id: "קריית שמונה", name: "קריית שמונה", english: "Kiryat Shmona" },
-        { id: "נהריה", name: "נהריה", english: "Nahariya" },
-        { id: "עכו", name: "עכו", english: "Acre" },
-        { id: "לוד", name: "לוד", english: "Lod" },
-        { id: "רמלה", name: "רמלה", english: "Ramla" }
-      ];
-      
-      res.json(cities);
-    } catch (error) {
-      console.error('Error fetching cities:', error);
-      res.status(500).json({ message: "שגיאה בטעינת רשימת הערים" });
     }
   });
 
