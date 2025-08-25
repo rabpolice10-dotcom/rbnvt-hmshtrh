@@ -258,7 +258,7 @@ export default function AdminDashboard() {
     mutationFn: async (userId: string) => {
       return apiRequest(`/api/admin/approve-user/${userId}`, { 
         method: "POST",
-        body: { approvedBy: "admin" }
+        body: { approvedBy: "admin", deviceId: user?.deviceId }
       });
     },
     onSuccess: () => {
@@ -277,7 +277,7 @@ export default function AdminDashboard() {
     mutationFn: async (userId: string) => {
       return apiRequest(`/api/admin/reject-user/${userId}`, { 
         method: "POST",
-        body: { approvedBy: "admin" }
+        body: { approvedBy: "admin", deviceId: user?.deviceId }
       });
     },
     onSuccess: () => {
@@ -304,7 +304,8 @@ export default function AdminDashboard() {
         method: "POST",
         body: {
           questionId,
-          content: answer
+          content: answer,
+          deviceId: user?.deviceId
         }
       });
     },
@@ -331,7 +332,7 @@ export default function AdminDashboard() {
     mutationFn: async (questionId: string) => {
       return apiRequest(`/api/questions/${questionId}/approve`, {
         method: "POST",
-        body: { approvedBy: "admin" }
+        body: { approvedBy: "admin", deviceId: user?.deviceId }
       });
     },
     onSuccess: () => {
@@ -351,7 +352,7 @@ export default function AdminDashboard() {
     mutationFn: async ({ answerId, content }: { answerId: string; content: string }) => {
       return apiRequest(`/api/admin/answers/${answerId}`, {
         method: "PUT",
-        body: { content }
+        body: { content, deviceId: user?.deviceId }
       });
     },
     onSuccess: () => {
@@ -374,7 +375,8 @@ export default function AdminDashboard() {
   const deleteQuestionMutation = useMutation({
     mutationFn: async (questionId: string) => {
       return apiRequest(`/api/admin/questions/${questionId}`, {
-        method: "DELETE"
+        method: "DELETE",
+        body: { deviceId: user?.deviceId }
       });
     },
     onSuccess: () => {
@@ -399,7 +401,7 @@ export default function AdminDashboard() {
     mutationFn: async ({ questionId, title, content }: { questionId: string; title: string; content: string }) => {
       return apiRequest(`/api/admin/questions/${questionId}`, {
         method: "PUT",
-        body: { title, content }
+        body: { title, content, deviceId: user?.deviceId }
       });
     },
     onSuccess: () => {
@@ -452,7 +454,8 @@ export default function AdminDashboard() {
   const deleteNewsMutation = useMutation({
     mutationFn: async (id: string) => {
       return apiRequest(`/api/admin/news/${id}`, { 
-        method: "DELETE"
+        method: "DELETE",
+        body: { deviceId: user?.deviceId }
       });
     },
     onSuccess: () => {
@@ -482,9 +485,11 @@ export default function AdminDashboard() {
 
   const createSynagogueMutation = useMutation({
     mutationFn: async (data: z.infer<typeof synagogueSchema>) => {
+      // Add deviceId for admin authentication
+      const payload = { ...data, deviceId: user?.deviceId };
       return apiRequest("/api/admin/synagogues", { 
         method: "POST",
-        body: data
+        body: payload
       });
     },
     onSuccess: () => {
@@ -501,7 +506,8 @@ export default function AdminDashboard() {
   const deleteSynagogueMutation = useMutation({
     mutationFn: async (id: string) => {
       return apiRequest(`/api/admin/synagogues/${id}`, { 
-        method: "DELETE"
+        method: "DELETE",
+        body: { deviceId: user?.deviceId }
       });
     },
     onSuccess: () => {
