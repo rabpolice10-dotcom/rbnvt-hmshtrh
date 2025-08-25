@@ -1,0 +1,72 @@
+מטרה:
+לחשב "זמני היום" המלאים (כולל זמני שבת) באמצעות ספריית KosherZmanim בקוד פתוח, ולמלא אותם לתוך הסכימה/הפורמט הקיים בדיוק, בלי לשנות שמות מפתחות, סדר שדות או טיפוסים. אין להציג למשתמש קווי רוחב/אורך — רק שמות מקומות ותאריכים/שעות.
+
+קלט:
+- city: שם עיר מתוך רשימה סגורה, או "current_location".
+- date: תאריך ב-YYYY-MM-DD (ברירת מחדל: היום לפי Asia/Jerusalem).
+- options (לא חובה): שיטת חישוב tzeit/מישֵיכיר/גר״א/מג״א, candle_offset דק׳ (אם לא הוגדר — לפי ברירת מחדל לעיר, ראו להלן).
+
+רשימת ערים (בחירה למשתמש):
+["ירושלים","תל אביב-יפו","חיפה","באר שבע","אשדוד","ראשון לציון","פתח תקווה","נתניה","חולון","בת ים","רמת גן","גבעתיים","הרצליה","כפר סבא","רעננה","חדרה","מודיעין-מכבים-רעות","אשקלון","רחובות","רמלה","לוד","בית שמש","נהריה","עכו","טבריה","עפולה","נוף הגליל","אילת","קריית שמונה","צפת","זכרון יעקב","יקנעם עילית","קריית גת","קריית מוצקין","קריית ביאליק","קריית ים","אור יהודה"]
+
+כללי פעולה:
+1) בחירת מיקום:
+   - אם city ≠ "current_location": טען פרטי מיקום פנימיים (lat/lon/elevation/tz) מתוך "טבלת מיפוי פנימית" ולא מציגים אותם למשתמש. אין לשאוב גיאוקוד בזמן ריצה מהאינטרנט; העבודה מקומית.
+   - אם city == "current_location": נסה geolocation של המכשיר. אם ההרשאה נחסמת או לא זמינה, אל תשאל שאלה למשתמש — החזר את המבנה המלא עם ערכי null ושדה meta.error="Geolocation denied/unavailable". אין להציג קואורדינטות גם במקרה זה.
+
+2) מקור נתונים וחישוב:
+   - השתמש בספריית KosherZmanim (Java/Node/Python) כדי לחשב את הזמנים ל-date ולמיקום שנקבע.
+   - ברירות מחדל לשיטות (ניתן לשינוי דרך options):
+     • Sof Zman Shma: GRA ומקביל MGA.
+     • Sof Zman Tefilla: GRA ומקביל MGA.
+     • Misheyakir: 11–16 דקות לפני הנץ (או מעלות, אם הוגדרו ב-options).
+     • Tzeit: 42/50/72 דקות אחרי שקיעה (בחר אחת כברירת מחדל, ניתן להחזיר כמה שדות אם קיימים בסכימה).
+   - זמני שבת:
+     • candle_lighting: לפי candle_offset לעיר (ראו סעיף 3).
+     • havdalah: לפי tzeit שבחרת (למשל 72 דקות) או מעלות, בהתאם ל-options.
+
+3) כללי candle_offset לעיר (ברירת מחדל מקומית):
+   - ירושלים: 40 דק׳.
+   - חיפה + זכרון יעקב: 30 דק׳.
+   - כל שאר הערים: 18 דק׳.
+   (אם options.candle_offset הוגדר — הוא גובר על ברירת המחדל.)
+
+4) מיפוי ערכים לשדות הפורמט הקיים (אל תשנה שמות/סדר/טיפוסים):
+   - {{YOUR_SCHEMA.alot}}               ← Alot Hashachar
+   - {{YOUR_SCHEMA.misheyakir}}         ← Misheyakir (לפי הגדרה)
+   - {{YOUR_SCHEMA.sunrise}}            ← Sunrise (נץ)
+   - {{YOUR_SCHEMA.sof_zman_shma_gra}}  ← Sof Zman Shma (GRA)
+   - {{YOUR_SCHEMA.sof_zman_shma_mga}}  ← Sof Zman Shma (MGA)
+   - {{YOUR_SCHEMA.sof_zman_tfilla_gra}}← Sof Zman Tefilla (GRA)
+   - {{YOUR_SCHEMA.sof_zman_tfilla_mga}}← Sof Zman Tefilla (MGA)
+   - {{YOUR_SCHEMA.chatzot}}            ← Chatzot
+   - {{YOUR_SCHEMA.mincha_gedola}}      ← Mincha Gedola
+   - {{YOUR_SCHEMA.mincha_ketana}}      ← Mincha Ketana
+   - {{YOUR_SCHEMA.plag}}               ← Plag Hamincha
+   - {{YOUR_SCHEMA.sunset}}             ← Sunset (שקיעה)
+   - {{YOUR_SCHEMA.tzeit_42}}           ← Tzeit 42m (אם קיים בסכימה)
+   - {{YOUR_SCHEMA.tzeit_50}}           ← Tzeit 50m (אם קיים)
+   - {{YOUR_SCHEMA.tzeit_72}}           ← Tzeit 72m (אם קיים)
+   - {{YOUR_SCHEMA.shabbat.candle_lighting}} ← Candle lighting (לפי offset העיר/‏options)
+   - {{YOUR_SCHEMA.shabbat.havdalah}}        ← Havdalah (לפי tzeit הנבחר)
+   - {{YOUR_SCHEMA.shabbat.parasha}}         ← שם הפרשה (אם הסכימה כוללת – לחשב לפי תאריך עברי/שבת; אם אין — השאר null)
+
+5) פורמט פלט ועמידה בסכימה:
+   - כל הזמנים ב-ISO-8601 כולל אזור זמן (Asia/Jerusalem).
+   - אין להוסיף/להסיר שדות. אם ערך לא זמין — החזר null.
+   - שמור בדיוק על סדר המפתחות הקיים בקובץ המודל שלך.
+   - הוסף מטא:
+     • {{YOUR_SCHEMA.meta.source}} = "KosherZmanim"
+     • {{YOUR_SCHEMA.meta.license}} = "Open Source"
+     • {{YOUR_SCHEMA.meta.city}} = שם העיר שנבחרה ("current_location" במקרה מיקום נוכחי)
+     • {{YOUR_SCHEMA.meta.candle_offset_used}} = הערך בפועל (דקות)
+     • במקרה תקלה — {{YOUR_SCHEMA.meta.error}} = תיאור קצר ("Geolocation denied/unavailable", "Computation error", וכו').
+
+6) טבלת מיפוי פנימית (לא להצגה למשתמש):
+   - שמור קובץ פנימי (למשל cities_il.json) שמכיל עבור כל עיר: name, lat, lon, elevation(optional), tz="Asia/Jerusalem", default_candle_offset.
+   - הטעינה מהקובץ הזה היא פנימית בלבד. אין להציג lat/lon/elevation למשתמש בשום מצב.
+   - התאמת שם עיר: תמוך גם בכתיב חלופי (למשל "ת״א", "תל אביב") — נרמול פנימי, בלי לשנות את השם שמוצג למשתמש.
+
+התנהגות שגיאות (ללא שאלות המשך למשתמש):
+- חסר מיקום/תאריך/הרשאה: החזר את כל השדות לפי הסכימה עם null, ומלא meta.error.
+- במקרה “current_location” בלי הרשאה: אין לנסות חלופות שקטות; החזר שגיאה כנ״ל.
