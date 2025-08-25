@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageCircleQuestion, MapPin, Video, BookOpen, Clock, UserCheck } from "lucide-react";
+import { MessageCircleQuestion, MapPin, Video, BookOpen, Clock, UserCheck, Newspaper } from "lucide-react";
 // import rabbinateLogoUrl from "@assets/rabbinate-logo.png";
 
 export default function Landing() {
@@ -58,7 +58,13 @@ export default function Landing() {
             </CardContent>
           </Card>
 
-          
+          <Card className="shadow-card hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <Newspaper className="h-12 w-12 text-police-blue mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">חדשות ועדכונים</h3>
+              <p className="text-gray-600">עדכונים חשובים מרבנות המשטרה ומידע רלוונטי לשוטרים</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Login/Register Buttons */}
