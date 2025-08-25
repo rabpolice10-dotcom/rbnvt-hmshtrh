@@ -4,18 +4,45 @@ import { Button } from "@/components/ui/button";
 import { Play, ExternalLink } from "lucide-react";
 import type { Video } from "@shared/schema";
 
+// Extract YouTube ID from various URL formats or use as-is if it's already an ID
+const extractYouTubeId = (input: string): string => {
+  // If it's already a clean ID (11 characters, alphanumeric), use it
+  if (/^[a-zA-Z0-9_-]{11}$/.test(input)) {
+    return input;
+  }
+
+  // Try to extract from various YouTube URL formats
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/
+  ];
+
+  for (const pattern of patterns) {
+    const match = input.match(pattern);
+    if (match) {
+      return match[1];
+    }
+  }
+
+  // If no pattern matches, return the input as-is (fallback)
+  return input;
+};
+
 export default function Videos() {
   const { data: videos, isLoading } = useQuery({
     queryKey: ["/api/videos"],
   }) as { data: Video[] | undefined; isLoading: boolean };
 
-  const openYouTube = (youtubeId: string) => {
-    const youtubeUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
+  const openYouTube = (youtubeIdOrUrl: string) => {
+    const videoId = extractYouTubeId(youtubeIdOrUrl);
+    const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
     window.open(youtubeUrl, '_blank');
   };
 
-  const getYouTubeThumbnail = (youtubeId: string) => {
-    return `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`;
+  const getYouTubeThumbnail = (youtubeIdOrUrl: string) => {
+    const videoId = extractYouTubeId(youtubeIdOrUrl);
+    return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
   };
 
   return (
