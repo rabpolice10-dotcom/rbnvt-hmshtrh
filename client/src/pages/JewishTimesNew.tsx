@@ -21,7 +21,13 @@ interface JewishTimes {
   mincha?: string;
   maariv?: string;
   
-  // Shema and Tefilla times
+  // Shema and Tefilla times - separate opinions
+  shemaLatestGra?: string;      // הגר"א
+  shemaLatestMga?: string;      // מגן אברהם
+  tefillaLatestGra?: string;    // הגר"א  
+  tefillaLatestMga?: string;    // מגן אברהם
+  
+  // Backward compatibility
   shemaLatest: string;
   tefillaLatest: string;
   
@@ -116,12 +122,12 @@ export default function JewishTimesNew() {
     });
   };
 
-  const formatTimeLabel = (time: string | undefined, label: string) => {
+  const formatTimeLabel = (time: string | undefined, label: string, colorClass: string = "text-police-blue") => {
     if (!time || time === "לא זמין") return null;
     return (
       <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
         <span className="text-sm text-gray-600">{label}</span>
-        <span className="font-bold text-police-blue">{time}</span>
+        <span className={`font-bold ${colorClass}`}>{time}</span>
       </div>
     );
   };
@@ -271,8 +277,27 @@ export default function JewishTimesNew() {
             {formatTimeLabel(jewishTimes.dawn || jewishTimes.alotHashachar, "עלות השחר")}
             {formatTimeLabel(jewishTimes.misheyakir, "משיכיר")}
             {formatTimeLabel(jewishTimes.sunrise, "זריחה")}
-            {formatTimeLabel(jewishTimes.shemaLatest || jewishTimes.sofZmanShema, "סוף זמן קריאת שמע")}
-            {formatTimeLabel(jewishTimes.tefillaLatest || jewishTimes.sofZmanTefilla, "סוף זמן תפילה")}
+            {/* Shema times with opinions breakdown */}
+            {jewishTimes.shemaLatestGra && jewishTimes.shemaLatestMga ? (
+              <div className="space-y-1 border-r-2 border-blue-200 pr-2">
+                <div className="text-sm font-semibold text-gray-700 mb-1">סוף זמן קריאת שמע:</div>
+                {formatTimeLabel(jewishTimes.shemaLatestMga, "מג\"א", "text-blue-600")}
+                {formatTimeLabel(jewishTimes.shemaLatestGra, "הגר\"א", "text-purple-600")}
+              </div>
+            ) : (
+              formatTimeLabel(jewishTimes.shemaLatest || jewishTimes.sofZmanShema, "סוף זמן קריאת שמע")
+            )}
+            
+            {/* Tefilla times with opinions breakdown */}
+            {jewishTimes.tefillaLatestGra && jewishTimes.tefillaLatestMga ? (
+              <div className="space-y-1 border-r-2 border-green-200 pr-2">
+                <div className="text-sm font-semibold text-gray-700 mb-1">סוף זמן תפילה:</div>
+                {formatTimeLabel(jewishTimes.tefillaLatestMga, "מג\"א", "text-green-600")}
+                {formatTimeLabel(jewishTimes.tefillaLatestGra, "הגר\"א", "text-teal-600")}
+              </div>
+            ) : (
+              formatTimeLabel(jewishTimes.tefillaLatest || jewishTimes.sofZmanTefilla, "סוף זמן תפילה")
+            )}
             {formatTimeLabel(jewishTimes.midday || jewishTimes.chatzot, "חצות היום")}
             {formatTimeLabel(jewishTimes.mincha, "מנחה גדולה")}
             {formatTimeLabel(jewishTimes.minchaKetana, "מנחה קטנה")}
