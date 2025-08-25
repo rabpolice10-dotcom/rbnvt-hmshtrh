@@ -297,6 +297,10 @@ export default function AdminDashboard() {
   const [answerText, setAnswerText] = useState("");
   const [editingAnswerId, setEditingAnswerId] = useState<string>("");
   const [editAnswerText, setEditAnswerText] = useState("");
+  
+  // Edit state for news and synagogues
+  const [editingNewsId, setEditingNewsId] = useState<string>("");
+  const [editingSynagogueId, setEditingSynagogueId] = useState<string>("");
 
   const answerQuestionMutation = useMutation({
     mutationFn: async ({ questionId, answer }: { questionId: string; answer: string }) => {
@@ -451,6 +455,23 @@ export default function AdminDashboard() {
     }
   });
 
+  const updateNewsMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof newsSchema> }) => {
+      return apiRequest(`/api/admin/news/${id}`, { 
+        method: "PUT",
+        body: { ...data, deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "החדשה עודכנה בהצלחה" });
+      setEditingNewsId("");
+      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+    },
+    onError: () => {
+      toast({ variant: "destructive", title: "שגיאה בעדכון החדשה" });
+    }
+  });
+
   const deleteNewsMutation = useMutation({
     mutationFn: async (id: string) => {
       return apiRequest(`/api/admin/news/${id}`, { 
@@ -500,6 +521,23 @@ export default function AdminDashboard() {
     onError: (error) => {
       console.error("Synagogue creation error:", error);
       toast({ variant: "destructive", title: "שגיאה ביצירת בית הכנסת" });
+    }
+  });
+
+  const updateSynagogueMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof synagogueSchema> }) => {
+      return apiRequest(`/api/admin/synagogues/${id}`, { 
+        method: "PUT",
+        body: { ...data, deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "בית הכנסת עודכן בהצלחה" });
+      setEditingSynagogueId("");
+      queryClient.invalidateQueries({ queryKey: ["/api/synagogues"] });
+    },
+    onError: () => {
+      toast({ variant: "destructive", title: "שגיאה בעדכון בית הכנסת" });
     }
   });
 
@@ -1153,6 +1191,93 @@ export default function AdminDashboard() {
                   </DialogContent>
                 </Dialog>
 
+                {/* Edit News Dialog */}
+                <Dialog open={!!editingNewsId} onOpenChange={() => setEditingNewsId("")}>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>ערוך חדשה</DialogTitle>
+                    </DialogHeader>
+                    <Form {...newsForm}>
+                      <form onSubmit={newsForm.handleSubmit((data) => {
+                        updateNewsMutation.mutate({ id: editingNewsId, data });
+                      })} className="space-y-4">
+                        <FormField
+                          control={newsForm.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>כותרת</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="כותרת החדשה" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={newsForm.control}
+                          name="excerpt"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>תקציר (אופציונלי)</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} placeholder="תקציר קצר של החדשה" rows={2} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={newsForm.control}
+                          name="content"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>תוכן</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} placeholder="תוכן מלא של החדשה" rows={5} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={newsForm.control}
+                          name="isUrgent"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center gap-2">
+                              <FormControl>
+                                <input
+                                  type="checkbox"
+                                  checked={field.value}
+                                  onChange={field.onChange}
+                                />
+                              </FormControl>
+                              <FormLabel>חדשה דחופה</FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex gap-2">
+                          <Button 
+                            type="submit" 
+                            disabled={updateNewsMutation.isPending}
+                            className="flex-1"
+                          >
+                            עדכן חדשה
+                          </Button>
+                          <Button 
+                            type="button"
+                            variant="outline"
+                            onClick={() => setEditingNewsId("")}
+                            className="flex-1"
+                          >
+                            ביטול
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
                 {/* News List */}
                 <div className="space-y-3">
                   {newsList?.map((newsItem) => (
@@ -1172,13 +1297,29 @@ export default function AdminDashboard() {
                             {new Date(newsItem.publishedAt).toLocaleDateString('he-IL')}
                           </p>
                         </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => deleteNewsMutation.mutate(newsItem.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingNewsId(newsItem.id);
+                              // Pre-populate the form with existing data
+                              newsForm.setValue("title", newsItem.title);
+                              newsForm.setValue("content", newsItem.content);
+                              newsForm.setValue("excerpt", newsItem.excerpt || "");
+                              newsForm.setValue("isUrgent", newsItem.isUrgent);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteNewsMutation.mutate(newsItem.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1341,6 +1482,159 @@ export default function AdminDashboard() {
                   </DialogContent>
                 </Dialog>
 
+                {/* Edit Synagogue Dialog */}
+                <Dialog open={!!editingSynagogueId} onOpenChange={() => setEditingSynagogueId("")}>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>ערוך בית כנסת</DialogTitle>
+                    </DialogHeader>
+                    <Form {...synagogueForm}>
+                      <form onSubmit={synagogueForm.handleSubmit((data) => {
+                        updateSynagogueMutation.mutate({ id: editingSynagogueId, data });
+                      })} className="space-y-4">
+                        <FormField
+                          control={synagogueForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>שם בית הכנסת</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="שם בית הכנסת" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={synagogueForm.control}
+                          name="address"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>כתובת</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="כתובת מלאה" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={synagogueForm.control}
+                            name="latitude"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>קו רוחב (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="32.0853" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={synagogueForm.control}
+                            name="longitude"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>קו אורך (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="34.7818" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <FormField
+                            control={synagogueForm.control}
+                            name="shacharit"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>שחרית (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="07:00" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={synagogueForm.control}
+                            name="mincha"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>מנחה (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="18:30" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={synagogueForm.control}
+                            name="maariv"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>מעריב (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="19:30" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={synagogueForm.control}
+                          name="contact"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>איש קשר (אופציונלי)</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="שם ומספר טלפון" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={synagogueForm.control}
+                          name="notes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>הערות (אופציונלי)</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} placeholder="הערות נוספות" rows={3} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex gap-2">
+                          <Button 
+                            type="submit" 
+                            disabled={updateSynagogueMutation.isPending}
+                            className="flex-1"
+                          >
+                            עדכן בית כנסת
+                          </Button>
+                          <Button 
+                            type="button"
+                            variant="outline"
+                            onClick={() => setEditingSynagogueId("")}
+                            className="flex-1"
+                          >
+                            ביטול
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
                 {/* Synagogue List */}
                 <div className="space-y-3">
                   {synagogues?.map((synagogue) => (
@@ -1363,13 +1657,34 @@ export default function AdminDashboard() {
                             <p className="text-xs text-gray-500 text-right mt-1">{synagogue.notes}</p>
                           )}
                         </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => deleteSynagogueMutation.mutate(synagogue.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingSynagogueId(synagogue.id);
+                              // Pre-populate the form with existing data
+                              synagogueForm.setValue("name", synagogue.name);
+                              synagogueForm.setValue("address", synagogue.address);
+                              synagogueForm.setValue("latitude", synagogue.latitude || "");
+                              synagogueForm.setValue("longitude", synagogue.longitude || "");
+                              synagogueForm.setValue("shacharit", synagogue.shacharit || "");
+                              synagogueForm.setValue("mincha", synagogue.mincha || "");
+                              synagogueForm.setValue("maariv", synagogue.maariv || "");
+                              synagogueForm.setValue("contact", synagogue.contact || "");
+                              synagogueForm.setValue("notes", synagogue.notes || "");
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteSynagogueMutation.mutate(synagogue.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
