@@ -359,6 +359,8 @@ export default function AdminDashboard() {
       setEditAnswerText("");
       setEditingAnswerId("");
       queryClient.invalidateQueries({ queryKey: ["/api/admin/questions"] });
+      // Invalidate answers queries to refresh the EditAnswerContent component
+      queryClient.invalidateQueries({ queryKey: ["/api/answers/question"] });
     },
     onError: () => {
       toast({
