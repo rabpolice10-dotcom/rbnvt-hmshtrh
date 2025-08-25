@@ -462,6 +462,55 @@ export default function AdminDashboard() {
     }
   });
 
+  // Synagogue management
+  const synagogueForm = useForm<z.infer<typeof synagogueSchema>>({
+    resolver: zodResolver(synagogueSchema),
+    defaultValues: {
+      name: "",
+      address: "",
+      latitude: "",
+      longitude: "",
+      shacharit: "",
+      mincha: "",
+      maariv: "",
+      contact: "",
+      notes: ""
+    }
+  });
+
+  const createSynagogueMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof synagogueSchema>) => {
+      return apiRequest("/api/admin/synagogues", { 
+        method: "POST",
+        body: data
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "בית הכנסת נוצר בהצלחה" });
+      synagogueForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/synagogues"] });
+    },
+    onError: (error) => {
+      console.error("Synagogue creation error:", error);
+      toast({ variant: "destructive", title: "שגיאה ביצירת בית הכנסת" });
+    }
+  });
+
+  const deleteSynagogueMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/admin/synagogues/${id}`, { 
+        method: "DELETE"
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "בית הכנסת נמחק" });
+      queryClient.invalidateQueries({ queryKey: ["/api/synagogues"] });
+    },
+    onError: () => {
+      toast({ variant: "destructive", title: "שגיאה במחיקת בית הכנסת" });
+    }
+  });
+
   // Statistics calculations with dynamic updates
   const statistics = {
     totalUsers: pendingUsers?.length || 0,
@@ -1117,6 +1166,197 @@ export default function AdminDashboard() {
                           variant="destructive"
                           size="sm"
                           onClick={() => deleteNewsMutation.mutate(newsItem.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Synagogue Management */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  ניהול בתי כנסת
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="bg-police-blue hover:bg-police-blue-dark text-white">
+                      <Plus className="h-4 w-4 ml-2" />
+                      הוסף בית כנסת
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>הוספת בית כנסת חדש</DialogTitle>
+                    </DialogHeader>
+                    <Form {...synagogueForm}>
+                      <form onSubmit={synagogueForm.handleSubmit((data) => createSynagogueMutation.mutate(data))} className="space-y-4">
+                        <FormField
+                          control={synagogueForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>שם בית הכנסת</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="הכנס שם בית הכנסת" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={synagogueForm.control}
+                          name="address"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>כתובת</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="כתובת בית הכנסת" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={synagogueForm.control}
+                            name="latitude"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>קו רוחב (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="32.0853" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={synagogueForm.control}
+                            name="longitude"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>קו אורך (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="34.7818" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <FormField
+                            control={synagogueForm.control}
+                            name="shacharit"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>שחרית (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="07:00" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={synagogueForm.control}
+                            name="mincha"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>מנחה (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="18:30" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={synagogueForm.control}
+                            name="maariv"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>מעריב (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="19:30" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={synagogueForm.control}
+                          name="contact"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>איש קשר (אופציונלי)</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="טלפון או שם איש קשר" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={synagogueForm.control}
+                          name="notes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>הערות (אופציונלי)</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} placeholder="הערות נוספות" rows={3} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button 
+                          type="submit" 
+                          disabled={createSynagogueMutation.isPending}
+                          className="w-full"
+                        >
+                          צור בית כנסת
+                        </Button>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Synagogue List */}
+                <div className="space-y-3">
+                  {synagogues?.map((synagogue) => (
+                    <div key={synagogue.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 text-right">
+                          <h3 className="font-semibold text-gray-800 text-right mb-1">{synagogue.name}</h3>
+                          <p className="text-gray-600 text-sm mb-2 text-right">{synagogue.address}</p>
+                          {(synagogue.shacharit || synagogue.mincha || synagogue.maariv) && (
+                            <div className="flex gap-4 text-xs text-gray-500 mb-2 flex-row-reverse">
+                              {synagogue.shacharit && <span>שחרית: {synagogue.shacharit}</span>}
+                              {synagogue.mincha && <span>מנחה: {synagogue.mincha}</span>}
+                              {synagogue.maariv && <span>מעריב: {synagogue.maariv}</span>}
+                            </div>
+                          )}
+                          {synagogue.contact && (
+                            <p className="text-xs text-gray-500 text-right">איש קשר: {synagogue.contact}</p>
+                          )}
+                          {synagogue.notes && (
+                            <p className="text-xs text-gray-500 text-right mt-1">{synagogue.notes}</p>
+                          )}
+                        </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => deleteSynagogueMutation.mutate(synagogue.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
