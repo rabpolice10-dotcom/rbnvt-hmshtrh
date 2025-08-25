@@ -258,7 +258,7 @@ export default function AdminDashboard() {
     mutationFn: async (userId: string) => {
       return apiRequest(`/api/admin/approve-user/${userId}`, { 
         method: "POST",
-        body: { approvedBy: "admin", deviceId: user?.deviceId }
+        body: { approvedBy: "admin", deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
       });
     },
     onSuccess: () => {
@@ -277,7 +277,7 @@ export default function AdminDashboard() {
     mutationFn: async (userId: string) => {
       return apiRequest(`/api/admin/reject-user/${userId}`, { 
         method: "POST",
-        body: { approvedBy: "admin", deviceId: user?.deviceId }
+        body: { approvedBy: "admin", deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
       });
     },
     onSuccess: () => {
@@ -305,7 +305,7 @@ export default function AdminDashboard() {
         body: {
           questionId,
           content: answer,
-          deviceId: user?.deviceId
+          deviceId: localStorage.getItem('deviceId') || 'admin-device-simple'
         }
       });
     },
@@ -332,7 +332,7 @@ export default function AdminDashboard() {
     mutationFn: async (questionId: string) => {
       return apiRequest(`/api/questions/${questionId}/approve`, {
         method: "POST",
-        body: { approvedBy: "admin", deviceId: user?.deviceId }
+        body: { approvedBy: "admin", deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
       });
     },
     onSuccess: () => {
@@ -352,7 +352,7 @@ export default function AdminDashboard() {
     mutationFn: async ({ answerId, content }: { answerId: string; content: string }) => {
       return apiRequest(`/api/admin/answers/${answerId}`, {
         method: "PUT",
-        body: { content, deviceId: user?.deviceId }
+        body: { content, deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
       });
     },
     onSuccess: () => {
@@ -376,7 +376,7 @@ export default function AdminDashboard() {
     mutationFn: async (questionId: string) => {
       return apiRequest(`/api/admin/questions/${questionId}`, {
         method: "DELETE",
-        body: { deviceId: user?.deviceId }
+        body: { deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
       });
     },
     onSuccess: () => {
@@ -401,7 +401,7 @@ export default function AdminDashboard() {
     mutationFn: async ({ questionId, title, content }: { questionId: string; title: string; content: string }) => {
       return apiRequest(`/api/admin/questions/${questionId}`, {
         method: "PUT",
-        body: { title, content, deviceId: user?.deviceId }
+        body: { title, content, deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
       });
     },
     onSuccess: () => {
@@ -434,7 +434,7 @@ export default function AdminDashboard() {
   const createNewsMutation = useMutation({
     mutationFn: async (data: z.infer<typeof newsSchema>) => {
       // Add deviceId for admin authentication
-      const payload = { ...data, deviceId: user?.deviceId };
+      const payload = { ...data, deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' };
       return apiRequest("/api/admin/news", { 
         method: "POST",
         body: payload
@@ -455,7 +455,7 @@ export default function AdminDashboard() {
     mutationFn: async (id: string) => {
       return apiRequest(`/api/admin/news/${id}`, { 
         method: "DELETE",
-        body: { deviceId: user?.deviceId }
+        body: { deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
       });
     },
     onSuccess: () => {
@@ -486,7 +486,7 @@ export default function AdminDashboard() {
   const createSynagogueMutation = useMutation({
     mutationFn: async (data: z.infer<typeof synagogueSchema>) => {
       // Add deviceId for admin authentication
-      const payload = { ...data, deviceId: user?.deviceId };
+      const payload = { ...data, deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' };
       return apiRequest("/api/admin/synagogues", { 
         method: "POST",
         body: payload
@@ -507,7 +507,7 @@ export default function AdminDashboard() {
     mutationFn: async (id: string) => {
       return apiRequest(`/api/admin/synagogues/${id}`, { 
         method: "DELETE",
-        body: { deviceId: user?.deviceId }
+        body: { deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
       });
     },
     onSuccess: () => {
