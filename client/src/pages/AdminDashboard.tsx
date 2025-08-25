@@ -591,34 +591,34 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-2 sm:p-4 space-y-4 sm:space-y-6">
       {/* Header */}
       <Card className="shadow-card bg-gradient-to-r from-police-blue to-police-blue-dark">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between text-white">
-            <div className="flex items-center gap-3">
-              <Shield className="h-8 w-8" />
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-3 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Shield className="h-6 w-6 sm:h-8 sm:w-8" />
               <div>
-                <h1 className="text-2xl font-bold">מערכת ניהול מאוחדת</h1>
-                <p className="text-[#4585d9]">ברוך הבא, {user?.fullName || "מנהל המערכת"}</p>
+                <h1 className="text-lg sm:text-2xl font-bold">מערכת ניהול מאוחדת</h1>
+                <p className="text-[#4585d9] text-sm sm:text-base">ברוך הבא, {user?.fullName || "מנהל המערכת"}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                <span className="text-sm">מערכת פעילה</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+              <div className="flex items-center gap-2 order-2 sm:order-1">
+                <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="text-xs sm:text-sm">מערכת פעילה</span>
               </div>
-              <div className="flex gap-2">
+              <div className="w-full sm:w-auto order-1 sm:order-2">
                 <button 
                   onClick={performLogout}
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-xl shadow-2xl hover:shadow-red-600/50 transition-all duration-300 transform hover:scale-110 hover:-translate-y-1 border-2 border-red-400 hover:border-red-300"
+                  className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-xl shadow-2xl hover:shadow-red-600/50 transition-all duration-300 transform hover:scale-110 hover:-translate-y-1 border-2 border-red-400 hover:border-red-300 text-sm sm:text-base"
                   style={{
                     background: 'linear-gradient(135deg, #dc2626, #b91c1c, #991b1b)',
                     boxShadow: '0 10px 25px rgba(220, 38, 38, 0.4), 0 0 0 1px rgba(239, 68, 68, 0.3)',
                   }}
                 >
-                  <span className="flex items-center gap-2 text-lg">
-                    <span className="text-xl">🚪</span>
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="text-base sm:text-xl">🚪</span>
                     <span>התנתק מהמערכת</span>
                   </span>
                 </button>
@@ -655,36 +655,38 @@ export default function AdminDashboard() {
           }
         }}
       >
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">סקירה כללית</TabsTrigger>
-          <TabsTrigger value="users" className="relative">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 h-auto p-1">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
+            סקירה כללית
+          </TabsTrigger>
+          <TabsTrigger value="users" className="relative text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
             ניהול משתמשים
             {counts.users > 0 && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
+              <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center animate-pulse">
                 {counts.users}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="questions" className="relative">
+          <TabsTrigger value="questions" className="relative text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
             ניהול שאלות
             {counts.questions > 0 && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
+              <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center animate-pulse">
                 {counts.questions}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="content" className="relative">
+          <TabsTrigger value="content" className="relative text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
             ניהול תוכן
             {counts.news > 0 && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
+              <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center animate-pulse">
                 {counts.news}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="messages" className="relative">
+          <TabsTrigger value="messages" className="relative text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
             הודעות
             {counts.contacts > 0 && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse">
+              <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center animate-pulse">
                 {counts.contacts}
               </Badge>
             )}
@@ -692,20 +694,20 @@ export default function AdminDashboard() {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6">
           {/* Statistics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <Card className="shadow-card">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 flex-row-reverse">
-                  <Users className="h-8 w-8 text-blue-600" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3 flex-row-reverse">
+                  <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
                   <div className="text-right flex-1 relative">
-                    <p className="text-sm text-gray-600 text-right">משתמשים ממתינים</p>
-                    <p className="text-2xl font-bold text-gray-800 text-right">{statistics.totalUsers}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 text-right">משתמשים ממתינים</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800 text-right">{statistics.totalUsers}</p>
                     <NotificationBadge 
                       count={badges.users} 
                       isVisible={badges.users > 0}
-                      className="absolute -top-4 -right-4"
+                      className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4"
                     />
                   </div>
                 </div>
@@ -713,16 +715,16 @@ export default function AdminDashboard() {
             </Card>
 
             <Card className="shadow-card">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 flex-row-reverse">
-                  <MessageCircleQuestion className="h-8 w-8 text-orange-600" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3 flex-row-reverse">
+                  <MessageCircleQuestion className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600" />
                   <div className="text-right flex-1 relative">
-                    <p className="text-sm text-gray-600 text-right">שאלות ממתינות</p>
-                    <p className="text-2xl font-bold text-gray-800 text-right">{statistics.pendingQuestions}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 text-right">שאלות ממתינות</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800 text-right">{statistics.pendingQuestions}</p>
                     <NotificationBadge 
                       count={badges.questions} 
                       isVisible={badges.questions > 0}
-                      className="absolute -top-4 -right-4"
+                      className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4"
                     />
                   </div>
                 </div>
@@ -730,24 +732,24 @@ export default function AdminDashboard() {
             </Card>
 
             <Card className="shadow-card">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 flex-row-reverse">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3 flex-row-reverse">
+                  <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                   <div className="text-right flex-1">
-                    <p className="text-sm text-gray-600 text-right">שאלות שנענו</p>
-                    <p className="text-2xl font-bold text-gray-800 text-right">{statistics.answeredQuestions}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 text-right">שאלות שנענו</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800 text-right">{statistics.answeredQuestions}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="shadow-card">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 flex-row-reverse">
-                  <MessageSquare className="h-8 w-8 text-purple-600" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3 flex-row-reverse">
+                  <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600" />
                   <div className="text-right flex-1">
-                    <p className="text-sm text-gray-600 text-right">הודעות חדשות</p>
-                    <p className="text-2xl font-bold text-gray-800 text-right">{statistics.unreadMessages}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 text-right">הודעות חדשות</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800 text-right">{statistics.unreadMessages}</p>
                   </div>
                 </div>
               </CardContent>
@@ -757,32 +759,32 @@ export default function AdminDashboard() {
           {/* Recent Activity */}
           <Card className="shadow-card">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
                 פעילות אחרונה
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            <CardContent className="p-3 sm:p-6">
+              <div className="space-y-2 sm:space-y-3">
                 {pendingUsers?.slice(0, 3).map((user) => (
-                  <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={user.id} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
                     <div className="text-right flex-1">
-                      <p className="font-medium text-right">{user.fullName}</p>
-                      <p className="text-sm text-gray-600 text-right">בקשת הרשמה חדשה</p>
+                      <p className="font-medium text-sm sm:text-base text-right">{user.fullName}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 text-right">בקשת הרשמה חדשה</p>
                     </div>
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="text-xs">
                       <Clock className="h-3 w-3 mr-1" />
                       ממתין
                     </Badge>
                   </div>
                 ))}
                 {allQuestions?.filter(q => q.status === "pending").slice(0, 2).map((question) => (
-                  <div key={question.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={question.id} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
                     <div className="text-right flex-1">
-                      <p className="font-medium text-right">{question.title || question.content.substring(0, 50)}...</p>
-                      <p className="text-sm text-gray-600 text-right">שאלה חדשה ממתינה לתשובה</p>
+                      <p className="font-medium text-sm sm:text-base text-right">{question.title || question.content.substring(0, 50)}...</p>
+                      <p className="text-xs sm:text-sm text-gray-600 text-right">שאלה חדשה ממתינה לתשובה</p>
                     </div>
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="text-xs">
                       <MessageCircleQuestion className="h-3 w-3 mr-1" />
                       ממתין
                     </Badge>
@@ -799,56 +801,56 @@ export default function AdminDashboard() {
         </TabsContent>
 
         {/* Questions Management Tab */}
-        <TabsContent value="questions" className="space-y-4">
+        <TabsContent value="questions" className="space-y-3 sm:space-y-4">
           <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircleQuestion className="h-5 w-5" />
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <MessageCircleQuestion className="h-4 w-4 sm:h-5 sm:w-5" />
                 ניהול שאלות - כל השאלות במערכת
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
               {!allQuestions || allQuestions.length === 0 ? (
                 <p className="text-center text-gray-600 py-8">אין שאלות במערכת</p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {allQuestions.map((question) => (
-                    <div key={question.id} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex justify-between items-start">
+                    <div key={question.id} className="border rounded-lg p-3 sm:p-4 space-y-3">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0">
                         <div className="space-y-2 flex-1 text-right">
-                          <div className="flex items-center gap-2 flex-row-reverse">
-                            <h3 className="font-semibold text-gray-800 text-right">
+                          <div className="flex items-center gap-1 sm:gap-2 flex-row-reverse flex-wrap">
+                            <h3 className="font-semibold text-sm sm:text-base text-gray-800 text-right">
                               {question.title || "שאלה"}
                             </h3>
-                            <Badge variant={question.status === "pending" ? "secondary" : question.status === "answered" ? "default" : "outline"}>
+                            <Badge variant={question.status === "pending" ? "secondary" : question.status === "answered" ? "default" : "outline"} className="text-xs">
                               {question.status === "pending" ? "ממתין" : question.status === "answered" ? "נענה" : "סגור"}
                             </Badge>
                             {question.isUrgent && (
-                              <Badge variant="destructive">דחוף</Badge>
+                              <Badge variant="destructive" className="text-xs">דחוף</Badge>
                             )}
                             {question.isPrivate && (
-                              <Badge variant="outline">פרטי</Badge>
+                              <Badge variant="outline" className="text-xs">פרטי</Badge>
                             )}
                           </div>
-                          <p className="text-gray-600 text-right">{question.content}</p>
-                          <div className="text-sm text-gray-500 text-right">
+                          <p className="text-gray-600 text-sm sm:text-base text-right">{question.content}</p>
+                          <div className="text-xs sm:text-sm text-gray-500 text-right">
                             <p className="text-right">קטגוריה: {question.category}</p>
                             <p className="text-right">תאריך: {new Date(question.createdAt).toLocaleDateString('he-IL')}</p>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="flex gap-2 pt-2 flex-wrap">
+                      <div className="flex gap-1 sm:gap-2 pt-2 flex-wrap">
                         {/* כפתור 1: ענה על השאלה / ערוך תשובה */}
                         {question.status === "pending" ? (
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button
                                 size="sm"
-                                className="bg-green-600 hover:bg-green-700 text-white"
+                                className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm py-2 px-3 sm:py-2 sm:px-4"
                                 onClick={() => setSelectedQuestionId(question.id)}
                               >
-                                <MessageCircle className="h-4 w-4 ml-1" />
+                                <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
                                 ענה על השאלה
                               </Button>
                             </DialogTrigger>
