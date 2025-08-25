@@ -1002,9 +1002,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           mincha: formatTime(hebcalData.times?.minchaGedola),
           maariv: formatTime(hebcalData.times?.tzeit7083deg),
           
-          // Shema and Tefilla times
-          shemaLatest: formatTime(hebcalData.times?.sofZmanShma),
-          tefillaLatest: formatTime(hebcalData.times?.sofZmanTfilla),
+          // Shema and Tefilla times - separate opinions
+          shemaLatestGra: formatTime(hebcalData.times?.sofZmanShma), // הגר"א
+          shemaLatestMga: formatTime(hebcalData.times?.sofZmanShmaMGA), // מגן אברהם
+          tefillaLatestGra: formatTime(hebcalData.times?.sofZmanTfilla), // הגר"א  
+          tefillaLatestMga: formatTime(hebcalData.times?.sofZmanTfillaMGA), // מגן אברהם
+          
+          // Backward compatibility
+          shemaLatest: formatTime(hebcalData.times?.sofZmanShma), // דעת הגר"א (ברירת מחדל)
+          tefillaLatest: formatTime(hebcalData.times?.sofZmanTfilla), // דעת הגר"א (ברירת מחדל)
           
           // Shabbat times (using appropriate times for Friday/Saturday)
           shabbatStart: formatTime(hebcalData.times?.sunset ? 
