@@ -1,6 +1,13 @@
 import express from "express";
 import { createServer } from "http";
 import { storage } from "./storage.js";
+import * as KosherZmanim from "kosher-zmanim";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export function registerRoutes(app: express.Application) {
   // Storage instance
@@ -52,7 +59,7 @@ export function registerRoutes(app: express.Application) {
         return res.status(400).json({ message: "מספר אישי זה כבר רשום במערכת" });
       }
 
-      const user = await storage.createUser({ fullName, personalId, phone, email, password, deviceId });
+      const user = await storage.createUser({ fullName, personalId, phone, email, password });
       res.json({ user });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'שגיאה בהרשמה';
@@ -81,12 +88,8 @@ export function registerRoutes(app: express.Application) {
         return res.status(403).json({ message: "החשבון לא אושר עדיין על ידי מנהל המערכת" });
       }
 
-      // Update device ID and login stats
-      const updatedUser = await storage.updateUser(user.id, {
-        deviceId,
-        lastLoginAt: new Date(),
-        loginCount: (user.loginCount || 0) + 1,
-      });
+      // For now, just return the user (device ID updates would need separate endpoint)
+      const updatedUser = user;
 
       res.json({ user: updatedUser });
     } catch (error) {
@@ -113,11 +116,21 @@ export function registerRoutes(app: express.Application) {
     }
   });
 
+  // Jewish Times API - Completely rewritten with KosherZmanim 0.9.0
+  
   // Cities API
   app.get("/api/jewish-times/cities", async (req, res) => {
     try {
-      const citiesPath = require.resolve('./cities_il.json');
-      const citiesData = require(citiesPath);
+      console.log('Cities endpoint called, __dirname:', __dirname);
+      const citiesPath = path.join(__dirname, 'cities_il.json');
+      console.log('Looking for cities file at:', citiesPath);
+      
+      if (!fs.existsSync(citiesPath)) {
+        console.error('Cities file not found at:', citiesPath);
+        return res.status(500).json({ message: "קובץ ערים לא נמצא" });
+      }
+      
+      const citiesData = JSON.parse(fs.readFileSync(citiesPath, 'utf8'));
       
       const cities = Object.keys(citiesData).map(city => ({
         id: city,
@@ -137,7 +150,7 @@ export function registerRoutes(app: express.Application) {
   const getEnglishCityName = (hebrewCity: string): string => {
     const cityMap: { [key: string]: string } = {
       "ירושלים": "Jerusalem",
-      "תל אביב-יפו": "Tel Aviv-Yafo",
+      "תל אביב-יפו": "Tel Aviv-Yafo", 
       "חיפה": "Haifa",
       "באר שבע": "Beer Sheva",
       "אשדוד": "Ashdod",
@@ -171,216 +184,301 @@ export function registerRoutes(app: express.Application) {
     return cityMap[hebrewCity] || hebrewCity;
   };
 
-  // Jewish Times API using KosherZmanim library
+  // Main Jewish Times API
   app.get("/api/jewish-times/:city?", async (req, res) => {
     try {
-      console.log('Jewish times endpoint called, params:', req.params, 'query:', req.query);
       const requestedCity = req.params.city || "ירושלים";
       const requestDate = req.query.date ? new Date(req.query.date as string) : new Date();
-      const citiesData = require('./cities_il.json');
       
-      // Helper functions
-      const createEmptyJewishTimes = (city: string, date: Date, error: string) => ({
-        location: city,
-        englishLocation: getEnglishCityName(city),
-        sunrise: null,
-        sunset: null,
-        shacharit: null,
-        mincha: null,
-        maariv: null,
-        shemaLatest: null,
-        tefillaLatest: null,
-        shabbatStart: null,
-        shabbatEnd: null,
-        minchaKetana: null,
-        plagHamincha: null,
-        beinHashmashot: null,
-        fastEnds: null,
-        kiddushLevana: null,
-        chatzot: null,
-        chatzotNight: null,
-        alotHashachar: null,
-        misheyakir: null,
-        misheyakirMachmir: null,
-        sofZmanShema: null,
-        sofZmanTefilla: null,
-        dawn: null,
-        dusk: null,
-        midday: null,
-        date: date.toISOString().split('T')[0],
-        gregorianDate: {
-          day: date.getDate(),
-          month: date.getMonth() + 1,
-          year: date.getFullYear(),
-          dayOfWeek: date.toLocaleDateString('he-IL', { weekday: 'long' })
-        },
-        hebrewDate: { day: "א", month: "אלול", year: "תשפ״ה", formatted: "א אלול תשפ״ה" },
-        parsha: null,
-        lastUpdated: new Date().toISOString(),
-        timezone: "Asia/Jerusalem",
-        fallback: true,
-        meta: {
-          source: "KosherZmanim",
-          license: "Open Source",
-          city: city,
-          candle_offset_used: 18,
-          error: error
-        }
-      });
-
-      const calculateParsha = (date: Date): string => {
-        const parashat = [
-          "פרשת דברים", "פרשת ואתחנן", "פרשת עקב", "פרשת ראה", "פרשת שופטים",
-          "פרשת כי תצא", "פרשת כי תבוא", "פרשת נצבים", "פרשת וילך"
-        ];
-        const currentWeek = Math.floor((date.getDate() - 1) / 7);
-        return parashat[Math.min(currentWeek, parashat.length - 1)] || "פרשת ואתחנן";
-      };
-
-      const getHebrewDate = (date: Date) => {
-        const day = date.getDate();
-        const hebrewDayNames = ["", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "יא", "יב", "יג", "יד", "טו", "טז", "יז", "יח", "יט", "כ", "כא", "כב", "כג", "כד", "כה", "כו", "כז", "כח", "כט", "ל"];
-        
-        return {
-          day: hebrewDayNames[day] || day.toString(),
-          month: "אלול",
-          year: "תשפ״ה",
-          formatted: `${hebrewDayNames[day] || day} אלול תשפ״ה`
-        };
-      };
-
+      console.log(`Jewish times request: ${requestedCity} for ${requestDate.toISOString()}`);
+      
+      // Load cities data
+      const citiesPath = path.join(__dirname, 'cities_il.json');
+      const citiesData = JSON.parse(fs.readFileSync(citiesPath, 'utf8'));
+      
       // Handle geolocation request
       if (requestedCity === "current_location") {
-        return res.json(createEmptyJewishTimes("current_location", requestDate, "Geolocation denied/unavailable"));
+        return res.json(createFallbackResponse("current_location", requestDate, "Geolocation not available"));
       }
       
-      // Find city data with support for alternative spellings
-      const locationData = citiesData[requestedCity] || 
-                          citiesData[requestedCity.replace('-', ' ')] ||
-                          citiesData[requestedCity.replace(' ', '-')] ||
-                          citiesData["ירושלים"]; // Default fallback
+      // Find city data
+      const cityData = citiesData[requestedCity] || citiesData["ירושלים"];
       
+      // KosherZmanim is already imported
+      
+      // Calculate Jewish times using the new API
+      const zmanimOptions = {
+        date: requestDate,
+        timeZoneId: cityData.tz || 'Asia/Jerusalem',
+        locationName: getEnglishCityName(requestedCity),
+        latitude: cityData.lat,
+        longitude: cityData.lon,
+        elevation: cityData.elevation || 0,
+        complexZmanim: true
+      };
+      
+      console.log('Calculating zmanim with options:', zmanimOptions);
+      
+      let zmanimResult: any;
       try {
-        console.log('Jewish times request for city:', requestedCity);
-        console.log('Location data:', locationData);
+        zmanimResult = KosherZmanim.getZmanimJson(zmanimOptions);
+        console.log('Zmanim result structure:', Object.keys(zmanimResult));
+      } catch (libError) {
+        console.error('KosherZmanim library error:', libError);
+        console.error('Error type:', typeof libError);
+        console.error('Error message:', libError instanceof Error ? libError.message : String(libError));
         
-        const { ComplexZmanimCalendar, GeoLocation } = require('kosher-zmanim');
-        
-        // Create GeoLocation object
-        const geoLocation = new GeoLocation(
-          getEnglishCityName(requestedCity),
-          locationData.lat,
-          locationData.lon,
-          locationData.elevation || 0,
-          locationData.tz
-        );
-        
-        // Initialize KosherZmanim calculator
-        const zmanim = new ComplexZmanimCalendar(geoLocation);
-        zmanim.setCalendar(requestDate);
-        
-        // Calculate candle lighting offset (default per city)
-        const candleOffset = locationData.default_candle_offset;
-        
-        // Calculate all required times
-        const formatTime = (date: Date | null) => {
-          if (!date || isNaN(date.getTime())) return null;
-          return date.toISOString();
-        };
-
-        // Get Shabbat times (for the upcoming Friday/Saturday)
-        const today = new Date(requestDate);
-        const fridayDate = new Date(today);
-        const daysToFriday = (5 - today.getDay() + 7) % 7;
-        fridayDate.setDate(today.getDate() + daysToFriday);
-        
-        const fridayZmanim = new ComplexZmanimCalendar(geoLocation);
-        fridayZmanim.setCalendar(fridayDate);
-        
-        const candleLighting = fridayZmanim.getSunset();
-        if (candleLighting) {
-          candleLighting.setTime(candleLighting.getTime() - candleOffset * 60000);
-        }
-
-        // Build response according to existing schema
-        const jewishTimesResponse = {
-          location: requestedCity,
-          englishLocation: getEnglishCityName(requestedCity),
-          
-          // Basic times  
-          sunrise: formatTime(zmanim.getSunrise()),
-          sunset: formatTime(zmanim.getSunset()),
-          
-          // Prayer times - mapped to existing schema
-          shacharit: null, // Service times not calculated by zmanim
-          mincha: null,
-          maariv: null,
-          
-          // Shema and Tefilla times
-          shemaLatest: formatTime(zmanim.getSofZmanShmaGRA()),
-          tefillaLatest: formatTime(zmanim.getSofZmanTfilaGRA()),
-          
-          // Shabbat times
-          shabbatStart: formatTime(candleLighting),
-          shabbatEnd: formatTime(fridayZmanim.getTzais72Minutes()),
-          
-          // Extended times
-          minchaKetana: formatTime(zmanim.getMinchaKetana()),
-          plagHamincha: formatTime(zmanim.getPlagHamincha()),
-          beinHashmashot: null,
-          fastEnds: null,
-          kiddushLevana: null,
-          chatzot: formatTime(zmanim.getChatzos()),
-          chatzotNight: null,
-          alotHashachar: formatTime(zmanim.getAlosHashachar()),
-          misheyakir: formatTime(zmanim.getMisheyakir11Point5Degrees()),
-          misheyakirMachmir: null,
-          sofZmanShema: formatTime(zmanim.getSofZmanShmaGRA()),
-          sofZmanTefilla: formatTime(zmanim.getSofZmanTfilaGRA()),
-          
-          // Additional times
-          dawn: formatTime(zmanim.getAlosHashachar()),
-          dusk: formatTime(zmanim.getTzais72Minutes()),
-          midday: formatTime(zmanim.getChatzos()),
-          
-          // Date information
-          date: requestDate.toISOString().split('T')[0],
-          gregorianDate: {
-            day: requestDate.getDate(),
-            month: requestDate.getMonth() + 1,
-            year: requestDate.getFullYear(),
-            dayOfWeek: requestDate.toLocaleDateString('he-IL', { weekday: 'long' })
-          },
-          hebrewDate: getHebrewDate(requestDate),
-          
-          // Shabbat information
-          parsha: calculateParsha(requestDate),
-          
-          lastUpdated: new Date().toISOString(),
-          timezone: "Asia/Jerusalem",
-          fallback: false,
-          
-          // Meta information as per specification
-          meta: {
-            source: "KosherZmanim",
-            license: "Open Source",
-            city: requestedCity,
-            candle_offset_used: candleOffset
-          }
-        };
-        
-        res.json(jewishTimesResponse);
-      } catch (error) {
-        console.error('KosherZmanim calculation error:', error);
-        console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
-        console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack');
-        return res.json(createEmptyJewishTimes(requestedCity, requestDate, "Computation error"));
+        // Return fallback response with error details
+        return res.status(500).json({
+          message: "שגיאה בספריית KosherZmanim",
+          error: libError instanceof Error ? libError.message : String(libError),
+          fallback: true
+        });
       }
+      
+      // Check if we have the Zmanim object
+      if (zmanimResult.Zmanim) {
+        console.log('Full Zmanim object keys:', Object.keys(zmanimResult.Zmanim));
+        console.log('First few zmanim:', JSON.stringify(Object.fromEntries(Object.entries(zmanimResult.Zmanim).slice(0, 5)), null, 2));
+      }
+      
+      // Calculate Hebrew date
+      const hebrewDate = calculateHebrewDate(requestDate);
+      
+      // Calculate Parsha
+      const parsha = calculateCurrentParsha(requestDate);
+      
+      // Safe access to zmanim data first
+      const zmanim = zmanimResult.Zmanim || {};
+      
+      // Calculate Shabbat times properly
+      const shabbatTimes = calculateShabbatTimes(requestDate, cityData, zmanim);
+      
+      // Format times consistently
+      const formatTime = (dateTime: any) => {
+        if (!dateTime) return null;
+        try {
+          const date = new Date(dateTime);
+          if (isNaN(date.getTime())) return null;
+          return date.toISOString();
+        } catch {
+          return null;
+        }
+      };
+
+      // zmanim already defined above
+      
+      // Debug: log available zmanim times
+      console.log('Available zmanim times:', Object.keys(zmanim));
+      console.log('Sample zmanim values:', { 
+        Sunrise: zmanim.Sunrise, 
+        Sunset: zmanim.Sunset,
+        Hanetz: zmanim.Hanetz,
+        Shkia: zmanim.Shkia 
+      });
+
+      // Build comprehensive response
+      const response = {
+        location: requestedCity,
+        englishLocation: getEnglishCityName(requestedCity),
+        
+        // Basic sun times - try different property names
+        sunrise: formatTime(zmanim.Sunrise || zmanim.Hanetz || zmanim.sunrise),
+        sunset: formatTime(zmanim.Sunset || zmanim.Shkia || zmanim.sunset),
+        
+        // Prayer times (estimated based on zmanim)
+        shacharit: formatTime(zmanim.SofZmanShmaGRA),
+        mincha: formatTime(zmanim.MinchaGedola),
+        maariv: formatTime(zmanim.Tzais72),
+        
+        // Shema and Tefilla times
+        shemaLatest: formatTime(zmanim.SofZmanShmaGRA),
+        tefillaLatest: formatTime(zmanim.SofZmanTfilaGRA),
+        
+        // Shabbat times
+        shabbatStart: formatTime(shabbatTimes.candleLighting),
+        shabbatEnd: formatTime(shabbatTimes.havdalah),
+        
+        // Extended zmanim
+        minchaKetana: formatTime(zmanim.MinchaKetana),
+        plagHamincha: formatTime(zmanim.PlagHamincha),
+        beinHashmashot: formatTime(zmanim.BainHashmashos),
+        fastEnds: formatTime(zmanim.Tzais72),
+        kiddushLevana: null,
+        chatzot: formatTime(zmanim.Chatzos),
+        chatzotNight: formatTime(zmanim.ChatzosLayla),
+        alotHashachar: formatTime(zmanim.Alos72),
+        misheyakir: formatTime(zmanim.MisheyakirMachmir),
+        misheyakirMachmir: formatTime(zmanim.MisheyakirMachmir),
+        sofZmanShema: formatTime(zmanim.SofZmanShmaGRA),
+        sofZmanTefilla: formatTime(zmanim.SofZmanTfilaGRA),
+        
+        // Additional times
+        dawn: formatTime(zmanim.Alos72),
+        dusk: formatTime(zmanim.Tzais72),
+        midday: formatTime(zmanim.Chatzos),
+        
+        // Date information
+        date: requestDate.toISOString().split('T')[0],
+        gregorianDate: {
+          day: requestDate.getDate(),
+          month: requestDate.getMonth() + 1,
+          year: requestDate.getFullYear(),
+          dayOfWeek: requestDate.toLocaleDateString('he-IL', { weekday: 'long' })
+        },
+        hebrewDate: hebrewDate,
+        
+        // Torah portion
+        parsha: parsha,
+        
+        lastUpdated: new Date().toISOString(),
+        timezone: cityData.tz || "Asia/Jerusalem",
+        fallback: false,
+        
+        // Meta information
+        meta: {
+          source: "KosherZmanim 0.9.0",
+          license: "Open Source",
+          city: requestedCity,
+          candle_offset_used: cityData.default_candle_offset
+        }
+      };
+      
+      console.log('Successfully calculated zmanim for', requestedCity);
+      res.json(response);
+      
     } catch (error) {
-      console.error('Jewish times API error:', error);
+      console.error('Jewish times calculation error:', error);
       res.status(500).json({ message: "שגיאה בחישוב זמני היום" });
     }
   });
+
+  // Helper functions for Jewish times calculation
+  function createFallbackResponse(city: string, date: Date, errorMsg: string) {
+    return {
+      location: city,
+      englishLocation: getEnglishCityName(city),
+      sunrise: null,
+      sunset: null,
+      shacharit: null,
+      mincha: null,
+      maariv: null,
+      shemaLatest: null,
+      tefillaLatest: null,
+      shabbatStart: null,
+      shabbatEnd: null,
+      minchaKetana: null,
+      plagHamincha: null,
+      beinHashmashot: null,
+      fastEnds: null,
+      kiddushLevana: null,
+      chatzot: null,
+      chatzotNight: null,
+      alotHashachar: null,
+      misheyakir: null,
+      misheyakirMachmir: null,
+      sofZmanShema: null,
+      sofZmanTefilla: null,
+      dawn: null,
+      dusk: null,
+      midday: null,
+      date: date.toISOString().split('T')[0],
+      gregorianDate: {
+        day: date.getDate(),
+        month: date.getMonth() + 1,
+        year: date.getFullYear(),
+        dayOfWeek: date.toLocaleDateString('he-IL', { weekday: 'long' })
+      },
+      hebrewDate: { day: "א", month: "אלול", year: "תשפ״ה", formatted: "א אלול תשפ״ה" },
+      parsha: null,
+      lastUpdated: new Date().toISOString(),
+      timezone: "Asia/Jerusalem",
+      fallback: true,
+      meta: {
+        source: "KosherZmanim 0.9.0",
+        license: "Open Source",
+        city: city,
+        candle_offset_used: 18,
+        error: errorMsg
+      }
+    };
+  }
+
+  function calculateHebrewDate(date: Date) {
+    // Simple Hebrew date calculation - can be enhanced with proper Hebrew calendar
+    const day = date.getDate();
+    const hebrewDayNames = ["", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", 
+                           "יא", "יב", "יג", "יד", "טו", "טז", "יז", "יח", "יט", "כ", 
+                           "כא", "כב", "כג", "כד", "כה", "כו", "כז", "כח", "כט", "ל"];
+    
+    return {
+      day: hebrewDayNames[day] || day.toString(),
+      month: "אלול", // Current Hebrew month - should be calculated properly
+      year: "תשפ״ה", // Current Hebrew year - should be calculated properly
+      formatted: `${hebrewDayNames[day] || day} אלול תשפ״ה`
+    };
+  }
+
+  function calculateCurrentParsha(date: Date): string {
+    // Simple Parsha calculation based on week in year
+    const parashat = [
+      "פרשת בראשית", "פרשת נח", "פרשת לך לך", "פרשת וירא", "פרשת חיי שרה",
+      "פרשת תולדות", "פרשת ויצא", "פרשת וישלח", "פרשת וישב", "פרשת מקץ",
+      "פרשת ויגש", "פרשת ויחי", "פרשת שמות", "פרשת וארא", "פרשת בא",
+      "פרשת בשלח", "פרשת יתרו", "פרשת משפטים", "פרשת תרומה", "פרשת תצוה"
+    ];
+    
+    const weekInYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / (1000 * 60 * 60 * 24 * 7));
+    return parashat[weekInYear % parashat.length] || "פרשת בראשית";
+  }
+
+  function calculateShabbatTimes(date: Date, cityData: any, zmanim: any) {
+    try {
+      // Find sunset time from zmanim
+      const sunset = zmanim.Sunset || zmanim.Shkia || zmanim.sunset;
+      
+      if (!sunset) {
+        console.log('No sunset time found in zmanim');
+        return { candleLighting: null, havdalah: null };
+      }
+      
+      // Find the upcoming Friday for Shabbat
+      const today = new Date(date);
+      const daysToFriday = (5 - today.getDay() + 7) % 7;
+      
+      // If today is Friday, use today; otherwise find next Friday
+      const fridayDate = new Date(today);
+      if (daysToFriday > 0) {
+        fridayDate.setDate(today.getDate() + daysToFriday);
+      }
+      
+      // Candle lighting time (sunset minus offset on Friday)
+      const sunsetTime = new Date(sunset);
+      const candleLighting = new Date(sunsetTime.getTime() - (cityData.default_candle_offset * 60000));
+      
+      // Havdalah time (72 minutes after sunset on Saturday)
+      const saturdayDate = new Date(fridayDate);
+      saturdayDate.setDate(fridayDate.getDate() + 1);
+      const havdalah = new Date(sunsetTime.getTime() + (72 * 60000)); // 72 minutes after sunset
+      
+      console.log('Calculated Shabbat times:', { 
+        candleLighting: candleLighting.toISOString(), 
+        havdalah: havdalah.toISOString() 
+      });
+      
+      return {
+        candleLighting: candleLighting.toISOString(),
+        havdalah: havdalah.toISOString()
+      };
+      
+    } catch (error) {
+      console.error('Error calculating Shabbat times:', error);
+      return {
+        candleLighting: null,
+        havdalah: null
+      };
+    }
+  }
 
   // Questions API
   app.post("/api/questions", requireDeviceId, async (req, res) => {
