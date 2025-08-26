@@ -1293,244 +1293,19 @@ export default function AdminDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="bg-police-blue hover:bg-police-blue-dark text-white">
-                      <Plus className="h-4 w-4 ml-2" />
-                      הוסף חדשה
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>הוספת חדשה חדשה</DialogTitle>
-                    </DialogHeader>
-                    <Form {...newsForm}>
-                      <form onSubmit={newsForm.handleSubmit((data) => createNewsMutation.mutate(data))} className="space-y-4">
-                        <FormField
-                          control={newsForm.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>כותרת</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="הכנס כותרת החדשה" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={newsForm.control}
-                          name="excerpt"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>תקציר (אופציונלי)</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="תקציר קצר של החדשה" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={newsForm.control}
-                          name="content"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>תוכן</FormLabel>
-                              <FormControl>
-                                <Textarea {...field} placeholder="תוכן מלא של החדשה" rows={5} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={newsForm.control}
-                          name="isUrgent"
-                          render={({ field }) => (
-                            <FormItem className="flex items-center gap-2">
-                              <FormControl>
-                                <input
-                                  type="checkbox"
-                                  checked={field.value}
-                                  onChange={field.onChange}
-                                />
-                              </FormControl>
-                              <FormLabel>חדשה דחופה</FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                        <Button 
-                          type="submit" 
-                          disabled={createNewsMutation.isPending}
-                          className="w-full"
-                        >
-                          צור חדשה
-                        </Button>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-
-                {/* Edit News Dialog */}
-                <Dialog open={!!editingNewsId} onOpenChange={() => setEditingNewsId("")}>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>ערוך חדשה</DialogTitle>
-                    </DialogHeader>
-                    <Form {...newsForm}>
-                      <form onSubmit={newsForm.handleSubmit((data) => {
-                        updateNewsMutation.mutate({ id: editingNewsId, data });
-                      })} className="space-y-4">
-                        <FormField
-                          control={newsForm.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>כותרת</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="כותרת החדשה" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={newsForm.control}
-                          name="excerpt"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>תקציר (אופציונלי)</FormLabel>
-                              <FormControl>
-                                <Textarea {...field} placeholder="תקציר קצר של החדשה" rows={2} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={newsForm.control}
-                          name="content"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>תוכן</FormLabel>
-                              <FormControl>
-                                <Textarea {...field} placeholder="תוכן מלא של החדשה" rows={5} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={newsForm.control}
-                          name="isUrgent"
-                          render={({ field }) => (
-                            <FormItem className="flex items-center gap-2">
-                              <FormControl>
-                                <input
-                                  type="checkbox"
-                                  checked={field.value}
-                                  onChange={field.onChange}
-                                />
-                              </FormControl>
-                              <FormLabel>חדשה דחופה</FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                        <div className="flex gap-2">
-                          <Button 
-                            type="submit" 
-                            disabled={updateNewsMutation.isPending}
-                            className="flex-1"
-                          >
-                            עדכן חדשה
-                          </Button>
-                          <Button 
-                            type="button"
-                            variant="outline"
-                            onClick={() => setEditingNewsId("")}
-                            className="flex-1"
-                          >
-                            ביטול
-                          </Button>
-                        </div>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-
-                {/* News List */}
-                <div className="space-y-3">
-                  {newsList?.map((newsItem) => (
-                    <div key={newsItem.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1 text-right">
-                          <div className="flex items-center gap-2 mb-2 flex-row-reverse">
-                            <h3 className="font-semibold text-gray-800 text-right">{newsItem.title}</h3>
-                            {newsItem.isUrgent && (
-                              <Badge variant="destructive">דחוף</Badge>
-                            )}
-                          </div>
-                          {newsItem.excerpt && (
-                            <p className="text-gray-600 text-sm mb-2 text-right">{newsItem.excerpt}</p>
-                          )}
-                          <p className="text-xs text-gray-500 text-right">
-                            {new Date(newsItem.publishedAt).toLocaleDateString('he-IL')}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingNewsId(newsItem.id);
-                              // Pre-populate the form with existing data
-                              newsForm.setValue("title", newsItem.title);
-                              newsForm.setValue("content", newsItem.content);
-                              newsForm.setValue("excerpt", newsItem.excerpt || "");
-                              newsForm.setValue("isUrgent", newsItem.isUrgent);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => deleteNewsMutation.mutate(newsItem.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Synagogue Management */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  ניהול בתי כנסת
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="bg-police-blue hover:bg-police-blue-dark text-white">
-                      <Plus className="h-4 w-4 ml-2" />
-                      הוסף בית כנסת
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>הוספת בית כנסת חדש</DialogTitle>
-                    </DialogHeader>
-                    <Form {...synagogueForm}>
-                      <form onSubmit={synagogueForm.handleSubmit((data) => createSynagogueMutation.mutate(data))} className="space-y-4">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-police-blue hover:bg-police-blue-dark text-white">
+                    <Plus className="h-4 w-4 ml-2" />
+                    הוסף בית כנסת
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>הוספת בית כנסת חדש</DialogTitle>
+                  </DialogHeader>
+                  <Form {...synagogueForm}>
+                    <form onSubmit={synagogueForm.handleSubmit((data) => createSynagogueMutation.mutate(data))} className="space-y-4">
                         <FormField
                           control={synagogueForm.control}
                           name="name"
@@ -1908,12 +1683,14 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+        </TabsContent>
 
-            {/* Daily Halacha Management */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
+        {/* Halacha Management Tab */}
+        <TabsContent value="halacha" className="space-y-4">
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
                   ניהול הלכה יומית
                 </CardTitle>
               </CardHeader>
