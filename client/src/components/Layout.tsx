@@ -184,7 +184,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400"></div>
         <div className="absolute inset-0 bg-gradient-to-tl from-white/10 via-transparent to-white/20"></div>
         
-        <div className="relative z-10 px-6 py-4">
+        <div className="relative z-10 px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-reverse space-x-4">
               <button 
