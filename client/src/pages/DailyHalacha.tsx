@@ -180,7 +180,7 @@ export default function DailyHalachaPage() {
                   <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                     <div className="flex items-center text-xs text-gray-500">
                       <Clock className="h-3 w-3 ml-1" />
-                      <span>נוצר: {new Date(halacha.createdAt).toLocaleDateString('he-IL')}</span>
+                      <span>{new Date(halacha.date).toLocaleDateString('he-IL')}</span>
                     </div>
                     {new Date(halacha.date).toDateString() === new Date().toDateString() && (
                       <Badge variant="default" className="bg-purple-600 text-white text-xs">
