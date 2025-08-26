@@ -526,9 +526,12 @@ export default function AdminDashboard() {
 
   const updateSynagogueMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof synagogueSchema> }) => {
+      const deviceId = localStorage.getItem('deviceId') || 'admin-device-simple';
+      const payload = { ...data, deviceId };
+      console.log('Updating synagogue:', { id, payload });
       return apiRequest(`/api/admin/synagogues/${id}`, { 
         method: "PUT",
-        body: { ...data, deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
+        body: payload
       });
     },
     onSuccess: () => {
@@ -536,7 +539,8 @@ export default function AdminDashboard() {
       setEditingSynagogueId("");
       queryClient.invalidateQueries({ queryKey: ["/api/synagogues"] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Synagogue update error:', error);
       toast({ variant: "destructive", title: "שגיאה בעדכון בית הכנסת" });
     }
   });
