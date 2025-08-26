@@ -582,7 +582,11 @@ export default function AdminDashboard() {
   const createHalachaMutation = useMutation({
     mutationFn: async (data: z.infer<typeof halachaSchema>) => {
       const deviceId = localStorage.getItem('deviceId') || 'admin-device-simple';
-      const payload = { ...data, deviceId };
+      const payload = { 
+        ...data, 
+        date: new Date(data.date), 
+        deviceId 
+      };
       return apiRequest("/api/admin/daily-halacha", { 
         method: "POST",
         body: payload
@@ -607,7 +611,11 @@ export default function AdminDashboard() {
   const updateHalachaMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof halachaSchema> }) => {
       const deviceId = localStorage.getItem('deviceId') || 'admin-device-simple';
-      const payload = { ...data, deviceId };
+      const payload = { 
+        ...data, 
+        date: new Date(data.date), 
+        deviceId 
+      };
       return apiRequest(`/api/admin/daily-halacha/${id}`, { 
         method: "PUT",
         body: payload
