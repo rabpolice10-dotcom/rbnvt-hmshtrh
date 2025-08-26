@@ -1,0 +1,44 @@
+You are an expert web engineer. Upgrade my existing site to a standards-compliant PWA that opens in full-screen when installed to the iOS/iPadOS Home Screen.
+
+Requirements:
+1) In index.html <head> add:
+   - <meta name="apple-mobile-web-app-title" content="YourApp">
+   - <meta name="apple-mobile-web-app-capable" content="yes">
+   - <meta name="apple-mobile-web-app-status-bar-style" content="default">
+   - <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
+   - <link rel="manifest" href="/manifest.webmanifest">
+   - <meta name="theme-color" content="#0a84ff"> and viewport meta.
+
+2) Create /manifest.webmanifest with:
+   {
+     "name": "Your App",
+     "short_name": "YourApp",
+     "start_url": "/",
+     "scope": "/",
+     "display": "standalone",
+     "background_color": "#ffffff",
+     "theme_color": "#0a84ff",
+     "icons": [
+       {"src": "/icons/icon-192.png","sizes":"192x192","type":"image/png"},
+       {"src": "/icons/icon-512.png","sizes":"512x512","type":"image/png"},
+       {"src": "/icons/apple-touch-icon-180.png","sizes":"180x180","type":"image/png"}
+     ]
+   }
+
+3) Use as the built-in application icon the Police Rabbinate logo that currently appears at the top of the user’s home page. Extract that logo, save it as transparent PNG, and place versions in /icons:
+   - apple-touch-icon-180.png
+   - icon-192.png
+   - icon-512.png
+
+4) Add a minimal service worker at /sw.js (cache app shell; see standard sample), and register it in main.js:
+   if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
+
+5) Ensure paths are correct for my deployment root. If the app serves from a subpath, adjust start_url and scope accordingly.
+
+6) Build a quick smoke test page section that shows:
+   - Whether navigator.standalone (iOS) or display-mode: standalone (matchMedia) is active.
+   - A note with instructions: “Add to Home Screen to use full-screen”.
+
+7) Do not introduce any bundler or framework. Keep it plain HTML/CSS/JS. Commit changes and run on HTTPS (Replit Deployments already provide HTTPS).
+
+8) Verify the installability in the browser’s Application > Manifest panel and confirm iOS full-screen behavior via Add to Home Screen.
