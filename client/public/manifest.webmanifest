@@ -1,0 +1,50 @@
+{
+  "name": "רבנות המשטרה - משטרת ישראל",
+  "short_name": "רבנות המשטרה",
+  "description": "אפליקציית רבנות המשטרה - שאלות לרבנים, זמני יום, בתי כנסת ועוד",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/apple-touch-icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["lifestyle", "utilities"],
+  "shortcuts": [
+    {
+      "name": "שאל את הרב",
+      "short_name": "שאלה",
+      "description": "שלח שאלה לרב",
+      "url": "/questions",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "זמני היום",
+      "short_name": "זמנים",
+      "description": "צפה בזמני היום",
+      "url": "/jewish-times",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

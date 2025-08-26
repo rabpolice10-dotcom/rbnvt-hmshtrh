@@ -16,6 +16,7 @@ import Contact from "@/pages/Contact";
 import JewishTimesNew from "@/pages/JewishTimesNew";
 import DailyHalacha from "@/pages/DailyHalacha";
 import News from "@/pages/News";
+import PWATest from "@/pages/PWATest";
 import Landing from "@/pages/Landing";
 import Register from "@/pages/Register";
 import Login from "@/pages/Login";
@@ -61,6 +62,7 @@ function AppContent() {
           <Route path="/jewish-times" component={JewishTimesNew} />
           <Route path="/daily-halacha" component={DailyHalacha} />
           <Route path="/news" component={News} />
+          <Route path="/pwa-test" component={PWATest} />
           <Route path="*">
             {() => {
               // For any unmatched route when authenticated, redirect to home

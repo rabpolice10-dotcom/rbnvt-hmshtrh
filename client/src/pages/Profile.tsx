@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { User, Phone, IdCard, Calendar, LogOut, Settings, Bell, Clock, MessageCircle, Video, Mail } from "lucide-react";
+import { User, Phone, IdCard, Calendar, LogOut, Settings, Bell, Clock, MessageCircle, Video, Mail, Smartphone } from "lucide-react";
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -206,6 +206,29 @@ export default function Profile() {
             data-testid="button-contact-admin"
           >
             צור קשר עם המנהל
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* PWA Test - Temporary for testing */}
+      <Card className="shadow-card border-green-200 bg-green-50">
+        <CardHeader>
+          <CardTitle className="flex items-center text-green-700">
+            <Smartphone className="h-5 w-5 ml-2" />
+            בדיקת PWA (זמני)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-700 mb-4">
+            בדוק את פונקציונליות ה-PWA של האפליקציה ואמתת התקנה על מכשיר נייד.
+          </p>
+          <Button 
+            variant="outline" 
+            className="w-full border-green-500 text-green-700 hover:bg-green-100"
+            onClick={() => setLocation("/pwa-test")}
+            data-testid="button-pwa-test"
+          >
+            בדיקת PWA
           </Button>
         </CardContent>
       </Card>
