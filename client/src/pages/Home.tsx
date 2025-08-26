@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { AskRabbiModal } from "@/components/AskRabbiModal";
 import { MessageCircleQuestion, Clock, BookOpen, Newspaper, Sun, Calendar, CheckCircle, TriangleAlert, Bell, BellRing } from "lucide-react";
 import type { News, DailyHalacha, Question, Notification } from "@shared/schema";
-import { getHebrewDate, formatHebrewDateSync } from "@/utils/hebrewDate";
+import { getHebrewDate } from "@/utils/hebrewDate";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import logo from "@assets/bf4d69d1-82e0-4b41-bc8c-ecca5ca6a895_1753886576969.jpeg";
@@ -228,7 +228,7 @@ export default function Home(): JSX.Element {
               <div className="mt-3 flex items-center justify-between">
                 <div className="text-xs text-gray-500 flex items-center">
                   <Calendar className="h-3 w-3 ml-1" />
-                  <span>{formatHebrewDateSync(dailyHalacha.date, jewishTimes)}</span>
+                  <span>{new Date(dailyHalacha.date).toLocaleDateString('he-IL')}</span>
                 </div>
                 <Button 
                   variant="outline" 

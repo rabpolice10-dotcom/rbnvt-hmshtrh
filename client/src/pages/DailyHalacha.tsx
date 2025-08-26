@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Search, Calendar, Clock, Filter } from "lucide-react";
 import type { DailyHalacha } from "@shared/schema";
-import { formatHebrewDateSync } from "@/utils/hebrewDate";
 
 export default function DailyHalachaPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -87,7 +86,7 @@ export default function DailyHalachaPage() {
             <p className="text-gray-700 leading-relaxed text-lg mb-4">{todayHalacha.content}</p>
             <div className="flex items-center text-sm text-gray-600">
               <Calendar className="h-4 w-4 ml-1" />
-              <span>{formatHebrewDateSync(todayHalacha.date)}</span>
+              <span>{new Date(todayHalacha.date).toLocaleDateString('he-IL')}</span>
             </div>
           </CardContent>
         </Card>
@@ -170,7 +169,7 @@ export default function DailyHalachaPage() {
                     )}
                     <div className="flex items-center text-sm text-gray-500">
                       <Calendar className="h-4 w-4 ml-1" />
-                      <span>{formatHebrewDateSync(halacha.date)}</span>
+                      <span>{new Date(halacha.date).toLocaleDateString('he-IL')}</span>
                     </div>
                   </div>
 

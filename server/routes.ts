@@ -1105,7 +1105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Shabbat times (using appropriate times for Friday/Saturday)
           shabbatStart: formatTime(hebcalData.times?.sunset ? 
             new Date(new Date(hebcalData.times.sunset).getTime() - 18 * 60000).toISOString() : 
-            ""),
+            undefined),
           shabbatEnd: formatTime(hebcalData.times?.tzeit42min || hebcalData.times?.tzeit72min),
           
           // Extended times - using exact field names from successful API tests
@@ -1463,7 +1463,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const question = await storage.updateQuestion(id, {
         title,
-        content
+        content,
+        updatedAt: new Date()
       });
       
       res.json({ question });
