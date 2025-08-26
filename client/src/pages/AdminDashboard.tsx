@@ -778,7 +778,7 @@ export default function AdminDashboard() {
           }
         }}
       >
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1 h-auto p-1">
           <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
             סקירה כללית
           </TabsTrigger>
@@ -805,6 +805,9 @@ export default function AdminDashboard() {
                 {counts.news}
               </Badge>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="halacha" className="text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
+            הלכות יומיות
           </TabsTrigger>
           <TabsTrigger value="messages" className="relative text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
             הודעות
@@ -1844,7 +1847,6 @@ export default function AdminDashboard() {
                                 <Input 
                                   {...field} 
                                   type="date"
-                                  defaultValue={new Date().toISOString().split('T')[0]}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -2015,6 +2017,127 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Halacha Management Tab */}
+        <TabsContent value="halacha" className="space-y-4">
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
+                ניהול הלכות יומיות
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 p-3 sm:p-6">
+              {/* Add New Halacha Form */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">הוספת הלכה יומית חדשה</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Form {...halachaForm}>
+                    <form onSubmit={halachaForm.handleSubmit((data) => createHalachaMutation.mutate(data))} className="space-y-4">
+                      <FormField
+                        control={halachaForm.control}
+                        name="date"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>תאריך</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                type="date"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={halachaForm.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>כותרת</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="כותרת ההלכה" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={halachaForm.control}
+                        name="content"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>תוכן ההלכה</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                {...field} 
+                                placeholder="תוכן ההלכה..."
+                                className="min-h-[100px]"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button 
+                        type="submit" 
+                        disabled={createHalachaMutation.isPending}
+                        className="w-full bg-police-blue hover:bg-police-blue-dark"
+                      >
+                        {createHalachaMutation.isPending ? "מוסיף..." : "הוסף הלכה"}
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+
+              {/* Halachot List */}
+              <div className="space-y-3">
+                {!halachot || halachot.length === 0 ? (
+                  <p className="text-center text-gray-600 py-8">אין הלכות יומיות במערכת</p>
+                ) : (
+                  halachot.map((halacha) => (
+                    <div key={halacha.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 text-right">
+                          <h3 className="font-semibold text-gray-800 text-right mb-1">{halacha.title}</h3>
+                          <p className="text-gray-600 text-sm mb-2 text-right">
+                            תאריך: {new Date(halacha.date).toLocaleDateString('he-IL')}
+                          </p>
+                          <p className="text-gray-700 text-sm text-right line-clamp-3">{halacha.content}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingHalachaId(halacha.id);
+                              halachaForm.setValue("title", halacha.title);
+                              halachaForm.setValue("content", halacha.content);
+                              halachaForm.setValue("date", new Date(halacha.date).toISOString().split('T')[0]);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteHalachaMutation.mutate(halacha.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Messages Tab */}
