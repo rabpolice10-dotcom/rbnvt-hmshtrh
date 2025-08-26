@@ -210,22 +210,41 @@ export function Layout({ children }: LayoutProps) {
               </button>
             </div>
             
-            {/* Enhanced logout button */}
-            <button
-              onClick={() => {
-                localStorage.removeItem("device-id");
-                window.location.href = '/login';
-              }}
-              className="group relative overflow-hidden bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-white/10"
-            >
-              <span className="relative z-10 flex items-center space-x-reverse space-x-2">
-                <span>התנתק</span>
-                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700 -skew-x-12"></div>
-            </button>
+            {/* Profile and logout buttons */}
+            <div className="flex flex-col gap-2">
+              {/* Personal Area Button */}
+              <button
+                onClick={() => setLocation("/profile")}
+                className="group relative overflow-hidden bg-green-500/10 hover:bg-green-500/20 backdrop-blur-sm border border-green-400/20 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-400/10"
+                data-testid="button-personal-area"
+              >
+                <span className="relative z-10 flex items-center space-x-reverse space-x-2">
+                  <span>שלום, {user.fullName?.split(' ')[0] || user.email.split('@')[0]}</span>
+                  <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-400/10 to-transparent group-hover:translate-x-full transition-transform duration-700 -skew-x-12"></div>
+              </button>
+
+              {/* Enhanced logout button */}
+              <button
+                onClick={() => {
+                  localStorage.removeItem("device-id");
+                  window.location.href = '/login';
+                }}
+                className="group relative overflow-hidden bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-white/10"
+                data-testid="button-logout"
+              >
+                <span className="relative z-10 flex items-center space-x-reverse space-x-2">
+                  <span>התנתק</span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700 -skew-x-12"></div>
+              </button>
+            </div>
           </div>
         </div>
         
