@@ -254,6 +254,11 @@ export default function AdminDashboard() {
     enabled: hasAdminAccess
   }) as { data: ContactMessage[] | undefined };
 
+  const { data: halachot } = useQuery({
+    queryKey: ["/api/daily-halacha/all"],
+    enabled: hasAdminAccess
+  }) as { data: DailyHalacha[] | undefined };
+
   // User management mutations
   const approveUserMutation = useMutation({
     mutationFn: async (userId: string) => {
@@ -299,9 +304,10 @@ export default function AdminDashboard() {
   const [editingAnswerId, setEditingAnswerId] = useState<string>("");
   const [editAnswerText, setEditAnswerText] = useState("");
   
-  // Edit state for news and synagogues
+  // Edit state for news, synagogues, and halacha
   const [editingNewsId, setEditingNewsId] = useState<string>("");
   const [editingSynagogueId, setEditingSynagogueId] = useState<string>("");
+  const [editingHalachaId, setEditingHalachaId] = useState<string>("");
 
   const answerQuestionMutation = useMutation({
     mutationFn: async ({ questionId, answer }: { questionId: string; answer: string }) => {
@@ -506,6 +512,15 @@ export default function AdminDashboard() {
     }
   });
 
+  const halachaForm = useForm<z.infer<typeof halachaSchema>>({
+    resolver: zodResolver(halachaSchema),
+    defaultValues: {
+      title: "",
+      content: "",
+      date: new Date().toISOString().split('T')[0]
+    }
+  });
+
   const createSynagogueMutation = useMutation({
     mutationFn: async (data: z.infer<typeof synagogueSchema>) => {
       // Add deviceId for admin authentication
@@ -560,6 +575,70 @@ export default function AdminDashboard() {
     },
     onError: () => {
       toast({ variant: "destructive", title: "שגיאה במחיקת בית הכנסת" });
+    }
+  });
+
+  // Halacha management mutations
+  const createHalachaMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof halachaSchema>) => {
+      const deviceId = localStorage.getItem('deviceId') || 'admin-device-simple';
+      const payload = { ...data, deviceId };
+      return apiRequest("/api/admin/daily-halacha", { 
+        method: "POST",
+        body: payload
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "הלכה יומית נוצרה בהצלחה" });
+      halachaForm.reset({
+        title: "",
+        content: "",
+        date: new Date().toISOString().split('T')[0]
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/daily-halacha/all"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/daily-halacha"] });
+    },
+    onError: (error) => {
+      console.error("Halacha creation error:", error);
+      toast({ variant: "destructive", title: "שגיאה ביצירת הלכה יומית" });
+    }
+  });
+
+  const updateHalachaMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof halachaSchema> }) => {
+      const deviceId = localStorage.getItem('deviceId') || 'admin-device-simple';
+      const payload = { ...data, deviceId };
+      return apiRequest(`/api/admin/daily-halacha/${id}`, { 
+        method: "PUT",
+        body: payload
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "הלכה יומית עודכנה בהצלחה" });
+      setEditingHalachaId("");
+      queryClient.invalidateQueries({ queryKey: ["/api/daily-halacha/all"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/daily-halacha"] });
+    },
+    onError: (error) => {
+      console.error('Halacha update error:', error);
+      toast({ variant: "destructive", title: "שגיאה בעדכון הלכה יומית" });
+    }
+  });
+
+  const deleteHalachaMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/admin/daily-halacha/${id}`, { 
+        method: "DELETE",
+        body: { deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "הלכה יומית נמחקה" });
+      queryClient.invalidateQueries({ queryKey: ["/api/daily-halacha/all"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/daily-halacha"] });
+    },
+    onError: () => {
+      toast({ variant: "destructive", title: "שגיאה במחיקת הלכה יומית" });
     }
   });
 
@@ -1722,6 +1801,209 @@ export default function AdminDashboard() {
                             variant="destructive"
                             size="sm"
                             onClick={() => deleteSynagogueMutation.mutate(synagogue.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Daily Halacha Management */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  ניהול הלכה יומית
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="bg-police-blue hover:bg-police-blue-dark text-white">
+                      <Plus className="h-4 w-4 ml-2" />
+                      הוסף הלכה יומית
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>הוספת הלכה יומית חדשה</DialogTitle>
+                    </DialogHeader>
+                    <Form {...halachaForm}>
+                      <form onSubmit={halachaForm.handleSubmit((data) => createHalachaMutation.mutate(data))} className="space-y-4">
+                        <FormField
+                          control={halachaForm.control}
+                          name="date"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>תאריך</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  type="date"
+                                  defaultValue={new Date().toISOString().split('T')[0]}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={halachaForm.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>כותרת (אופציונלי)</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="כותרת ההלכה" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={halachaForm.control}
+                          name="content"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>תוכן ההלכה</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} placeholder="תוכן ההלכה היומית" rows={6} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button 
+                          type="submit" 
+                          disabled={createHalachaMutation.isPending}
+                          className="w-full"
+                        >
+                          צור הלכה יומית
+                        </Button>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Edit Halacha Dialog */}
+                <Dialog open={!!editingHalachaId} onOpenChange={() => setEditingHalachaId("")}>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>ערוך הלכה יומית</DialogTitle>
+                    </DialogHeader>
+                    <Form {...halachaForm}>
+                      <form onSubmit={halachaForm.handleSubmit((data) => {
+                        updateHalachaMutation.mutate({ id: editingHalachaId, data });
+                      })} className="space-y-4">
+                        <FormField
+                          control={halachaForm.control}
+                          name="date"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>תאריך</FormLabel>
+                              <FormControl>
+                                <Input {...field} type="date" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={halachaForm.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>כותרת (אופציונלי)</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="כותרת ההלכה" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={halachaForm.control}
+                          name="content"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>תוכן ההלכה</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} placeholder="תוכן ההלכה היומית" rows={6} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex gap-2">
+                          <Button 
+                            type="submit" 
+                            disabled={updateHalachaMutation.isPending}
+                            className="flex-1"
+                          >
+                            עדכן הלכה
+                          </Button>
+                          <Button 
+                            type="button"
+                            variant="outline"
+                            onClick={() => setEditingHalachaId("")}
+                            className="flex-1"
+                          >
+                            ביטול
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Halacha List */}
+                <div className="space-y-3">
+                  {halachot?.map((halacha) => (
+                    <div key={halacha.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 text-right">
+                          <div className="flex items-center gap-2 mb-2 flex-row-reverse">
+                            <span className="text-sm font-medium text-gray-600">
+                              {new Date(halacha.date).toLocaleDateString('he-IL')}
+                            </span>
+                            {new Date(halacha.date).toDateString() === new Date().toDateString() && (
+                              <Badge className="bg-purple-100 text-purple-800">היום</Badge>
+                            )}
+                          </div>
+                          {halacha.title && (
+                            <h3 className="font-semibold text-gray-800 text-right mb-2">{halacha.title}</h3>
+                          )}
+                          <p className="text-gray-700 text-sm text-right line-clamp-2">
+                            {halacha.content.length > 150 
+                              ? halacha.content.substring(0, 150) + "..." 
+                              : halacha.content}
+                          </p>
+                          <p className="text-xs text-gray-500 text-right mt-2">
+                            נוצר: {new Date(halacha.createdAt).toLocaleDateString('he-IL')}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingHalachaId(halacha.id);
+                              // Pre-populate the form with existing data
+                              halachaForm.setValue("title", halacha.title || "");
+                              halachaForm.setValue("content", halacha.content);
+                              halachaForm.setValue("date", new Date(halacha.date).toISOString().split('T')[0]);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteHalachaMutation.mutate(halacha.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

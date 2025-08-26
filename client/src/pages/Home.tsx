@@ -200,22 +200,59 @@ export default function Home(): JSX.Element {
       {/* Daily Halacha Card */}
       <Card className="shadow-card">
         <CardContent className="p-4">
-          <div className="flex items-center mb-3">
-            <BookOpen className="h-5 w-5 text-purple-600 ml-2" />
-            <h3 className="font-bold text-gray-800">הלכה יומית לשוטרים</h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <BookOpen className="h-5 w-5 text-purple-600 ml-2" />
+              <h3 className="font-bold text-gray-800">הלכה יומית לשוטרים</h3>
+            </div>
+            <Button 
+              variant="ghost" 
+              className="text-police-blue text-sm p-0 h-auto"
+              onClick={() => window.location.pathname = "/daily-halacha"}
+              data-testid="button-view-all-halacha"
+            >
+              צפה בכל
+            </Button>
           </div>
           
           {dailyHalacha ? (
             <>
-              <p className="text-gray-700 leading-relaxed">{dailyHalacha.content}</p>
-              <div className="mt-3 text-xs text-gray-500 flex items-center">
-                <Calendar className="h-3 w-3 ml-1" />
-                <span>{new Date(dailyHalacha.date).toLocaleDateString('he-IL')}</span>
+              {dailyHalacha.title && (
+                <h4 className="font-semibold text-gray-800 mb-2">{dailyHalacha.title}</h4>
+              )}
+              <p className="text-gray-700 leading-relaxed line-clamp-2">
+                {dailyHalacha.content.length > 120 
+                  ? dailyHalacha.content.substring(0, 120) + "..." 
+                  : dailyHalacha.content}
+              </p>
+              <div className="mt-3 flex items-center justify-between">
+                <div className="text-xs text-gray-500 flex items-center">
+                  <Calendar className="h-3 w-3 ml-1" />
+                  <span>{new Date(dailyHalacha.date).toLocaleDateString('he-IL')}</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => window.location.pathname = "/daily-halacha"}
+                  data-testid="button-read-more-halacha"
+                >
+                  קרא עוד
+                </Button>
               </div>
             </>
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-500">אין הלכה יומית זמינה כרגע</p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="mt-2"
+                onClick={() => window.location.pathname = "/daily-halacha"}
+                data-testid="button-browse-halacha"
+              >
+                עיין בהלכות קודמות
+              </Button>
             </div>
           )}
         </CardContent>

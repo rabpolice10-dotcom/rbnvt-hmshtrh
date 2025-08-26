@@ -406,6 +406,10 @@ export class DatabaseStorage implements IStorage {
     await db.delete(dailyHalacha).where(eq(dailyHalacha.id, id));
   }
 
+  async getAllHalachot(): Promise<DailyHalacha[]> {
+    return db.select().from(dailyHalacha).orderBy(desc(dailyHalacha.date));
+  }
+
   async getAllVideos(): Promise<Video[]> {
     return db.select().from(videos).orderBy(desc(videos.createdAt));
   }

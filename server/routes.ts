@@ -545,6 +545,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all daily halachot (for the halacha page)
+  app.get("/api/daily-halacha/all", async (req, res) => {
+    try {
+      const halachot = await storage.getAllHalachot();
+      res.json(halachot);
+    } catch (error) {
+      console.error("Error fetching all halachot:", error);
+      res.status(500).json({ message: "שגיאה בטעינת הלכות" });
+    }
+  });
+
   // Admin-only: Create daily halacha
   app.post("/api/admin/daily-halacha", requireAdmin, async (req, res) => {
     try {

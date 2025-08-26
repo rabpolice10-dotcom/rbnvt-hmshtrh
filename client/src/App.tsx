@@ -14,6 +14,7 @@ import Profile from "@/pages/Profile";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Contact from "@/pages/Contact";
 import JewishTimesNew from "@/pages/JewishTimesNew";
+import DailyHalacha from "@/pages/DailyHalacha";
 import News from "@/pages/News";
 import Landing from "@/pages/Landing";
 import Register from "@/pages/Register";
@@ -58,6 +59,7 @@ function AppContent() {
           <Route path="/profile" component={Profile} />
           <Route path="/contact" component={Contact} />
           <Route path="/jewish-times" component={JewishTimesNew} />
+          <Route path="/daily-halacha" component={DailyHalacha} />
           <Route path="/news" component={News} />
           <Route path="*">
             {() => {
