@@ -43,7 +43,7 @@ export function Layout({ children }: LayoutProps) {
                   <img 
                     src={logo} 
                     alt="לוגו רבנות המשטרה" 
-                    className="h-14 w-14 drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 filter brightness-110" 
+                    className="h-16 w-16 drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 filter brightness-110" 
                   />
                   <div className="absolute inset-0 bg-white/20 rounded-full blur-lg group-hover:bg-white/30 transition-all duration-300"></div>
                 </div>
@@ -110,7 +110,7 @@ export function Layout({ children }: LayoutProps) {
                   <img 
                     src={logo} 
                     alt="לוגו רבנות המשטרה" 
-                    className="h-14 w-14 drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 filter brightness-110" 
+                    className="h-16 w-16 drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 filter brightness-110" 
                   />
                   <div className="absolute inset-0 bg-white/20 rounded-full blur-lg group-hover:bg-white/30 transition-all duration-300"></div>
                 </div>
@@ -195,7 +195,7 @@ export function Layout({ children }: LayoutProps) {
                   <img 
                     src={logo} 
                     alt="לוגו רבנות המשטרה" 
-                    className="h-14 w-14 drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 filter brightness-110" 
+                    className="h-16 w-16 drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 filter brightness-110" 
                   />
                   <div className="absolute inset-0 bg-white/20 rounded-full blur-lg group-hover:bg-white/30 transition-all duration-300"></div>
                 </div>
