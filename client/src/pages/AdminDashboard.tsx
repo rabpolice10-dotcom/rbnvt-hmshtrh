@@ -798,13 +798,8 @@ export default function AdminDashboard() {
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="news" className="relative text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
+          <TabsTrigger value="news" className="text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
             חדשות
-            {counts.news > 0 && (
-              <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center animate-pulse">
-                {counts.news}
-              </Badge>
-            )}
           </TabsTrigger>
           <TabsTrigger value="synagogues" className="text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
             בתי כנסת
@@ -1279,6 +1274,144 @@ export default function AdminDashboard() {
                   </Form>
                 </DialogContent>
               </Dialog>
+
+              {/* Edit News Dialog */}
+              <Dialog open={!!editingNewsId} onOpenChange={() => setEditingNewsId("")}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>ערוך חדשה</DialogTitle>
+                  </DialogHeader>
+                  <Form {...newsForm}>
+                    <form onSubmit={newsForm.handleSubmit((data) => {
+                      updateNewsMutation.mutate({ id: editingNewsId, data });
+                    })} className="space-y-4">
+                      <FormField
+                        control={newsForm.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>כותרת</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="כותרת החדשה" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={newsForm.control}
+                        name="excerpt"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>תקציר (אופציונלי)</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} placeholder="תקציר קצר של החדשה" rows={2} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={newsForm.control}
+                        name="content"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>תוכן</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} placeholder="תוכן מלא של החדשה" rows={5} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={newsForm.control}
+                        name="isUrgent"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center gap-2">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel>חדשה דחופה</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex gap-2">
+                        <Button 
+                          type="submit" 
+                          disabled={updateNewsMutation.isPending}
+                          className="flex-1"
+                        >
+                          עדכן חדשה
+                        </Button>
+                        <Button 
+                          type="button"
+                          variant="outline"
+                          onClick={() => setEditingNewsId("")}
+                          className="flex-1"
+                        >
+                          ביטול
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+
+              {/* News List */}
+              <div className="space-y-3">
+                {!newsList || newsList.length === 0 ? (
+                  <p className="text-center text-gray-600 py-8">אין חדשות במערכת</p>
+                ) : (
+                  newsList.map((newsItem) => (
+                    <div key={newsItem.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 text-right">
+                          <div className="flex items-center gap-2 mb-2 flex-row-reverse">
+                            <h3 className="font-semibold text-gray-800 text-right">{newsItem.title}</h3>
+                            {newsItem.isUrgent && (
+                              <Badge variant="destructive">דחוף</Badge>
+                            )}
+                          </div>
+                          {newsItem.excerpt && (
+                            <p className="text-gray-600 text-sm mb-2 text-right">{newsItem.excerpt}</p>
+                          )}
+                          <p className="text-xs text-gray-500 text-right">
+                            {new Date(newsItem.publishedAt).toLocaleDateString('he-IL')}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingNewsId(newsItem.id);
+                              // Pre-populate the form with existing data
+                              newsForm.setValue("title", newsItem.title);
+                              newsForm.setValue("content", newsItem.content);
+                              newsForm.setValue("excerpt", newsItem.excerpt || "");
+                              newsForm.setValue("isUrgent", newsItem.isUrgent);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteNewsMutation.mutate(newsItem.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
