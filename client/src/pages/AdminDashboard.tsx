@@ -2047,8 +2047,13 @@ export default function AdminDashboard() {
                           {new Date(message.createdAt).toLocaleDateString('he-IL')}
                         </p>
                       </div>
-                      {!message.isRead && (
-                        <Badge variant="secondary">חדש</Badge>
+                      {!message.isRead && (() => {
+                        // Check if message is from last 24 hours
+                        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                        const messageDate = new Date(message.createdAt);
+                        return messageDate > twentyFourHoursAgo;
+                      })() && (
+                        <Badge variant="destructive" className="bg-red-600 text-white">חדש</Badge>
                       )}
                     </div>
                   </div>

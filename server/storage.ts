@@ -6,7 +6,7 @@ import {
   type Video, type InsertVideo, type ContactMessage, type InsertContactMessage
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ilike, or, sql } from "drizzle-orm";
+import { eq, desc, and, ilike, or, sql, gte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -897,12 +897,16 @@ export class DatabaseStorage implements IStorage {
     contacts: number;
     news: number;
   }> {
+    // Calculate 24 hours ago
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
     const [userCount] = await db
       .select({ count: sql`count(*)`.as('count') })
       .from(users)
       .where(and(
         eq(users.status, "pending"),
-        eq(users.isSeenByAdmin, false)
+        eq(users.isSeenByAdmin, false),
+        sql`${users.createdAt} >= ${twentyFourHoursAgo.toISOString()}`
       ));
 
     const [questionCount] = await db
@@ -910,18 +914,25 @@ export class DatabaseStorage implements IStorage {
       .from(questions)
       .where(and(
         eq(questions.status, "pending"),
-        eq(questions.isSeenByAdmin, false)
+        eq(questions.isSeenByAdmin, false),
+        sql`${questions.createdAt} >= ${twentyFourHoursAgo.toISOString()}`
       ));
 
     const [contactCount] = await db
       .select({ count: sql`count(*)`.as('count') })
       .from(contactMessages)
-      .where(eq(contactMessages.isSeenByAdmin, false));
+      .where(and(
+        eq(contactMessages.isSeenByAdmin, false),
+        sql`${contactMessages.createdAt} >= ${twentyFourHoursAgo.toISOString()}`
+      ));
 
     const [newsCount] = await db
       .select({ count: sql`count(*)`.as('count') })
       .from(news)
-      .where(eq(news.isSeenByAdmin, false));
+      .where(and(
+        eq(news.isSeenByAdmin, false),
+        sql`${news.publishedAt} >= ${twentyFourHoursAgo.toISOString()}`
+      ));
 
     return {
       users: Number(userCount?.count || 0),
