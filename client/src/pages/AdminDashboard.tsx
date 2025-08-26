@@ -581,7 +581,7 @@ export default function AdminDashboard() {
   // Halacha management mutations
   const createHalachaMutation = useMutation({
     mutationFn: async (data: z.infer<typeof halachaSchema>) => {
-      const deviceId = localStorage.getItem('deviceId') || 'admin-device-simple';
+      const deviceId = 'admin-device-simple'; // Force admin device ID
       const payload = { 
         ...data, 
         date: new Date(data.date), 
@@ -613,7 +613,7 @@ export default function AdminDashboard() {
 
   const updateHalachaMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof halachaSchema> }) => {
-      const deviceId = localStorage.getItem('deviceId') || 'admin-device-simple';
+      const deviceId = 'admin-device-simple'; // Force admin device ID
       const payload = { 
         ...data, 
         date: new Date(data.date), 

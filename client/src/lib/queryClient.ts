@@ -16,12 +16,21 @@ export async function apiRequest(
 ): Promise<any> {
   const { method = 'GET', body } = options;
   
+  // Debug log for admin endpoints
+  if (url.includes('/api/admin/')) {
+    console.log("Making admin API request:", { url, method, body });
+  }
+  
   const res = await fetch(url, {
     method,
     headers: body ? { "Content-Type": "application/json" } : {},
     body: body ? JSON.stringify(body) : undefined,
     credentials: "include",
   });
+
+  if (url.includes('/api/admin/')) {
+    console.log("Admin API response:", { status: res.status, statusText: res.statusText });
+  }
 
   await throwIfResNotOk(res);
   return await res.json();
