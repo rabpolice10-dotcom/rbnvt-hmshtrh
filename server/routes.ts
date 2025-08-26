@@ -570,6 +570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("About to validate halacha data...");
       const halachaData = insertDailyHalachaSchema.parse({
         ...halachaBody,
+        date: new Date(halachaBody.date),
         createdBy: "admin"
       });
       console.log("Halacha data validated:", halachaData);
@@ -600,6 +601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const halachaData = insertDailyHalachaSchema.parse({
         ...halachaBody,
+        date: new Date(halachaBody.date),
         createdBy: "admin"
       });
       const halacha = await storage.updateDailyHalacha(id, halachaData);

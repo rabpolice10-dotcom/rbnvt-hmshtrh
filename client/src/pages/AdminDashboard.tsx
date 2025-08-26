@@ -584,7 +584,6 @@ export default function AdminDashboard() {
       const deviceId = 'admin-device-simple'; // Force admin device ID
       const payload = { 
         ...data, 
-        date: new Date(data.date), 
         deviceId 
       };
       console.log("About to send halacha creation request:", payload);
@@ -616,7 +615,6 @@ export default function AdminDashboard() {
       const deviceId = 'admin-device-simple'; // Force admin device ID
       const payload = { 
         ...data, 
-        date: new Date(data.date), 
         deviceId 
       };
       return apiRequest(`/api/admin/daily-halacha/${id}`, { 
