@@ -46,10 +46,13 @@ export default function Synagogues() {
                       <MapPin className="h-4 w-4 ml-1" />
                       <span>{synagogue.address}</span>
                     </div>
-                    {synagogue.contact && (
-                      <p className="text-sm text-gray-600">
-                        <strong>איש קשר:</strong> {synagogue.contact}
-                      </p>
+                    {(synagogue.contact || synagogue.contactPhone) && (
+                      <div className="text-sm text-gray-600">
+                        <strong>איש קשר:</strong>
+                        {synagogue.contact && <span> {synagogue.contact}</span>}
+                        {synagogue.contact && synagogue.contactPhone && <span> | </span>}
+                        {synagogue.contactPhone && <span>טלפון: {synagogue.contactPhone}</span>}
+                      </div>
                     )}
                     {synagogue.notes && (
                       <p className="text-sm text-gray-600 mt-1">{synagogue.notes}</p>

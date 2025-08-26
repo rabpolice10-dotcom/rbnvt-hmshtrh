@@ -63,6 +63,7 @@ const synagogueSchema = z.object({
   mincha: z.string().optional(),
   maariv: z.string().optional(),
   contact: z.string().optional(),
+  contactPhone: z.string().optional(),
   notes: z.string().optional()
 });
 
@@ -500,6 +501,7 @@ export default function AdminDashboard() {
       mincha: "",
       maariv: "",
       contact: "",
+      contactPhone: "",
       notes: ""
     }
   });
@@ -1448,19 +1450,34 @@ export default function AdminDashboard() {
                             )}
                           />
                         </div>
-                        <FormField
-                          control={synagogueForm.control}
-                          name="contact"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>איש קשר (אופציונלי)</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="טלפון או שם איש קשר" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={synagogueForm.control}
+                            name="contact"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>איש קשר (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="שם איש הקשר" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={synagogueForm.control}
+                            name="contactPhone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>טלפון איש קשר (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="050-1234567" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                         <FormField
                           control={synagogueForm.control}
                           name="notes"
@@ -1591,19 +1608,34 @@ export default function AdminDashboard() {
                             )}
                           />
                         </div>
-                        <FormField
-                          control={synagogueForm.control}
-                          name="contact"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>איש קשר (אופציונלי)</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="שם ומספר טלפון" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={synagogueForm.control}
+                            name="contact"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>איש קשר (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="שם איש הקשר" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={synagogueForm.control}
+                            name="contactPhone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>טלפון איש קשר (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="050-1234567" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                         <FormField
                           control={synagogueForm.control}
                           name="notes"
@@ -1654,8 +1686,12 @@ export default function AdminDashboard() {
                               {synagogue.maariv && <span>מעריב: {synagogue.maariv}</span>}
                             </div>
                           )}
-                          {synagogue.contact && (
-                            <p className="text-xs text-gray-500 text-right">איש קשר: {synagogue.contact}</p>
+                          {(synagogue.contact || synagogue.contactPhone) && (
+                            <div className="text-xs text-gray-500 text-right">
+                              {synagogue.contact && <span>איש קשר: {synagogue.contact}</span>}
+                              {synagogue.contact && synagogue.contactPhone && <span> | </span>}
+                              {synagogue.contactPhone && <span>טלפון: {synagogue.contactPhone}</span>}
+                            </div>
                           )}
                           {synagogue.notes && (
                             <p className="text-xs text-gray-500 text-right mt-1">{synagogue.notes}</p>
@@ -1676,6 +1712,7 @@ export default function AdminDashboard() {
                               synagogueForm.setValue("mincha", synagogue.mincha || "");
                               synagogueForm.setValue("maariv", synagogue.maariv || "");
                               synagogueForm.setValue("contact", synagogue.contact || "");
+                              synagogueForm.setValue("contactPhone", synagogue.contactPhone || "");
                               synagogueForm.setValue("notes", synagogue.notes || "");
                             }}
                           >

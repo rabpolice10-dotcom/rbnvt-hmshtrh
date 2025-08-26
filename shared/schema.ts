@@ -85,6 +85,7 @@ export const synagogues = pgTable("synagogues", {
   mincha: text("mincha"),
   maariv: text("maariv"),
   contact: text("contact"),
+  contactPhone: text("contact_phone"),
   notes: text("notes"),
 });
 
