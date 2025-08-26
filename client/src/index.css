@@ -93,6 +93,12 @@
     background: linear-gradient(135deg, var(--police-blue) 0%, var(--police-blue-dark) 100%);
   }
   
+  .premium-header {
+    position: relative;
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3730a3 100%);
+    box-shadow: 0 8px 32px rgba(30, 58, 138, 0.3), 0 4px 16px rgba(30, 64, 175, 0.2);
+  }
+  
   .shadow-card {
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
