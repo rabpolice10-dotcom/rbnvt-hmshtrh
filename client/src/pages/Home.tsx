@@ -220,7 +220,7 @@ export default function Home(): JSX.Element {
               {dailyHalacha.title && (
                 <h4 className="font-semibold text-gray-800 mb-2">{dailyHalacha.title}</h4>
               )}
-              <p className="text-gray-700 leading-relaxed line-clamp-2">
+              <p className="text-gray-700 leading-relaxed line-clamp-2 whitespace-pre-line">
                 {dailyHalacha.content.length > 120 
                   ? dailyHalacha.content.substring(0, 120) + "..." 
                   : dailyHalacha.content}

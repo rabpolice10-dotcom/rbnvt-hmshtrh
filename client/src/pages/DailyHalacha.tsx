@@ -83,7 +83,7 @@ export default function DailyHalachaPage() {
             {todayHalacha.title && (
               <h2 className="text-xl font-bold text-gray-800 mb-3">{todayHalacha.title}</h2>
             )}
-            <p className="text-gray-700 leading-relaxed text-lg mb-4">{todayHalacha.content}</p>
+            <p className="text-gray-700 leading-relaxed text-lg mb-4 whitespace-pre-line">{todayHalacha.content}</p>
             <div className="flex items-center text-sm text-gray-600">
               <Calendar className="h-4 w-4 ml-1" />
               <span>{new Date(todayHalacha.date).toLocaleDateString('he-IL')}</span>
@@ -174,7 +174,7 @@ export default function DailyHalachaPage() {
                   </div>
 
                   {/* Content */}
-                  <p className="text-gray-700 leading-relaxed">{halacha.content}</p>
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">{halacha.content}</p>
 
                   {/* Footer */}
                   <div className="flex items-center justify-end pt-2 border-t border-gray-100">
