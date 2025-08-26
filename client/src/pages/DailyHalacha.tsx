@@ -177,11 +177,7 @@ export default function DailyHalachaPage() {
                   <p className="text-gray-700 leading-relaxed">{halacha.content}</p>
 
                   {/* Footer */}
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                    <div className="flex items-center text-xs text-gray-500">
-                      <Clock className="h-3 w-3 ml-1" />
-                      <span>{new Date(halacha.date).toLocaleDateString('he-IL')}</span>
-                    </div>
+                  <div className="flex items-center justify-end pt-2 border-t border-gray-100">
                     {new Date(halacha.date).toDateString() === new Date().toDateString() && (
                       <Badge variant="default" className="bg-purple-600 text-white text-xs">
                         היום
