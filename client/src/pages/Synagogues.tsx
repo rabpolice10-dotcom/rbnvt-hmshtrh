@@ -209,7 +209,7 @@ export default function Synagogues() {
           {/* Region Filter */}
           <Select value={selectedRegion} onValueChange={setSelectedRegion}>
             <SelectTrigger className="text-right" data-testid="select-region">
-              <SelectValue placeholder="בחר אזור" />
+              <SelectValue placeholder="אזור" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">כל האזורים</SelectItem>
@@ -223,7 +223,7 @@ export default function Synagogues() {
           {/* City Filter */}
           <Select value={selectedCity} onValueChange={setSelectedCity}>
             <SelectTrigger className="text-right" data-testid="select-city">
-              <SelectValue placeholder="בחר עיר" />
+              <SelectValue placeholder="עיר" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">כל הערים</SelectItem>
