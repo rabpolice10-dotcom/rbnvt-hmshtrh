@@ -80,3 +80,70 @@ export function getHebrewDate(): string {
   
   return `${hebrewDay}' ${hebrewDate} ${hebrewMonth} ${hebrewYear}`;
 }
+
+// Format a Hebrew date from API response or date string
+export async function formatHebrewDate(dateInput: string | Date): Promise<string> {
+  try {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    
+    // Call the Hebrew date API
+    const response = await fetch(`https://www.hebcal.com/converter?cfg=json&gy=${year}&gm=${month}&gd=${day}&g2h=1`);
+    const data = await response.json();
+    
+    if (data && data.hebrew) {
+      return data.hebrew;
+    } else {
+      // Fallback to simple Hebrew date
+      return getHebrewDate();
+    }
+  } catch (error) {
+    console.error('Error formatting Hebrew date:', error);
+    return getHebrewDate();
+  }
+}
+
+// Synchronous version using the existing jewish-times API data
+export function formatHebrewDateSync(dateInput: string | Date, jewishTimesData?: any): string {
+  try {
+    const inputDate = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    const today = new Date();
+    
+    // Check if the input date is today and we have jewish times data
+    if (jewishTimesData?.hebrewDate?.formatted && 
+        inputDate.toDateString() === today.toDateString()) {
+      return jewishTimesData.hebrewDate.formatted;
+    }
+    
+    // For other dates, generate Hebrew date using our function
+    const dayOfWeek = inputDate.getDay();
+    const date = inputDate.getDate();
+    const month = inputDate.getMonth();
+    
+    const hebrewDays = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+    const hebrewMonths = [
+      'תשרי', 'חשון', 'כסלו', 'טבת', 'שבט', 'אדר', 'ניסן', 'אייר', 'סיון', 'תמוז', 'אב', 'אלול'
+    ];
+    
+    const hebrewNumbers = {
+      1: 'א', 2: 'ב', 3: 'ג', 4: 'ד', 5: 'ה', 6: 'ו', 7: 'ז', 8: 'ח', 9: 'ט', 10: 'י',
+      11: 'יא', 12: 'יב', 13: 'יג', 14: 'יד', 15: 'טו', 16: 'טז', 17: 'יז', 18: 'יח', 19: 'יט', 20: 'כ',
+      21: 'כא', 22: 'כב', 23: 'כג', 24: 'כד', 25: 'כה', 26: 'כו', 27: 'כז', 28: 'כח', 29: 'כט', 30: 'ל'
+    };
+    
+    function getHebrewNumber(num: number): string {
+      return hebrewNumbers[num as keyof typeof hebrewNumbers] || num.toString();
+    }
+    
+    const hebrewDay = hebrewDays[dayOfWeek];
+    const hebrewDate = getHebrewNumber(date);
+    const hebrewMonth = hebrewMonths[month];
+    
+    return `${hebrewDay}' ${hebrewDate} ${hebrewMonth} תשפ״ה`;
+  } catch (error) {
+    console.error('Error formatting Hebrew date sync:', error);
+    return getHebrewDate();
+  }
+}
