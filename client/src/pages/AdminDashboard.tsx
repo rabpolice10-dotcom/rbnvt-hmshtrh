@@ -778,7 +778,7 @@ export default function AdminDashboard() {
           }
         }}
       >
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-1 h-auto p-1">
           <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
             סקירה כללית
           </TabsTrigger>
@@ -798,13 +798,16 @@ export default function AdminDashboard() {
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="content" className="relative text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
-            ניהול תוכן
+          <TabsTrigger value="news" className="relative text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
+            חדשות
             {counts.news > 0 && (
               <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center animate-pulse">
                 {counts.news}
               </Badge>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="synagogues" className="text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
+            בתי כנסת
           </TabsTrigger>
           <TabsTrigger value="halacha" className="text-xs sm:text-sm py-2 px-2 sm:px-4 whitespace-nowrap overflow-hidden text-ellipsis">
             הלכות יומיות
@@ -1187,18 +1190,109 @@ export default function AdminDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Content Management Tab */}
-        <TabsContent value="content" className="space-y-4">
-          <div className="grid gap-4">
-            {/* News Management */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Newspaper className="h-5 w-5" />
-                  ניהול חדשות
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        {/* News Management Tab */}
+        <TabsContent value="news" className="space-y-4">
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Newspaper className="h-5 w-5" />
+                ניהול חדשות
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-police-blue hover:bg-police-blue-dark text-white">
+                    <Plus className="h-4 w-4 ml-2" />
+                    הוסף חדשה
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>הוספת חדשה חדשה</DialogTitle>
+                  </DialogHeader>
+                  <Form {...newsForm}>
+                    <form onSubmit={newsForm.handleSubmit((data) => createNewsMutation.mutate(data))} className="space-y-4">
+                      <FormField
+                        control={newsForm.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>כותרת</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="הכנס כותרת החדשה" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={newsForm.control}
+                        name="excerpt"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>תקציר (אופציונלי)</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="תקציר קצר של החדשה" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={newsForm.control}
+                        name="content"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>תוכן</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} placeholder="תוכן מלא של החדשה" rows={5} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={newsForm.control}
+                        name="isUrgent"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center gap-2">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel>חדשה דחופה</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      <Button 
+                        type="submit" 
+                        disabled={createNewsMutation.isPending}
+                        className="w-full"
+                      >
+                        צור חדשה
+                      </Button>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Synagogues Management Tab */}
+        <TabsContent value="synagogues" className="space-y-4">
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                ניהול בתי כנסת
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button className="bg-police-blue hover:bg-police-blue-dark text-white">
@@ -2016,7 +2110,6 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
-          </div>
         </TabsContent>
 
         {/* Halacha Management Tab */}
@@ -2116,7 +2209,7 @@ export default function AdminDashboard() {
                             size="sm"
                             onClick={() => {
                               setEditingHalachaId(halacha.id);
-                              halachaForm.setValue("title", halacha.title);
+                              halachaForm.setValue("title", halacha.title || "");
                               halachaForm.setValue("content", halacha.content);
                               halachaForm.setValue("date", new Date(halacha.date).toISOString().split('T')[0]);
                             }}
