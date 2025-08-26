@@ -4,7 +4,7 @@ import { RegistrationForm } from "@/components/RegistrationForm";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { useLocation } from "wouter";
 import { Bell } from "lucide-react";
-import logo from "@assets/לוגו ללא רקע_1756201743807.png";
+import logo from "@assets/לוגו_ללא_רקע-removebg-preview_1756202149642.png";
 
 interface LayoutProps {
   children: ReactNode;
@@ -30,8 +30,8 @@ export function Layout({ children }: LayoutProps) {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <header className="premium-header text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900"></div>
-          <div className="absolute inset-0 bg-gradient-to-tl from-blue-600/20 via-transparent to-white/10"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400"></div>
+          <div className="absolute inset-0 bg-gradient-to-tl from-white/10 via-transparent to-white/20"></div>
           
           <div className="relative z-10 px-6 py-4">
             <div className="flex items-center justify-center">
@@ -43,9 +43,9 @@ export function Layout({ children }: LayoutProps) {
                   <img 
                     src={logo} 
                     alt="לוגו רבנות המשטרה" 
-                    className="h-12 w-12 drop-shadow-xl group-hover:scale-105 transition-transform duration-300" 
+                    className="h-14 w-14 drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 filter brightness-110" 
                   />
-                  <div className="absolute inset-0 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-all duration-300"></div>
+                  <div className="absolute inset-0 bg-white/20 rounded-full blur-lg group-hover:bg-white/30 transition-all duration-300"></div>
                 </div>
                 <div className="text-right">
                   <h1 className="text-xl font-bold tracking-wide drop-shadow-lg group-hover:text-blue-100 transition-colors duration-300">
@@ -110,9 +110,9 @@ export function Layout({ children }: LayoutProps) {
                   <img 
                     src={logo} 
                     alt="לוגו רבנות המשטרה" 
-                    className="h-12 w-12 drop-shadow-xl group-hover:scale-105 transition-transform duration-300" 
+                    className="h-14 w-14 drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 filter brightness-110" 
                   />
-                  <div className="absolute inset-0 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-all duration-300"></div>
+                  <div className="absolute inset-0 bg-white/20 rounded-full blur-lg group-hover:bg-white/30 transition-all duration-300"></div>
                 </div>
                 <div className="text-right">
                   <h1 className="text-xl font-bold tracking-wide drop-shadow-lg group-hover:text-red-100 transition-colors duration-300">
@@ -145,8 +145,8 @@ export function Layout({ children }: LayoutProps) {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <header className="premium-header text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900"></div>
-          <div className="absolute inset-0 bg-gradient-to-tl from-blue-600/20 via-transparent to-white/10"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400"></div>
+          <div className="absolute inset-0 bg-gradient-to-tl from-white/10 via-transparent to-white/20"></div>
           
           <div className="relative z-10 px-6 py-4">
             <div className="flex items-center justify-center">
@@ -155,9 +155,9 @@ export function Layout({ children }: LayoutProps) {
                   <img 
                     src={logo} 
                     alt="לוגו רבנות המשטרה" 
-                    className="h-12 w-12 drop-shadow-xl" 
+                    className="h-14 w-14 drop-shadow-2xl filter brightness-110" 
                   />
-                  <div className="absolute inset-0 bg-white/10 rounded-full blur-xl"></div>
+                  <div className="absolute inset-0 bg-white/20 rounded-full blur-lg"></div>
                 </div>
                 <div className="text-right">
                   <h1 className="text-xl font-bold tracking-wide drop-shadow-lg">
@@ -181,8 +181,8 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
       <header className="premium-header text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900"></div>
-        <div className="absolute inset-0 bg-gradient-to-tl from-blue-600/20 via-transparent to-white/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400"></div>
+        <div className="absolute inset-0 bg-gradient-to-tl from-white/10 via-transparent to-white/20"></div>
         
         <div className="relative z-10 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -195,9 +195,9 @@ export function Layout({ children }: LayoutProps) {
                   <img 
                     src={logo} 
                     alt="לוגו רבנות המשטרה" 
-                    className="h-12 w-12 drop-shadow-xl group-hover:scale-105 transition-transform duration-300" 
+                    className="h-14 w-14 drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 filter brightness-110" 
                   />
-                  <div className="absolute inset-0 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-all duration-300"></div>
+                  <div className="absolute inset-0 bg-white/20 rounded-full blur-lg group-hover:bg-white/30 transition-all duration-300"></div>
                 </div>
                 <div className="text-right">
                   <h1 className="text-xl font-bold tracking-wide drop-shadow-lg group-hover:text-blue-100 transition-colors duration-300">
