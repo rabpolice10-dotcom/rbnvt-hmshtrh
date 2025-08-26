@@ -249,8 +249,12 @@ export class DatabaseStorage implements IStorage {
       ...question,
       answers: questionAnswers,
       user: { fullName: question.userFullName || "משתמש" },
-      isNew: question.isNew ?? true,
-      isVisible: question.isVisible ?? false
+      isNew: true,
+      isVisible: false,
+      isSeenByAdmin: false,
+      hasNewAnswer: false,
+      answerNotificationSent: false,
+      answeredAt: null
     } as Question & { answers: Answer[]; user: { fullName: string } };
   }
 
@@ -653,25 +657,6 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async updateUserStatus(id: string, status: string, reason?: string): Promise<User> {
-    const updateData: any = {
-      status,
-      updatedAt: new Date()
-    };
-
-    if (status === 'approved') {
-      updateData.approvedAt = new Date();
-      updateData.approvedBy = 'admin-system';
-    }
-
-    const [updatedUser] = await db
-      .update(users)
-      .set(updateData)
-      .where(eq(users.id, id))
-      .returning();
-
-    return updatedUser;
-  }
 
   async getUserActivity(id: string): Promise<any[]> {
     const userQuestions = await db

@@ -475,20 +475,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/synagogues", async (req, res) => {
     try {
       const { deviceId, ...synagogueBody } = req.body;
+      console.log("Synagogue creation request:", { deviceId, synagogueBody });
       
       // Simple admin check
       if (!deviceId || (!deviceId.includes("admin-device") && deviceId !== "admin-device-simple")) {
         return res.status(401).json({ message: "Unauthorized - No device ID" });
       }
 
+      console.log("About to validate synagogue data...");
       const synagogueData = insertSynagogueSchema.parse(synagogueBody);
+      console.log("Synagogue data validated:", synagogueData);
+      
       const synagogue = await storage.createSynagogue(synagogueData);
+      console.log("Synagogue created successfully:", synagogue);
       res.json(synagogue);
     } catch (error) {
-      console.error("Synagogue creation error:", error);
+      console.error("Detailed synagogue creation error:", error);
       const errorMessage = error instanceof z.ZodError 
-        ? error.errors.map(e => e.message).join(", ")
-        : "Failed to create synagogue";
+        ? error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(", ")
+        : error instanceof Error ? error.message : "Failed to create synagogue";
       res.status(400).json({ message: errorMessage });
     }
   });
