@@ -90,11 +90,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.deviceId !== deviceId) {
         try {
           updatedUser = await storage.updateUserDeviceId(user.id, deviceId);
+          console.log('Device ID updated successfully:', deviceId);
         } catch (error) {
-          // If device ID conflict, generate a unique one
-          const uniqueDeviceId = `${deviceId}-${Date.now()}`;
-          updatedUser = await storage.updateUserDeviceId(user.id, uniqueDeviceId);
+          console.error('Device ID update error:', error);
+          // If device ID conflict or other error, try generating a unique one
+          try {
+            const uniqueDeviceId = `${deviceId}-${Date.now()}`;
+            console.log('Trying unique device ID:', uniqueDeviceId);
+            updatedUser = await storage.updateUserDeviceId(user.id, uniqueDeviceId);
+          } catch (secondError) {
+            console.error('Failed to update device ID even with unique ID:', secondError);
+            // If all else fails, continue with original user (without device ID update)
+            console.log('Continuing login without device ID update');
+            updatedUser = user;
+          }
         }
+      } else {
+        console.log('Device ID unchanged, no update needed:', deviceId);
       }
       
       console.log('Login successful for user:', updatedUser.email);
