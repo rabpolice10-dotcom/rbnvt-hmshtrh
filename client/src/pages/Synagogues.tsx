@@ -16,10 +16,10 @@ export default function Synagogues() {
 
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCity, setSelectedCity] = useState("all");
-  const [selectedRegion, setSelectedRegion] = useState("all");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("");
   const [sortBy, setSortBy] = useState("name");
-  const [timeFilter, setTimeFilter] = useState("all");
+  const [timeFilter, setTimeFilter] = useState("");
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   // Get user location
@@ -80,12 +80,12 @@ export default function Synagogues() {
         (synagogue.notes && synagogue.notes.toLowerCase().includes(searchLower));
 
       // City filter
-      const matchesCity = selectedCity === "all" || 
+      const matchesCity = !selectedCity || selectedCity === "all" || 
         synagogue.address.toLowerCase().includes(selectedCity.toLowerCase());
 
       // Region filter (basic implementation based on common cities)
       let matchesRegion = true;
-      if (selectedRegion !== "all") {
+      if (selectedRegion && selectedRegion !== "all") {
         const address = synagogue.address.toLowerCase();
         switch (selectedRegion) {
           case "center":
@@ -112,7 +112,7 @@ export default function Synagogues() {
 
       // Time filter
       let matchesTime = true;
-      if (timeFilter !== "all") {
+      if (timeFilter && timeFilter !== "all") {
         switch (timeFilter) {
           case "morning":
             matchesTime = !!synagogue.shacharit;
@@ -174,10 +174,10 @@ export default function Synagogues() {
   // Clear filters
   const clearFilters = () => {
     setSearchTerm("");
-    setSelectedCity("all");
-    setSelectedRegion("all");
+    setSelectedCity("");
+    setSelectedRegion("");
     setSortBy("name");
-    setTimeFilter("all");
+    setTimeFilter("");
     setUserLocation(null);
   };
 
@@ -281,7 +281,7 @@ export default function Synagogues() {
             )}
           </div>
           
-          {(searchTerm || selectedCity !== "all" || selectedRegion !== "all" || timeFilter !== "all" || sortBy !== "name") && (
+          {(searchTerm || selectedCity || selectedRegion || timeFilter || sortBy !== "name") && (
             <Button
               variant="ghost"
               size="sm"
