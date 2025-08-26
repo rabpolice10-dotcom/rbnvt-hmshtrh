@@ -619,7 +619,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/daily-halacha/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const { deviceId } = req.body;
+      // Get deviceId from body, query params, or headers
+      const deviceId = req.body?.deviceId || req.query.deviceId || req.headers['x-device-id'];
+      
+      console.log("Delete halacha request:", { id, deviceId, body: req.body });
       
       // Simple admin check
       if (!deviceId || (!deviceId.includes("admin-device") && deviceId !== "admin-device-simple")) {

@@ -627,9 +627,9 @@ export default function AdminDashboard() {
 
   const deleteHalachaMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/admin/daily-halacha/${id}`, { 
-        method: "DELETE",
-        body: { deviceId: localStorage.getItem('deviceId') || 'admin-device-simple' }
+      const deviceId = localStorage.getItem('deviceId') || 'admin-device-simple';
+      return apiRequest(`/api/admin/daily-halacha/${id}?deviceId=${deviceId}`, { 
+        method: "DELETE"
       });
     },
     onSuccess: () => {
@@ -637,7 +637,8 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/daily-halacha/all"] });
       queryClient.invalidateQueries({ queryKey: ["/api/daily-halacha"] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Delete halacha error:', error);
       toast({ variant: "destructive", title: "שגיאה במחיקת הלכה יומית" });
     }
   });
