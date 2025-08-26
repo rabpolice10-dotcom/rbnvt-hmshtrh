@@ -628,9 +628,23 @@ export default function AdminDashboard() {
   const deleteHalachaMutation = useMutation({
     mutationFn: async (id: string) => {
       const deviceId = localStorage.getItem('deviceId') || 'admin-device-simple';
-      return apiRequest(`/api/admin/daily-halacha/${id}?deviceId=${deviceId}`, { 
-        method: "DELETE"
+      console.log('Attempting to delete halacha:', { id, deviceId });
+      
+      const response = await fetch(`/api/admin/daily-halacha/${id}`, {
+        method: "DELETE",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ deviceId })
       });
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Delete response error:', { status: response.status, statusText: response.statusText, data: errorData });
+        throw new Error(`Failed to delete: ${response.status} ${response.statusText}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({ title: "הלכה יומית נמחקה" });
