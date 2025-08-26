@@ -587,10 +587,13 @@ export default function AdminDashboard() {
         date: new Date(data.date), 
         deviceId 
       };
-      return apiRequest("/api/admin/daily-halacha", { 
+      console.log("About to send halacha creation request:", payload);
+      const result = await apiRequest("/api/admin/daily-halacha", { 
         method: "POST",
         body: payload
       });
+      console.log("Halacha creation result:", result);
+      return result;
     },
     onSuccess: () => {
       toast({ title: "הלכה יומית נוצרה בהצלחה" });
