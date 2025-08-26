@@ -45,6 +45,7 @@ import { performLogout } from "@/lib/logout";
 import SimpleUserManagement from "@/components/SimpleUserManagement";
 import { NotificationBadge } from "@/components/NotificationBadge";
 import type { User, Question, Answer, News, Synagogue, DailyHalacha, Video as VideoType, ContactMessage } from "@shared/schema";
+import { insertDailyHalachaSchema } from "@shared/schema";
 
 // Form schemas
 const newsSchema = z.object({
@@ -67,11 +68,6 @@ const synagogueSchema = z.object({
   notes: z.string().optional()
 });
 
-const halachaSchema = z.object({
-  title: z.string().optional(),
-  content: z.string().min(1, "תוכן נדרש"),
-  date: z.string()
-});
 
 const videoSchema = z.object({
   title: z.string().min(1, "כותרת נדרשת"),
@@ -512,8 +508,8 @@ export default function AdminDashboard() {
     }
   });
 
-  const halachaForm = useForm<z.infer<typeof halachaSchema>>({
-    resolver: zodResolver(halachaSchema),
+  const halachaForm = useForm<z.infer<typeof insertDailyHalachaSchema>>({
+    resolver: zodResolver(insertDailyHalachaSchema),
     defaultValues: {
       title: "",
       content: "",
@@ -580,7 +576,7 @@ export default function AdminDashboard() {
 
   // Halacha management mutations
   const createHalachaMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof halachaSchema>) => {
+    mutationFn: async (data: z.infer<typeof insertDailyHalachaSchema>) => {
       const deviceId = localStorage.getItem('deviceId') || 'admin-device-simple';
       const payload = { ...data, deviceId };
       return apiRequest("/api/admin/daily-halacha", { 
@@ -598,14 +594,18 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/daily-halacha/all"] });
       queryClient.invalidateQueries({ queryKey: ["/api/daily-halacha"] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Halacha creation error:", error);
-      toast({ variant: "destructive", title: "שגיאה ביצירת הלכה יומית" });
+      toast({ 
+        variant: "destructive", 
+        title: "שגיאה ביצירת הלכה יומית",
+        description: error?.message || "אנא נסה שנית"
+      });
     }
   });
 
   const updateHalachaMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof halachaSchema> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof insertDailyHalachaSchema> }) => {
       const deviceId = localStorage.getItem('deviceId') || 'admin-device-simple';
       const payload = { ...data, deviceId };
       return apiRequest(`/api/admin/daily-halacha/${id}`, { 
@@ -2116,7 +2116,7 @@ export default function AdminDashboard() {
                             size="sm"
                             onClick={() => {
                               setEditingHalachaId(halacha.id);
-                              halachaForm.setValue("title", halacha.title);
+                              halachaForm.setValue("title", halacha.title || "");
                               halachaForm.setValue("content", halacha.content);
                               halachaForm.setValue("date", new Date(halacha.date).toISOString().split('T')[0]);
                             }}
