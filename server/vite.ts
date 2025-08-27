@@ -68,17 +68,21 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  // בתצורת פרודקשן ה־Vite מוציא לקבצים ל-dist/public (שורש הפרויקט)
+  // אם רוצים – אפשר לדרוס עם משתנה סביבה PUBLIC_DIR
+  const distPath =
+    process.env.PUBLIC_DIR ??
+    path.resolve(process.cwd(), "dist", "public");
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
+      `Could not find the build directory: ${distPath}. Make sure to build the client first (vite build).`
     );
   }
 
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
+  // נפילה ל-index.html עבור כל ראוט צד־לקוח
   app.use("*", (_req, res) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });
