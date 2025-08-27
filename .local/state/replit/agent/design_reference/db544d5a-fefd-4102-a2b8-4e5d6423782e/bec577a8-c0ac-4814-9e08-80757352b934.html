@@ -1,0 +1,448 @@
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>רבנות המשטרה</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'alef': ['Alef', 'Arial', 'sans-serif']
+                    },
+                    colors: {
+                        'police-blue': '#4A90E2',
+                        'police-blue-light': '#E3F2FD',
+                        'police-blue-dark': '#1976D2'
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Alef', Arial, sans-serif;
+        }
+        .rtl {
+            direction: rtl;
+            text-align: right;
+        }
+        .shadow-card {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .gradient-header {
+            background: linear-gradient(135deg, #4A90E2 0%, #1976D2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 rtl">
+    <!-- @COMPONENT: App Container -->
+    <div id="app" class="max-w-md mx-auto bg-white min-h-screen">
+        
+        <!-- @COMPONENT: Header -->
+        <header class="gradient-header text-white p-4 shadow-lg">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold">רבנות המשטרה</h1>
+                <div class="flex items-center space-x-reverse space-x-2">
+                    <i class="fas fa-shield-alt text-lg"></i>
+                    <button id="notificationBtn" class="relative">
+                        <i class="fas fa-bell text-lg"></i>
+                        <!-- @STATE: notificationCount:number = 3 -->
+                        <span data-bind="notificationCount" class="absolute -top-1 -left-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- @COMPONENT: Main Content Container -->
+        <main class="pb-20">
+            
+            <!-- @COMPONENT: Registration Screen (shown for new users) -->
+            <div id="registrationScreen" class="hidden p-4">
+                <div class="bg-white rounded-lg shadow-card p-6 mt-4">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-user-plus text-4xl text-police-blue mb-3"></i>
+                        <h2 class="text-xl font-bold text-gray-800 mb-2">הרשמה ראשונית</h2>
+                        <p class="text-gray-600 text-sm">אנא מלא את הפרטים הבאים להרשמה למערכת</p>
+                    </div>
+                    
+                    <form id="registrationForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">שם מלא</label>
+                            <input type="text" data-mock="true" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-police-blue" placeholder="הכנס שם מלא" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">מספר אישי</label>
+                            <input type="text" data-mock="true" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-police-blue" placeholder="הכנס מספר אישי" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">מספר טלפון</label>
+                            <input type="tel" data-mock="true" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-police-blue" placeholder="הכנס מספר טלפון" required>
+                        </div>
+                        
+                        <button type="submit" data-event="click:handleRegistration" class="w-full bg-police-blue text-white py-3 rounded-md font-medium hover:bg-police-blue-dark transition-colors">
+                            שלח בקשה להרשמה
+                        </button>
+                    </form>
+                    
+                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-yellow-600 mt-0.5 ml-2"></i>
+                            <p class="text-sm text-yellow-800">הבקשה תישלח לאישור מנהל. תקבל הודעה כאשר החשבון יאושר.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- @COMPONENT: Pending Approval Screen -->
+            <div id="pendingScreen" class="hidden p-4">
+                <div class="bg-white rounded-lg shadow-card p-6 mt-8 text-center">
+                    <i class="fas fa-hourglass-half text-4xl text-yellow-500 mb-4"></i>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">ממתין לאישור</h2>
+                    <p class="text-gray-600 mb-4">הבקשה שלך נשלחה בהצלחה ומחכה לאישור מנהל המערכת.</p>
+                    <p class="text-sm text-gray-500">תקבל הודעה כאשר החשבון יאושר.</p>
+                </div>
+            </div>
+
+            <!-- @COMPONENT: Main Dashboard (shown for approved users) -->
+            <div id="dashboard" class="p-4 space-y-4">
+                
+                <!-- @COMPONENT: Quick Actions -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button data-event="click:openAskRabbi" class="bg-police-blue-light p-4 rounded-lg text-center hover:bg-blue-100 transition-colors">
+                        <i class="fas fa-question-circle text-2xl text-police-blue mb-2"></i>
+                        <p class="text-sm font-medium text-gray-800">שאל את הרב</p>
+                    </button>
+                    
+                    <button data-event="click:openJewishTimes" class="bg-green-50 p-4 rounded-lg text-center hover:bg-green-100 transition-colors">
+                        <i class="fas fa-clock text-2xl text-green-600 mb-2"></i>
+                        <p class="text-sm font-medium text-gray-800">זמנים יהודיים</p>
+                    </button>
+                </div>
+
+                <!-- @COMPONENT: Daily Halacha Card -->
+                <div class="bg-white rounded-lg shadow-card p-4">
+                    <div class="flex items-center mb-3">
+                        <i class="fas fa-book-open text-purple-600 ml-2"></i>
+                        <h3 class="font-bold text-gray-800">הלכה יומית לשוטרים</h3>
+                    </div>
+                    <!-- @DATA_BINDING: dailyHalacha content from API/database -->
+                    <p data-bind="dailyHalacha.content" class="text-gray-700 leading-relaxed">שוטר רשאי לנשא נשק ביום שבת ויום טוב כאשר הוא במילוי תפקידו, שכן זהו פיקוח נפש של רבים. יש להקפיד על הכללים הבאים: לא לטלטל את הנשק שלא לצורך, ולוודא שהוא מאובטח כראוי.</p>
+                    <div class="mt-3 text-xs text-gray-500 flex items-center">
+                        <i class="fas fa-calendar-day ml-1"></i>
+                        <span data-bind="dailyHalacha.date">יום ב', כ"ה כסלו תשפ"ד</span>
+                    </div>
+                </div>
+
+                <!-- @COMPONENT: Recent Q&A -->
+                <div class="bg-white rounded-lg shadow-card p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-comments text-blue-600 ml-2"></i>
+                            <h3 class="font-bold text-gray-800">שאלות ותשובות אחרונות</h3>
+                        </div>
+                        <button data-event="click:viewAllQA" class="text-police-blue text-sm">צפה בכל</button>
+                    </div>
+                    
+                    <!-- @MAP: recentQuestions.map(question => ( -->
+                    <div class="space-y-3">
+                        <div class="border-r-3 border-police-blue pr-3">
+                            <p data-bind="question.content" class="text-sm text-gray-700 mb-1">האם מותר לשוטר לפתוח רכב בשבת במסגרת החובה?</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500">
+                                <span data-bind="question.status" class="flex items-center">
+                                    <i class="fas fa-check-circle text-green-500 ml-1"></i>
+                                    נענתה
+                                </span>
+                                <span data-bind="question.date">לפני 2 ימים</span>
+                            </div>
+                        </div>
+                        
+                        <div class="border-r-3 border-yellow-400 pr-3">
+                            <p data-bind="question.content" class="text-sm text-gray-700 mb-1">כשרות מזון בבסיס צבאי - איך לוודא?</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500">
+                                <span data-bind="question.status" class="flex items-center">
+                                    <i class="fas fa-clock text-yellow-500 ml-1"></i>
+                                    ממתין לתשובה
+                                </span>
+                                <span data-bind="question.date">לפני יום</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <!-- @COMPONENT: News Feed -->
+                <div class="bg-white rounded-lg shadow-card p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-newspaper text-red-600 ml-2"></i>
+                            <h3 class="font-bold text-gray-800">חדשות ועדכונים</h3>
+                        </div>
+                        <button data-event="click:viewAllNews" class="text-police-blue text-sm">צפה בכל</button>
+                    </div>
+                    
+                    <!-- @MAP: newsItems.map(item => ( -->
+                    <div class="space-y-3">
+                        <div class="border-b border-gray-100 pb-3 last:border-b-0">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 data-bind="news.title" class="font-medium text-gray-800 mb-1">הנחיות חדשות לחג החנוכה</h4>
+                                    <p data-bind="news.excerpt" class="text-sm text-gray-600 mb-2">הוראות מיוחדות להדלקת נרות בתחנות משטרה ובבסיסים</p>
+                                    <span data-bind="news.date" class="text-xs text-gray-500">לפני 3 שעות</span>
+                                </div>
+                                <i class="fas fa-exclamation-triangle text-orange-500" title="דחוף"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="border-b border-gray-100 pb-3 last:border-b-0">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 data-bind="news.title" class="font-medium text-gray-800 mb-1">עדכון זמני תפילה לחורף</h4>
+                                    <p data-bind="news.excerpt" class="text-sm text-gray-600 mb-2">שינויים בזמני התפילות בבתי כנסת המשטרתיים</p>
+                                    <span data-bind="news.date" class="text-xs text-gray-500">אתמול</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <!-- @COMPONENT: Jewish Times Widget -->
+                <div class="bg-white rounded-lg shadow-card p-4">
+                    <div class="flex items-center mb-3">
+                        <i class="fas fa-sun text-yellow-600 ml-2"></i>
+                        <h3 class="font-bold text-gray-800">זמנים יהודיים - ירושלים</h3>
+                        <button data-event="click:changeLocation" class="mr-auto text-police-blue text-xs">שנה מיקום</button>
+                    </div>
+                    
+                    <!-- @DATA_BINDING: jewishTimes from MyZmanim API -->
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="text-center p-2 bg-yellow-50 rounded">
+                            <p class="text-gray-600">זריחה</p>
+                            <p data-bind="times.sunrise" class="font-bold text-gray-800">06:42</p>
+                        </div>
+                        <div class="text-center p-2 bg-orange-50 rounded">
+                            <p class="text-gray-600">שקיעה</p>
+                            <p data-bind="times.sunset" class="font-bold text-gray-800">16:51</p>
+                        </div>
+                        <div class="text-center p-2 bg-blue-50 rounded">
+                            <p class="text-gray-600">כניסת שבת</p>
+                            <p data-bind="times.shabbatIn" class="font-bold text-gray-800">16:33</p>
+                        </div>
+                        <div class="text-center p-2 bg-purple-50 rounded">
+                            <p class="text-gray-600">צאת שבת</p>
+                            <p data-bind="times.shabbatOut" class="font-bold text-gray-800">17:49</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- @COMPONENT: Ask Rabbi Modal -->
+            <div id="askRabbiModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+                <div class="flex items-end justify-center min-h-screen p-4">
+                    <div class="bg-white rounded-t-lg w-full max-w-md">
+                        <div class="p-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-bold text-gray-800">שאל את הרב</h3>
+                                <button data-event="click:closeAskRabbi" class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <form id="askRabbiForm" class="p-4 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">קטגוריה</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-police-blue">
+                                    <option>שבת וחגים</option>
+                                    <option>כשרות</option>
+                                    <option>שיטור ובטחון</option>
+                                    <option>תפילה</option>
+                                    <option>אחר</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">השאלה שלך</label>
+                                <textarea data-mock="true" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-police-blue h-32 resize-none" placeholder="הכנס את השאלה שלך כאן..." required></textarea>
+                            </div>
+                            
+                            <div class="flex items-center space-x-reverse space-x-2">
+                                <input type="checkbox" id="urgent" class="rounded border-gray-300">
+                                <label for="urgent" class="text-sm text-gray-700">שאלה דחופה</label>
+                            </div>
+                            
+                            <button type="submit" data-event="click:submitQuestion" class="w-full bg-police-blue text-white py-3 rounded-md font-medium hover:bg-police-blue-dark transition-colors">
+                                שלח שאלה
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- @COMPONENT: Synagogue Directory -->
+            <div id="synagogueScreen" class="hidden p-4 space-y-4">
+                <div class="flex items-center mb-4">
+                    <button data-event="click:goBack" class="ml-4 text-police-blue">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <h2 class="text-lg font-bold text-gray-800">בתי כנסת משטרתיים</h2>
+                </div>
+                
+                <!-- @MAP: synagogues.map(synagogue => ( -->
+                <div class="bg-white rounded-lg shadow-card p-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h3 data-bind="synagogue.name" class="font-bold text-gray-800">בית כנסת בית שמש</h3>
+                            <p data-bind="synagogue.address" class="text-sm text-gray-600">רח' הרצל 45, בית שמש</p>
+                        </div>
+                        <div class="flex space-x-reverse space-x-2">
+                            <button data-event="click:openWaze" class="text-blue-600">
+                                <i class="fas fa-route"></i>
+                            </button>
+                            <button data-event="click:openMap" class="text-green-600">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div class="text-center p-2 bg-gray-50 rounded">
+                            <p class="text-gray-600">שחרית</p>
+                            <p data-bind="synagogue.shacharit" class="font-bold">06:15</p>
+                        </div>
+                        <div class="text-center p-2 bg-gray-50 rounded">
+                            <p class="text-gray-600">מנחה</p>
+                            <p data-bind="synagogue.mincha" class="font-bold">16:30</p>
+                        </div>
+                        <div class="text-center p-2 bg-gray-50 rounded">
+                            <p class="text-gray-600">מעריב</p>
+                            <p data-bind="synagogue.maariv" class="font-bold">19:00</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </main>
+
+        <!-- @COMPONENT: Bottom Navigation -->
+        <nav class="fixed bottom-0 right-0 left-0 max-w-md mx-auto bg-white border-t border-gray-200">
+            <div class="grid grid-cols-5 py-2">
+                <button data-event="click:navigate:home" class="flex flex-col items-center py-2 text-police-blue">
+                    <i class="fas fa-home text-lg"></i>
+                    <span class="text-xs mt-1">בית</span>
+                </button>
+                <button data-event="click:navigate:questions" class="flex flex-col items-center py-2 text-gray-500">
+                    <i class="fas fa-question-circle text-lg"></i>
+                    <span class="text-xs mt-1">שאלות</span>
+                </button>
+                <button data-event="click:navigate:synagogues" class="flex flex-col items-center py-2 text-gray-500">
+                    <i class="fas fa-synagogue text-lg"></i>
+                    <span class="text-xs mt-1">בתי כנסת</span>
+                </button>
+                <button data-event="click:navigate:videos" class="flex flex-col items-center py-2 text-gray-500">
+                    <i class="fas fa-play-circle text-lg"></i>
+                    <span class="text-xs mt-1">סרטונים</span>
+                </button>
+                <button data-event="click:navigate:profile" class="flex flex-col items-center py-2 text-gray-500">
+                    <i class="fas fa-user text-lg"></i>
+                    <span class="text-xs mt-1">פרופיל</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+    <!-- @END_COMPONENT: App Container -->
+
+    <script>
+        // TODO: Implement authentication, database integration, and API calls
+        (function() {
+            // Mock authentication state management
+            let userState = 'new'; // 'new', 'pending', 'approved'
+            
+            // Show appropriate screen based on user state
+            function showScreen(state) {
+                const screens = {
+                    'new': 'registrationScreen',
+                    'pending': 'pendingScreen',
+                    'approved': 'dashboard'
+                };
+                
+                // Hide all screens
+                Object.values(screens).forEach(screenId => {
+                    document.getElementById(screenId).classList.add('hidden');
+                });
+                
+                // Show current screen
+                document.getElementById(screens[state]).classList.remove('hidden');
+            }
+            
+            // Initialize app
+            function initApp() {
+                // Check device authentication token
+                // For demo, show approved state
+                userState = 'approved';
+                showScreen(userState);
+            }
+            
+            // Modal handling
+            function openModal(modalId) {
+                document.getElementById(modalId).classList.remove('hidden');
+            }
+            
+            function closeModal(modalId) {
+                document.getElementById(modalId).classList.add('hidden');
+            }
+            
+            // Event listeners
+            document.addEventListener('DOMContentLoaded', initApp);
+            
+            // Ask Rabbi modal events
+            document.body.addEventListener('click', function(e) {
+                if (e.target.matches('[data-event*="openAskRabbi"]')) {
+                    openModal('askRabbiModal');
+                }
+                if (e.target.matches('[data-event*="closeAskRabbi"]')) {
+                    closeModal('askRabbiModal');
+                }
+            });
+            
+            // Navigation handling
+            document.body.addEventListener('click', function(e) {
+                const button = e.target.closest('button');
+                if (button && button.dataset.event) {
+                    const event = button.dataset.event;
+                    if (event.includes('navigate:')) {
+                        // Update navigation state
+                        document.querySelectorAll('nav button').forEach(btn => {
+                            btn.classList.remove('text-police-blue');
+                            btn.classList.add('text-gray-500');
+                        });
+                        button.classList.remove('text-gray-500');
+                        button.classList.add('text-police-blue');
+                    }
+                }
+            });
+            
+            // Form submissions
+            document.getElementById('registrationForm')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // TODO: Send registration data to admin dashboard
+                userState = 'pending';
+                showScreen(userState);
+            });
+            
+            document.getElementById('askRabbiForm')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // TODO: Save question to database and notify rabbis
+                closeModal('askRabbiModal');
+                alert('השאלה נשלחה בהצלחה! תקבל הודעה כאשר התשובה תהיה מוכנה.');
+            });
+        })();
+    </script>
+</body>
+</html>
