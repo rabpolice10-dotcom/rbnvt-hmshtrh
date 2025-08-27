@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "node --env-file=.env dist/server/index.js || vite",
-    "build": "tsc && vite build",
+    "build": "tsc -p tsconfig.server.json && vite build",
     "start": "node dist/server/index.js",
     "db:push": "node -r dotenv/config ./node_modules/.bin/drizzle-kit push"
   },
